@@ -7,8 +7,8 @@ import GameStatistics from './components/GameStatistics';
 import GameHistory from './components/GameHistory';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
-const supabaseUrl = 'https://your-supabase-project-url.supabase.co';
-const supabaseKey = 'your-supabase-anon-key';
+const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co'
+const supabaseKey = process.env.SUPABASE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Game states
