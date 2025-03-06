@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import './App.css';
 import { createClient } from '@supabase/supabase-js';
@@ -7,8 +8,12 @@ import GameStatistics from './components/GameStatistics';
 import GameHistory from './components/GameHistory';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
-const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co'
-const supabaseKey = process.env.SUPABASE_KEY || '';
+const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co';
+const supabaseKey = process.env.REACT_APP_SUPABASE_KEY || '';
+
+// Debug information
+console.log('Supabase Key:', supabaseKey);
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Game states
