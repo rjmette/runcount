@@ -9,6 +9,7 @@ interface PlayerScoreCardProps {
   onAddFoul: (ballsOnTable?: number) => void;
   onAddSafety: (ballsOnTable?: number) => void;
   onAddMiss: (ballsOnTable?: number) => void;
+  onShowHistory?: () => void;
   targetScore: number;
 }
 
@@ -19,6 +20,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   onAddFoul,
   onAddSafety,
   onAddMiss,
+  onShowHistory,
   targetScore
 }) => {
   // Calculate average balls per inning
@@ -74,10 +76,10 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       {isActive && (
         <div className="grid grid-cols-2 gap-3 mt-4">          
           <ScoreButton
-            label="New Rack"
-            value={1}
-            onClick={() => onAddScore(1)}
-            className="bg-green-600 hover:bg-green-700 col-span-2"
+            label="Miss"
+            value={0}
+            onClick={() => onAddMiss()}
+            className="bg-gray-600 hover:bg-gray-700 col-span-2"
           />
           
           <ScoreButton
@@ -95,10 +97,17 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           />
           
           <ScoreButton
-            label="Miss"
+            label="New Rack"
+            value={1}
+            onClick={() => onAddScore(1)}
+            className="bg-green-600 hover:bg-green-700"
+          />
+          
+          <ScoreButton
+            label="History"
             value={0}
-            onClick={() => onAddMiss()}
-            className="bg-gray-600 hover:bg-gray-700 col-span-2"
+            onClick={() => onShowHistory && onShowHistory()}
+            className="bg-blue-600 hover:bg-blue-700"
           />
         </div>
       )}

@@ -21,6 +21,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [botAction, setBotAction] = useState<'newrack' | 'foul' | 'safety' | 'miss' | null>(null);
 
   // Initialize game data
@@ -398,6 +399,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     setBotAction(null);
   };
+  
+  const handleShowHistory = () => {
+    setShowHistoryModal(true);
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -434,16 +439,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
             </div>
           ))}
           
-          <div>
-            <span className="text-sm text-gray-500">Current Inning</span>
-            <span className="block text-xl font-bold">{currentInning}</span>
-          </div>
-          
-          <div>
-            <span className="text-sm text-gray-500">Current Run</span>
-            <span className="block text-xl font-bold">{currentRun}</span>
-          </div>
-          
           <div className="bg-blue-50 p-2 rounded-md">
             <span className="text-sm text-gray-500">Balls on Table (BOT)</span>
             <span className="block text-xl font-bold text-blue-700">{ballsOnTable}</span>
@@ -461,6 +456,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onAddFoul={handleAddFoul}
             onAddSafety={handleAddSafety}
             onAddMiss={handleAddMiss}
+            onShowHistory={handleShowHistory}
             targetScore={player.targetScore}
           />
         ))}
@@ -561,6 +557,56 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-auto">
+            <h3 className="text-xl font-bold mb-4">Game History</h3>
+            
+            <div className="mb-6">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="px-4 py-2 text-left">Player</th>
+                    <th className="px-4 py-2 text-left">Action</th>
+                    <th className="px-4 py-2 text-left">Points</th>
+                    <th className="px-4 py-2 text-left">Balls on Table</th>
+                    <th className="px-4 py-2 text-left">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {actions.map((action, idx) => {
+                    const player = playerData.find(p => p.id === action.playerId);
+                    const actionTime = new Date(action.timestamp);
+                    
+                    return (
+                      <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
+                        <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
+                        <td className="px-4 py-2">
+                          {action.type === 'score' && action.value > 10 ? 'New Rack' : action.type.charAt(0).toUpperCase() + action.type.slice(1)}
+                        </td>
+                        <td className="px-4 py-2">{action.value}</td>
+                        <td className="px-4 py-2">{action.ballsOnTable}</td>
+                        <td className="px-4 py-2">{actionTime.toLocaleTimeString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowHistoryModal(false)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Close
               </button>
             </div>
           </div>
