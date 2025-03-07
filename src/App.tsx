@@ -25,6 +25,10 @@ function App() {
   const [players, setPlayers] = useState<string[]>([]);
   const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
+  
+  // Store last used game settings for quick restart
+  const [lastPlayers, setLastPlayers] = useState<string[]>([]);
+  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>({});
 
   // Switch between different components based on game state
   const renderComponent = () => {
@@ -35,8 +39,13 @@ function App() {
             startGame={(players, playerTargetScores) => {
               setPlayers(players);
               setPlayerTargetScores(playerTargetScores);
+              // Save settings for future use
+              setLastPlayers(players);
+              setLastPlayerTargetScores(playerTargetScores);
               setGameState('scoring');
             }}
+            lastPlayers={lastPlayers}
+            lastPlayerTargetScores={lastPlayerTargetScores}
           />
         );
       case 'scoring':

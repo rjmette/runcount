@@ -36,6 +36,8 @@ export interface GameData {
 
 export interface GameSetupProps {
   startGame: (players: string[], playerTargetScores: Record<string, number>) => void;
+  lastPlayers?: string[];
+  lastPlayerTargetScores?: Record<string, number>;
 }
 
 export interface GameScoringProps {

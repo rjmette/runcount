@@ -364,6 +364,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   };
 
   const handleEndGame = () => {
+    // The current game settings are already saved in App.tsx state
+    // through the lastPlayers and lastPlayerTargetScores variables
     finishGame();
   };
   
