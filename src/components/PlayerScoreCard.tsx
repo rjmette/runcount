@@ -76,7 +76,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           <div className="col-span-2">
             <p className="font-medium mb-2">Add Score:</p>
             <div className="grid grid-cols-5 gap-1">
-              {[1, 2, 3, 4, 5].map(value => (
+              {[5, 10, 15, 20, 25].map(value => (
                 <ScoreButton
                   key={value}
                   label={`+${value}`}

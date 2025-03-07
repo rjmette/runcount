@@ -139,7 +139,11 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gray-50 p-3 rounded">
             <span className="block text-sm text-gray-500">Target Score</span>
-            <span className="text-lg font-semibold">{gameData.targetScore}</span>
+            <span className="text-lg font-semibold">
+              {gameData.players.length > 0 
+                ? gameData.players.map(p => `${p.name}: ${p.targetScore}`).join(', ')
+                : 'N/A'}
+            </span>
           </div>
           
           <div className="bg-gray-50 p-3 rounded">

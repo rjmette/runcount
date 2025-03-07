@@ -23,7 +23,7 @@ function App() {
   // Game state management
   const [gameState, setGameState] = useState<GameState>('setup');
   const [players, setPlayers] = useState<string[]>([]);
-  const [targetScore, setTargetScore] = useState<number>(100);
+  const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
 
   // Switch between different components based on game state
@@ -32,9 +32,9 @@ function App() {
       case 'setup':
         return (
           <GameSetup 
-            startGame={(players, targetScore) => {
+            startGame={(players, playerTargetScores) => {
               setPlayers(players);
-              setTargetScore(targetScore);
+              setPlayerTargetScores(playerTargetScores);
               setGameState('scoring');
             }}
           />
@@ -43,7 +43,7 @@ function App() {
         return (
           <GameScoring 
             players={players}
-            targetScore={targetScore}
+            playerTargetScores={playerTargetScores}
             gameId={currentGameId}
             setGameId={setCurrentGameId}
             finishGame={() => setGameState('statistics')}

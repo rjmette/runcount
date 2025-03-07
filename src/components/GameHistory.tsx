@@ -138,7 +138,11 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="bg-gray-50 p-3 rounded">
                     <span className="block text-sm text-gray-500">Target Score</span>
-                    <span className="text-lg font-semibold">{selectedGame.targetScore}</span>
+                    <span className="text-lg font-semibold">
+                      {selectedGame.players.length > 0 
+                        ? selectedGame.players.map(p => `${p.name}: ${p.targetScore}`).join(', ')
+                        : 'N/A'}
+                    </span>
                   </div>
                   
                   <div className="bg-gray-50 p-3 rounded">

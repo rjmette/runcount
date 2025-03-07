@@ -9,6 +9,7 @@ export interface Player {
   fouls: number;
   safeties: number;
   missedShots: number;
+  targetScore: number;
 }
 
 export interface GameAction {
@@ -19,8 +20,8 @@ export interface GameAction {
 }
 
 export interface GameSettings {
-  targetScore: number;
   players: string[];
+  playerTargetScores: Record<string, number>;
 }
 
 export interface GameData {
@@ -29,17 +30,16 @@ export interface GameData {
   players: Player[];
   winnerId: number | null;
   completed: boolean;
-  targetScore: number;
   actions: GameAction[];
 }
 
 export interface GameSetupProps {
-  startGame: (players: string[], targetScore: number) => void;
+  startGame: (players: string[], playerTargetScores: Record<string, number>) => void;
 }
 
 export interface GameScoringProps {
   players: string[];
-  targetScore: number;
+  playerTargetScores: Record<string, number>;
   gameId: string | null;
   setGameId: (id: string) => void;
   finishGame: () => void;

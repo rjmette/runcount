@@ -4,7 +4,8 @@ import { GameSetupProps } from '../types/game';
 const GameSetup: React.FC<GameSetupProps> = ({ startGame }) => {
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
-  const [targetScore, setTargetScore] = useState(100);
+  const [player1TargetScore, setPlayer1TargetScore] = useState(75);
+  const [player2TargetScore, setPlayer2TargetScore] = useState(60);
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,12 +21,17 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame }) => {
       return;
     }
     
-    if (targetScore <= 0) {
-      setError('Target score must be greater than 0');
+    if (player1TargetScore <= 0 || player2TargetScore <= 0) {
+      setError('Target scores must be greater than 0');
       return;
     }
     
-    startGame([player1, player2], targetScore);
+    const playerTargetScores: Record<string, number> = {
+      [player1]: player1TargetScore,
+      [player2]: player2TargetScore
+    };
+    
+    startGame([player1, player2], playerTargetScores);
   };
 
   return (
@@ -70,30 +76,62 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame }) => {
         </div>
         
         <div className="mb-6">
-          <label htmlFor="targetScore" className="block text-gray-700 font-medium mb-2">
-            Target Score
+          <label htmlFor="player1TargetScore" className="block text-gray-700 font-medium mb-2">
+            {player1 || "Player 1"}'s Target Score
           </label>
           <div className="flex items-center">
             <button
               type="button"
-              onClick={() => setTargetScore(prev => Math.max(25, prev - 25))}
+              onClick={() => setPlayer1TargetScore(prev => Math.max(5, prev - 5))}
               className="px-3 py-1 bg-gray-200 text-gray-700 rounded-l-md"
             >
               -
             </button>
             <input
               type="number"
-              id="targetScore"
-              value={targetScore}
-              onChange={(e) => setTargetScore(Number(e.target.value))}
+              id="player1TargetScore"
+              value={player1TargetScore}
+              onChange={(e) => setPlayer1TargetScore(Number(e.target.value))}
               className="w-full text-center py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              min="25"
-              step="25"
+              min="5"
+              step="5"
               required
             />
             <button
               type="button"
-              onClick={() => setTargetScore(prev => prev + 25)}
+              onClick={() => setPlayer1TargetScore(prev => prev + 5)}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-r-md"
+            >
+              +
+            </button>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label htmlFor="player2TargetScore" className="block text-gray-700 font-medium mb-2">
+            {player2 || "Player 2"}'s Target Score
+          </label>
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => setPlayer2TargetScore(prev => Math.max(5, prev - 5))}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-l-md"
+            >
+              -
+            </button>
+            <input
+              type="number"
+              id="player2TargetScore"
+              value={player2TargetScore}
+              onChange={(e) => setPlayer2TargetScore(Number(e.target.value))}
+              className="w-full text-center py-2 border-t border-b border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              min="5"
+              step="5"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setPlayer2TargetScore(prev => prev + 5)}
               className="px-3 py-1 bg-gray-200 text-gray-700 rounded-r-md"
             >
               +

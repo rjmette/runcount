@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
-  targetScore,
+  playerTargetScores,
   gameId,
   setGameId,
   finishGame,
@@ -31,7 +31,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
       highRun: 0,
       fouls: 0,
       safeties: 0,
-      missedShots: 0
+      missedShots: 0,
+      targetScore: playerTargetScores[name] || 100 // Default to 100 if not found
     }));
 
     setPlayerData(initialPlayerData);
@@ -53,7 +54,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
     // Save initial game state to Supabase
     saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
-  }, [players, gameId, setGameId, targetScore, supabase]);
+  }, [players, gameId, setGameId, playerTargetScores, supabase]);
 
   // Save game data to Supabase
   const saveGameToSupabase = async (
@@ -72,7 +73,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           players: players,
           actions: actions,
           completed: completed,
-          target_score: targetScore,
           winner_id: winnerId
         });
 
@@ -115,7 +115,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     });
 
     // Check for win condition
-    if (playerData[activePlayerIndex].score + score >= targetScore) {
+    const playerTargetScore = playerData[activePlayerIndex].targetScore;
+    if (playerData[activePlayerIndex].score + score >= playerTargetScore) {
       const winner = {
         ...playerData[activePlayerIndex],
         score: playerData[activePlayerIndex].score + score
@@ -300,7 +301,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             updated[playerIndex].score -= lastAction.value;
             break;
           case 'foul':
-            updated[playerIndex].score = Math.min(targetScore, updated[playerIndex].score + 1);
+            updated[playerIndex].score = Math.min(updated[playerIndex].targetScore, updated[playerIndex].score + 1);
             updated[playerIndex].fouls -= 1;
             break;
           case 'safety':
@@ -362,10 +363,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
       
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <div className="flex justify-between items-center">
-          <div>
-            <span className="text-sm text-gray-500">Target Score</span>
-            <span className="block text-xl font-bold">{targetScore}</span>
-          </div>
+          {playerData.map((player, index) => (
+            <div key={index}>
+              <span className="text-sm text-gray-500">{player.name}'s Target</span>
+              <span className="block text-xl font-bold">{player.targetScore}</span>
+            </div>
+          ))}
           
           <div>
             <span className="text-sm text-gray-500">Current Inning</span>
@@ -389,7 +392,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onAddFoul={handleAddFoul}
             onAddSafety={handleAddSafety}
             onAddMiss={handleAddMiss}
-            targetScore={targetScore}
+            targetScore={player.targetScore}
           />
         ))}
       </div>
