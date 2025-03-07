@@ -15,7 +15,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
-  const [currentRun, setCurrentRun] = useState(0);
+  const [currentRun, setCurrentRun] = useState<number>(0);
+  // Update the current run display in the DOM
+  useEffect(() => {
+    const currentRunElement = document.getElementById('current-run');
+    if (currentRunElement) {
+      currentRunElement.textContent = String(currentRun);
+    }
+  }, [currentRun]);
   const [ballsOnTable, setBallsOnTable] = useState(15);
   const [showEndGameModal, setShowEndGameModal] = useState(false);
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
@@ -31,7 +38,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       id: index,
       name,
       score: 0,
-      innings: 0,
+      innings: index === 0 ? 1 : 0, // Set first player's innings to 1 directly
       highRun: 0,
       fouls: 0,
       safeties: 0,
@@ -50,11 +57,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Initialize first player's turn
     setActivePlayerIndex(0);
-    setPlayerData(prev => {
-      const updated = [...prev];
-      updated[0].innings = 1;
-      return updated;
-    });
 
     // Save initial game state to Supabase
     saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
@@ -88,6 +90,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
   };
 
+  // Handle player making regular shots
+  const handleRegularShot = (value: number) => {
+    // Increment current run
+    setCurrentRun(prev => prev + value);
+  };
+
   // Handle new rack and scoring
   const handleAddScore = (score: number, botsValue?: number) => {
     if (botsValue === undefined) {
@@ -97,9 +105,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
     
     // Calculate points based on remaining balls (0 or 1)
-    // In straight pool, when you rack with 0 balls left, you get 14 points
-    // When you rack with 1 ball left, you get 15 points (including the last ball)
-    const pointsScored = botsValue === 0 ? 14 : 15;
+    // In straight pool, when you rack with 0 balls left, just restart with a new rack (no points yet)
+    // When you rack with 1 ball left, you get 1 point for the ball you called
+    const pointsScored = botsValue === 0 ? 0 : 1;
     
     // Create a new action
     const newAction: GameAction = {
@@ -120,10 +128,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update player data
     const updatedPlayerData = [...playerData];
     
-    // Update score with points scored from the rack
+    // Update score with points scored from the ball pocketed (if any)
     updatedPlayerData[activePlayerIndex].score += pointsScored;
     
-    // Update high run
+    // Update current run
     const newCurrentRun = currentRun + pointsScored;
     setCurrentRun(newCurrentRun);
     if (newCurrentRun > updatedPlayerData[activePlayerIndex].highRun) {
@@ -177,23 +185,36 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ballsOnTable: botsValue
     };
 
+    // Calculate how many balls were pocketed on the foul shot
+    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
+    
     // Update balls on table
     setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
-
-    // Reset current run
-    setCurrentRun(0);
     
     // Update player data and calculate the next player's turn
     const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
     const updatedPlayerData = [...playerData];
     
-    // Update current player stats
+    // First add the current run plus any ball pocketed on this shot to the player's score
+    const totalToAdd = currentRun + ballsPocketed;
+    updatedPlayerData[activePlayerIndex].score += totalToAdd;
+    
+    // Update high run if the current run (including this shot's ball) is higher
+    if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
+      updatedPlayerData[activePlayerIndex].highRun = totalToAdd;
+    }
+    
+    // Then deduct 1 point for the foul
     updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+    
     updatedPlayerData[activePlayerIndex].fouls += 1;
+    
+    // Reset current run
+    setCurrentRun(0);
     
     // Update next player's innings
     if (nextPlayerIndex === 0) {
@@ -234,15 +255,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ballsOnTable: botsValue
     };
 
+    // Calculate how many balls were pocketed on the safety shot
+    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
+    
     // Update balls on table
     setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
-
-    // Reset current run
-    setCurrentRun(0);
     
     // Update player data and calculate the next player's turn
     const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
@@ -250,6 +271,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Update current player stats
     updatedPlayerData[activePlayerIndex].safeties += 1;
+    
+    // Add the current run plus any ball pocketed on this shot to the player's score
+    const totalToAdd = currentRun + ballsPocketed;
+    updatedPlayerData[activePlayerIndex].score += totalToAdd;
+    
+    // Update high run if the current run (including this shot's ball) is higher
+    if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
+      updatedPlayerData[activePlayerIndex].highRun = totalToAdd;
+    }
+    
+    // Reset current run
+    setCurrentRun(0);
     
     // Update next player's innings
     if (nextPlayerIndex === 0) {
@@ -290,15 +323,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ballsOnTable: botsValue
     };
 
+    // Calculate how many balls were pocketed on the miss shot
+    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
+    
     // Update balls on table
     setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
-
-    // Reset current run
-    setCurrentRun(0);
     
     // Update player data and calculate the next player's turn
     const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
@@ -306,6 +339,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Update current player stats
     updatedPlayerData[activePlayerIndex].missedShots += 1;
+    
+    // Add the current run plus any ball pocketed on this shot to the player's score
+    const totalToAdd = currentRun + ballsPocketed;
+    updatedPlayerData[activePlayerIndex].score += totalToAdd;
+    
+    // Update high run if the current run (including this shot's ball) is higher
+    if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
+      updatedPlayerData[activePlayerIndex].highRun = totalToAdd;
+    }
+    
+    // Reset current run
+    setCurrentRun(0);
     
     // Update next player's innings
     if (nextPlayerIndex === 0) {
@@ -462,6 +507,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onAddMiss={handleAddMiss}
             onShowHistory={handleShowHistory}
             targetScore={player.targetScore}
+            onRegularShot={handleRegularShot}
           />
         ))}
       </div>
@@ -524,7 +570,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               <p className="mb-4 text-gray-600">
                 {botAction === 'newrack' 
                   ? 'How many balls are left on the table before racking?'
-                  : 'Please enter the number of balls currently on the table (2-15):'}
+                  : `Please enter the number of balls currently on the table (2-${ballsOnTable}):`}
               </p>
               
               <div className="grid grid-cols-5 gap-2">
@@ -540,7 +586,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     </button>
                   ))
                 ) : (
-                  [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
+                  // For other actions, create an array from 2 to current ballsOnTable
+                  Array.from({ length: Math.max(0, ballsOnTable - 1) }, (_, i) => i + 2).map(num => (
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
