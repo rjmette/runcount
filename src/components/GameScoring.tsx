@@ -21,7 +21,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
-  const [botAction, setBotAction] = useState<'foul' | 'safety' | 'miss' | null>(null);
+  const [botAction, setBotAction] = useState<'score' | 'foul' | 'safety' | 'miss' | null>(null);
 
   // Initialize game data
   useEffect(() => {
@@ -88,14 +88,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
   };
 
   // Handle player actions
-  const handleAddScore = (score: number) => {
-    // Calculate new balls on table after score
-    let newBallsOnTable = Math.max(1, ballsOnTable - score);
-    
-    // In straight pool, when only 1 ball remains, rerack to 15 (except the last ball)
-    if (newBallsOnTable === 1 && score > 0) {
-      newBallsOnTable = 15;
+  const handleAddScore = (score: number, botsValue?: number) => {
+    if (botsValue === undefined) {
+      setBotAction('score');
+      setShowBOTModal(true);
+      return;
     }
+    
+    // Calculate new balls on table based on user input
+    let newBallsOnTable = botsValue;
     
     // Create a new action
     const newAction: GameAction = {
@@ -383,7 +384,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const handleBOTSubmit = (botsValue: number) => {
     setShowBOTModal(false);
     
-    if (botAction === 'foul') {
+    if (botAction === 'score') {
+      handleAddScore(1, botsValue);
+    } else if (botAction === 'foul') {
       handleAddFoul(botsValue);
     } else if (botAction === 'safety') {
       handleAddSafety(botsValue);
@@ -519,19 +522,33 @@ const GameScoring: React.FC<GameScoringProps> = ({
             
             <div className="mb-6">
               <p className="mb-4 text-gray-600">
-                Please enter the number of balls currently on the table (2-15):
+                {botAction === 'score' 
+                  ? 'After scoring, how many balls remain on the table (1-15)?'
+                  : 'Please enter the number of balls currently on the table (2-15):'}
               </p>
               
               <div className="grid grid-cols-5 gap-2">
-                {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
-                  <button
-                    key={num}
-                    onClick={() => handleBOTSubmit(num)}
-                    className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
-                  >
-                    {num}
-                  </button>
-                ))}
+                {botAction === 'score' ? (
+                  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => handleBOTSubmit(num)}
+                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                    >
+                      {num}
+                    </button>
+                  ))
+                ) : (
+                  [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => handleBOTSubmit(num)}
+                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                    >
+                      {num}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
             

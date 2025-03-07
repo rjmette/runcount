@@ -72,21 +72,13 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       </div>
       
       {isActive && (
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <div className="col-span-2">
-            <p className="font-medium mb-2">Add Score:</p>
-            <div className="grid grid-cols-5 gap-1">
-              {[5, 10, 15, 20, 25].map(value => (
-                <ScoreButton
-                  key={value}
-                  label={`+${value}`}
-                  value={value}
-                  onClick={onAddScore}
-                  className="bg-green-600 hover:bg-green-700"
-                />
-              ))}
-            </div>
-          </div>
+        <div className="grid grid-cols-3 gap-3 mt-4">          
+          <ScoreButton
+            label="Score Ball"
+            value={1}
+            onClick={() => onAddScore(1)}
+            className="bg-green-600 hover:bg-green-700 col-span-3"
+          />
           
           <ScoreButton
             label="Foul (-1)"
@@ -106,7 +98,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             label="Miss"
             value={0}
             onClick={() => onAddMiss()}
-            className="bg-gray-600 hover:bg-gray-700 col-span-2"
+            className="bg-gray-600 hover:bg-gray-700"
           />
         </div>
       )}

@@ -69,8 +69,8 @@ export interface ScoreButtonProps {
 export interface PlayerScoreProps {
   player: Player;
   isActive: boolean;
-  onAddScore: (score: number) => void;
-  onAddFoul: (ballsOnTable: number) => void;
-  onAddSafety: (ballsOnTable: number) => void;
-  onAddMiss: (ballsOnTable: number) => void;
+  onAddScore: (score: number, ballsOnTable?: number) => void;
+  onAddFoul: (ballsOnTable?: number) => void;
+  onAddSafety: (ballsOnTable?: number) => void;
+  onAddMiss: (ballsOnTable?: number) => void;
 }
