@@ -184,17 +184,29 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
 
-    // Update player data
-    const updatedPlayerData = [...playerData];
-    updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
-    updatedPlayerData[activePlayerIndex].fouls += 1;
-    setPlayerData(updatedPlayerData);
-
     // Reset current run
     setCurrentRun(0);
     
+    // Update player data and calculate the next player's turn
+    const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
+    const updatedPlayerData = [...playerData];
+    
+    // Update current player stats
+    updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+    updatedPlayerData[activePlayerIndex].fouls += 1;
+    
+    // Update next player's innings
+    if (nextPlayerIndex === 0) {
+      // We're going to a new inning
+      setCurrentInning(prev => prev + 1);
+    }
+    updatedPlayerData[nextPlayerIndex].innings += 1;
+    
+    // Save updated player data
+    setPlayerData(updatedPlayerData);
+    
     // Switch to next player's turn
-    handleNextPlayerTurn();
+    setActivePlayerIndex(nextPlayerIndex);
     
     // Save game progress
     saveGameToSupabase(
@@ -229,16 +241,28 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
 
-    // Update player data
-    const updatedPlayerData = [...playerData];
-    updatedPlayerData[activePlayerIndex].safeties += 1;
-    setPlayerData(updatedPlayerData);
-
     // Reset current run
     setCurrentRun(0);
     
+    // Update player data and calculate the next player's turn
+    const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
+    const updatedPlayerData = [...playerData];
+    
+    // Update current player stats
+    updatedPlayerData[activePlayerIndex].safeties += 1;
+    
+    // Update next player's innings
+    if (nextPlayerIndex === 0) {
+      // We're going to a new inning
+      setCurrentInning(prev => prev + 1);
+    }
+    updatedPlayerData[nextPlayerIndex].innings += 1;
+    
+    // Save updated player data
+    setPlayerData(updatedPlayerData);
+    
     // Switch to next player's turn
-    handleNextPlayerTurn();
+    setActivePlayerIndex(nextPlayerIndex);
     
     // Save game progress
     saveGameToSupabase(
@@ -273,16 +297,28 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setActions(prev => [...prev, newAction]);
     setIsUndoEnabled(true);
 
-    // Update player data
-    const updatedPlayerData = [...playerData];
-    updatedPlayerData[activePlayerIndex].missedShots += 1;
-    setPlayerData(updatedPlayerData);
-
     // Reset current run
     setCurrentRun(0);
     
+    // Update player data and calculate the next player's turn
+    const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
+    const updatedPlayerData = [...playerData];
+    
+    // Update current player stats
+    updatedPlayerData[activePlayerIndex].missedShots += 1;
+    
+    // Update next player's innings
+    if (nextPlayerIndex === 0) {
+      // We're going to a new inning
+      setCurrentInning(prev => prev + 1);
+    }
+    updatedPlayerData[nextPlayerIndex].innings += 1;
+    
+    // Save updated player data
+    setPlayerData(updatedPlayerData);
+    
     // Switch to next player's turn
-    handleNextPlayerTurn();
+    setActivePlayerIndex(nextPlayerIndex);
     
     // Save game progress
     saveGameToSupabase(
@@ -294,24 +330,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     );
   };
 
-  const handleNextPlayerTurn = () => {
-    const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
-    
-    // Increment inning if we've gone through all players
-    if (nextPlayerIndex === 0) {
-      setCurrentInning(prev => prev + 1);
-    }
-    
-    // Update innings for the next player
-    setPlayerData(prev => {
-      const updated = [...prev];
-      updated[nextPlayerIndex].innings += 1;
-      return updated;
-    });
-    
-    // Set active player
-    setActivePlayerIndex(nextPlayerIndex);
-  };
+  // Player turn is now handled directly in each action handler
 
   const handleUndoLastAction = () => {
     if (actions.length === 0) return;
