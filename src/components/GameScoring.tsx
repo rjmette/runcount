@@ -21,7 +21,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
-  const [botAction, setBotAction] = useState<'score' | 'foul' | 'safety' | 'miss' | null>(null);
+  const [botAction, setBotAction] = useState<'newrack' | 'foul' | 'safety' | 'miss' | null>(null);
 
   // Initialize game data
   useEffect(() => {
@@ -87,28 +87,30 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
   };
 
-  // Handle player actions
+  // Handle new rack and scoring
   const handleAddScore = (score: number, botsValue?: number) => {
     if (botsValue === undefined) {
-      setBotAction('score');
+      setBotAction('newrack');
       setShowBOTModal(true);
       return;
     }
     
-    // Calculate new balls on table based on user input
-    let newBallsOnTable = botsValue;
+    // Calculate points based on remaining balls (0 or 1)
+    // In straight pool, when you rack with 0 balls left, you get 14 points
+    // When you rack with 1 ball left, you get 15 points (including the last ball)
+    const pointsScored = botsValue === 0 ? 14 : 15;
     
     // Create a new action
     const newAction: GameAction = {
       type: 'score',
       playerId: playerData[activePlayerIndex].id,
-      value: score,
+      value: pointsScored,
       timestamp: new Date(),
-      ballsOnTable: newBallsOnTable
+      ballsOnTable: 15 // New rack always has 15 balls
     };
 
-    // Update balls on table
-    setBallsOnTable(newBallsOnTable);
+    // Update balls on table to 15 (full rack)
+    setBallsOnTable(15);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
@@ -118,13 +120,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setPlayerData(prev => {
       const updated = [...prev];
       
-      // Update score
-      updated[activePlayerIndex].score += score;
+      // Update score with points scored from the rack
+      updated[activePlayerIndex].score += pointsScored;
       
       // Update high run
-      setCurrentRun(prev => prev + score);
-      if (currentRun + score > updated[activePlayerIndex].highRun) {
-        updated[activePlayerIndex].highRun = currentRun + score;
+      setCurrentRun(prev => prev + pointsScored);
+      if (currentRun + pointsScored > updated[activePlayerIndex].highRun) {
+        updated[activePlayerIndex].highRun = currentRun + pointsScored;
       }
       
       return updated;
@@ -132,10 +134,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
     // Check for win condition
     const playerTargetScore = playerData[activePlayerIndex].targetScore;
-    if (playerData[activePlayerIndex].score + score >= playerTargetScore) {
+    if (playerData[activePlayerIndex].score + pointsScored >= playerTargetScore) {
       const winner = {
         ...playerData[activePlayerIndex],
-        score: playerData[activePlayerIndex].score + score
+        score: playerData[activePlayerIndex].score + pointsScored
       };
       setGameWinner(winner);
       setShowEndGameModal(true);
@@ -143,7 +145,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Save completed game
       saveGameToSupabase(
         gameId || '', 
-        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + score} : p),
+        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + pointsScored} : p),
         [...actions, newAction],
         true,
         winner.id
@@ -152,7 +154,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Save game progress
       saveGameToSupabase(
         gameId || '', 
-        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + score} : p),
+        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + pointsScored} : p),
         [...actions, newAction],
         false,
         null
@@ -384,7 +386,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const handleBOTSubmit = (botsValue: number) => {
     setShowBOTModal(false);
     
-    if (botAction === 'score') {
+    if (botAction === 'newrack') {
       handleAddScore(1, botsValue);
     } else if (botAction === 'foul') {
       handleAddFoul(botsValue);
@@ -522,14 +524,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
             
             <div className="mb-6">
               <p className="mb-4 text-gray-600">
-                {botAction === 'score' 
-                  ? 'After scoring, how many balls remain on the table (1-15)?'
+                {botAction === 'newrack' 
+                  ? 'How many balls are left on the table before racking?'
                   : 'Please enter the number of balls currently on the table (2-15):'}
               </p>
               
               <div className="grid grid-cols-5 gap-2">
-                {botAction === 'score' ? (
-                  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
+                {botAction === 'newrack' ? (
+                  // For new rack, only allow 0 or 1 balls
+                  [0, 1].map(num => (
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
