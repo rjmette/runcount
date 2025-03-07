@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameHistoryProps, GameData } from '../types/game';
+import { GameHistoryProps, GameData, GameAction } from '../types/game';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
@@ -252,9 +252,8 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Inning</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Player</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Action</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Points</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Run</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Balls Left</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">BOT</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -336,13 +335,10 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                                       inning.pointsInInning < 0 ? 'text-red-600 font-medium' :
                                       'text-gray-600'
                                     }`}>
-                                      {inning.pointsInInning}
+                                      {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
+                                        ? inning.pointsInInning 
+                                        : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                                     </span>
-                                  </td>
-                                  <td className="px-3 py-2 text-sm">
-                                    {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
-                                      ? inning.pointsInInning 
-                                      : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                                   </td>
                                   <td className="px-3 py-2 text-sm">{inning.endAction.ballsOnTable}</td>
                                 </tr>

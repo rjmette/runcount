@@ -625,9 +625,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <th className="px-4 py-2 text-left">Inning</th>
                     <th className="px-4 py-2 text-left">Player</th>
                     <th className="px-4 py-2 text-left">Action</th>
-                    <th className="px-4 py-2 text-left">Points in Inning</th>
                     <th className="px-4 py-2 text-left">Run</th>
-                    <th className="px-4 py-2 text-left">Balls Remaining</th>
+                    <th className="px-4 py-2 text-left">BOT</th>
                     <th className="px-4 py-2 text-left">Time</th>
                   </tr>
                 </thead>
@@ -707,7 +706,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
                           <td className="px-4 py-2">{inning.inningNumber}</td>
                           <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
                           <td className="px-4 py-2">{actionLabel}</td>
-                          <td className="px-4 py-2">{inning.pointsInInning}</td>
                           <td className="px-4 py-2">
                             {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
                               ? inning.pointsInInning 
