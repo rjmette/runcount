@@ -6,9 +6,9 @@ interface PlayerScoreCardProps {
   player: Player;
   isActive: boolean;
   onAddScore: (score: number) => void;
-  onAddFoul: () => void;
-  onAddSafety: () => void;
-  onAddMiss: () => void;
+  onAddFoul: (ballsOnTable?: number) => void;
+  onAddSafety: (ballsOnTable?: number) => void;
+  onAddMiss: (ballsOnTable?: number) => void;
   targetScore: number;
 }
 

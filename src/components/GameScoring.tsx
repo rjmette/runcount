@@ -16,9 +16,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
   const [currentRun, setCurrentRun] = useState(0);
+  const [ballsOnTable, setBallsOnTable] = useState(15);
   const [showEndGameModal, setShowEndGameModal] = useState(false);
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
+  const [showBOTModal, setShowBOTModal] = useState(false);
+  const [botAction, setBotAction] = useState<'foul' | 'safety' | 'miss' | null>(null);
 
   // Initialize game data
   useEffect(() => {
@@ -86,13 +89,25 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   // Handle player actions
   const handleAddScore = (score: number) => {
+    // Calculate new balls on table after score
+    let newBallsOnTable = Math.max(1, ballsOnTable - score);
+    
+    // In straight pool, when only 1 ball remains, rerack to 15 (except the last ball)
+    if (newBallsOnTable === 1 && score > 0) {
+      newBallsOnTable = 15;
+    }
+    
     // Create a new action
     const newAction: GameAction = {
       type: 'score',
       playerId: playerData[activePlayerIndex].id,
       value: score,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ballsOnTable: newBallsOnTable
     };
+
+    // Update balls on table
+    setBallsOnTable(newBallsOnTable);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
@@ -144,14 +159,24 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
   };
 
-  const handleAddFoul = () => {
+  const handleAddFoul = (botsValue?: number) => {
+    if (botsValue === undefined) {
+      setBotAction('foul');
+      setShowBOTModal(true);
+      return;
+    }
+    
     // Create a new action
     const newAction: GameAction = {
       type: 'foul',
       playerId: playerData[activePlayerIndex].id,
       value: -1,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ballsOnTable: botsValue
     };
+
+    // Update balls on table
+    setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
@@ -190,14 +215,24 @@ const GameScoring: React.FC<GameScoringProps> = ({
     );
   };
 
-  const handleAddSafety = () => {
+  const handleAddSafety = (botsValue?: number) => {
+    if (botsValue === undefined) {
+      setBotAction('safety');
+      setShowBOTModal(true);
+      return;
+    }
+    
     // Create a new action
     const newAction: GameAction = {
       type: 'safety',
       playerId: playerData[activePlayerIndex].id,
       value: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ballsOnTable: botsValue
     };
+
+    // Update balls on table
+    setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
@@ -226,14 +261,24 @@ const GameScoring: React.FC<GameScoringProps> = ({
     );
   };
 
-  const handleAddMiss = () => {
+  const handleAddMiss = (botsValue?: number) => {
+    if (botsValue === undefined) {
+      setBotAction('miss');
+      setShowBOTModal(true);
+      return;
+    }
+    
     // Create a new action
     const newAction: GameAction = {
       type: 'miss',
       playerId: playerData[activePlayerIndex].id,
       value: 0,
-      timestamp: new Date()
+      timestamp: new Date(),
+      ballsOnTable: botsValue
     };
+
+    // Update balls on table
+    setBallsOnTable(botsValue);
 
     // Add action to history
     setActions(prev => [...prev, newAction]);
@@ -334,6 +379,20 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const handleEndGame = () => {
     finishGame();
   };
+  
+  const handleBOTSubmit = (botsValue: number) => {
+    setShowBOTModal(false);
+    
+    if (botAction === 'foul') {
+      handleAddFoul(botsValue);
+    } else if (botAction === 'safety') {
+      handleAddSafety(botsValue);
+    } else if (botAction === 'miss') {
+      handleAddMiss(botsValue);
+    }
+    
+    setBotAction(null);
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -378,6 +437,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <div>
             <span className="text-sm text-gray-500">Current Run</span>
             <span className="block text-xl font-bold">{currentRun}</span>
+          </div>
+          
+          <div className="bg-blue-50 p-2 rounded-md">
+            <span className="text-sm text-gray-500">Balls on Table (BOT)</span>
+            <span className="block text-xl font-bold text-blue-700">{ballsOnTable}</span>
           </div>
         </div>
       </div>
@@ -439,6 +503,44 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
                 {gameWinner ? 'View Statistics' : 'End Game'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Balls on Table Modal */}
+      {showBOTModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">
+              How many balls are on the table?
+            </h3>
+            
+            <div className="mb-6">
+              <p className="mb-4 text-gray-600">
+                Please enter the number of balls currently on the table (2-15):
+              </p>
+              
+              <div className="grid grid-cols-5 gap-2">
+                {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => handleBOTSubmit(num)}
+                    className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowBOTModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+              >
+                Cancel
               </button>
             </div>
           </div>
