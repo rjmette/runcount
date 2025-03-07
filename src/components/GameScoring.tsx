@@ -622,30 +622,103 @@ const GameScoring: React.FC<GameScoringProps> = ({
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
+                    <th className="px-4 py-2 text-left">Inning</th>
                     <th className="px-4 py-2 text-left">Player</th>
                     <th className="px-4 py-2 text-left">Action</th>
-                    <th className="px-4 py-2 text-left">Points</th>
-                    <th className="px-4 py-2 text-left">Balls on Table</th>
+                    <th className="px-4 py-2 text-left">Points in Inning</th>
+                    <th className="px-4 py-2 text-left">Run</th>
+                    <th className="px-4 py-2 text-left">Balls Remaining</th>
                     <th className="px-4 py-2 text-left">Time</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {actions.map((action, idx) => {
-                    const player = playerData.find(p => p.id === action.playerId);
-                    const actionTime = new Date(action.timestamp);
+                  {(() => {
+                    // Group actions by innings
+                    const inningActions: Array<{
+                      inningNumber: number;
+                      playerId: number;
+                      endAction: GameAction;
+                      pointsInInning: number;
+                      endTime: Date;
+                    }> = [];
                     
-                    return (
-                      <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
-                        <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
-                        <td className="px-4 py-2">
-                          {action.type === 'score' && action.value > 10 ? 'New Rack' : action.type.charAt(0).toUpperCase() + action.type.slice(1)}
-                        </td>
-                        <td className="px-4 py-2">{action.value}</td>
-                        <td className="px-4 py-2">{action.ballsOnTable}</td>
-                        <td className="px-4 py-2">{actionTime.toLocaleTimeString()}</td>
-                      </tr>
-                    );
-                  })}
+                    let currentInningNumber = 1;
+                    let currentPlayerId = playerData[0]?.id;
+                    let currentInningPoints = 0;
+                    let currentRun = 0;
+                    let inningStartTime: Date | null = actions.length > 0 ? new Date(actions[0].timestamp) : null;
+                    
+                    // Process actions to create inning-based history
+                    actions.forEach((action, idx) => {
+                      if (action.type === 'score') {
+                        // For score actions (regular balls or new rack), just add to inning points
+                        currentInningPoints += action.value;
+                        currentRun += action.value;
+                      } else if (['miss', 'safety', 'foul'].includes(action.type)) {
+                        // For turn-ending actions (miss, safety, foul), calculate points
+                        // This includes the current run up to this point
+                        
+                        // Calculate balls pocketed in this final shot (if any)
+                        const prevAction = idx > 0 ? actions[idx - 1] : null;
+                        const prevBOT = prevAction?.ballsOnTable ?? 15;
+                        const ballsPocketedOnFinalShot = Math.max(0, prevBOT - (action.ballsOnTable || 0));
+                        
+                        // If it's a foul, subtract 1 point for the penalty
+                        const pointsInAction = (
+                          action.type === 'foul' 
+                            ? currentRun + ballsPocketedOnFinalShot - 1 
+                            : currentRun + ballsPocketedOnFinalShot
+                        );
+                        
+                        // Add the inning to our array
+                        inningActions.push({
+                          inningNumber: currentInningNumber,
+                          playerId: currentPlayerId,
+                          endAction: action,
+                          pointsInInning: pointsInAction,
+                          endTime: new Date(action.timestamp)
+                        });
+                        
+                        // Update for next inning
+                        const nextPlayerId = playerData.find(p => p.id !== currentPlayerId)?.id;
+                        if (nextPlayerId !== undefined) {
+                          currentPlayerId = nextPlayerId;
+                          if (currentPlayerId === playerData[0]?.id) {
+                            // If we're back to the first player, increment inning number
+                            currentInningNumber++;
+                          }
+                        }
+                        
+                        // Reset points for next inning
+                        currentInningPoints = 0;
+                        currentRun = 0;
+                        inningStartTime = null;
+                      }
+                    });
+                    
+                    // Render the innings
+                    return inningActions.map((inning, idx) => {
+                      const player = playerData.find(p => p.id === inning.playerId);
+                      const actionType = inning.endAction.type;
+                      const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
+                      
+                      return (
+                        <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
+                          <td className="px-4 py-2">{inning.inningNumber}</td>
+                          <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
+                          <td className="px-4 py-2">{actionLabel}</td>
+                          <td className="px-4 py-2">{inning.pointsInInning}</td>
+                          <td className="px-4 py-2">
+                            {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
+                              ? inning.pointsInInning 
+                              : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
+                          </td>
+                          <td className="px-4 py-2">{inning.endAction.ballsOnTable}</td>
+                          <td className="px-4 py-2">{inning.endTime.toLocaleTimeString()}</td>
+                        </tr>
+                      );
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
