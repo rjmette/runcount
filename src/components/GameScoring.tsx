@@ -118,27 +118,25 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled(true);
 
     // Update player data
-    setPlayerData(prev => {
-      const updated = [...prev];
-      
-      // Update score with points scored from the rack
-      updated[activePlayerIndex].score += pointsScored;
-      
-      // Update high run
-      setCurrentRun(prev => prev + pointsScored);
-      if (currentRun + pointsScored > updated[activePlayerIndex].highRun) {
-        updated[activePlayerIndex].highRun = currentRun + pointsScored;
-      }
-      
-      return updated;
-    });
+    const updatedPlayerData = [...playerData];
+    
+    // Update score with points scored from the rack
+    updatedPlayerData[activePlayerIndex].score += pointsScored;
+    
+    // Update high run
+    const newCurrentRun = currentRun + pointsScored;
+    setCurrentRun(newCurrentRun);
+    if (newCurrentRun > updatedPlayerData[activePlayerIndex].highRun) {
+      updatedPlayerData[activePlayerIndex].highRun = newCurrentRun;
+    }
+    
+    setPlayerData(updatedPlayerData);
 
     // Check for win condition
-    const playerTargetScore = playerData[activePlayerIndex].targetScore;
-    if (playerData[activePlayerIndex].score + pointsScored >= playerTargetScore) {
+    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
+    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
       const winner = {
-        ...playerData[activePlayerIndex],
-        score: playerData[activePlayerIndex].score + pointsScored
+        ...updatedPlayerData[activePlayerIndex]
       };
       setGameWinner(winner);
       setShowEndGameModal(true);
@@ -146,7 +144,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Save completed game
       saveGameToSupabase(
         gameId || '', 
-        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + pointsScored} : p),
+        updatedPlayerData,
         [...actions, newAction],
         true,
         winner.id
@@ -155,7 +153,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Save game progress
       saveGameToSupabase(
         gameId || '', 
-        playerData.map((p, i) => i === activePlayerIndex ? {...p, score: p.score + pointsScored} : p),
+        updatedPlayerData,
         [...actions, newAction],
         false,
         null
@@ -187,12 +185,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled(true);
 
     // Update player data
-    setPlayerData(prev => {
-      const updated = [...prev];
-      updated[activePlayerIndex].score = Math.max(0, updated[activePlayerIndex].score - 1);
-      updated[activePlayerIndex].fouls += 1;
-      return updated;
-    });
+    const updatedPlayerData = [...playerData];
+    updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+    updatedPlayerData[activePlayerIndex].fouls += 1;
+    setPlayerData(updatedPlayerData);
 
     // Reset current run
     setCurrentRun(0);
@@ -203,16 +199,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save game progress
     saveGameToSupabase(
       gameId || '', 
-      playerData.map((p, i) => {
-        if (i === activePlayerIndex) {
-          return {
-            ...p, 
-            score: Math.max(0, p.score - 1),
-            fouls: p.fouls + 1
-          };
-        }
-        return p;
-      }),
+      updatedPlayerData,
       [...actions, newAction],
       false,
       null
@@ -243,11 +230,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled(true);
 
     // Update player data
-    setPlayerData(prev => {
-      const updated = [...prev];
-      updated[activePlayerIndex].safeties += 1;
-      return updated;
-    });
+    const updatedPlayerData = [...playerData];
+    updatedPlayerData[activePlayerIndex].safeties += 1;
+    setPlayerData(updatedPlayerData);
 
     // Reset current run
     setCurrentRun(0);
@@ -258,7 +243,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save game progress
     saveGameToSupabase(
       gameId || '', 
-      playerData.map((p, i) => i === activePlayerIndex ? {...p, safeties: p.safeties + 1} : p),
+      updatedPlayerData,
       [...actions, newAction],
       false,
       null
@@ -289,11 +274,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled(true);
 
     // Update player data
-    setPlayerData(prev => {
-      const updated = [...prev];
-      updated[activePlayerIndex].missedShots += 1;
-      return updated;
-    });
+    const updatedPlayerData = [...playerData];
+    updatedPlayerData[activePlayerIndex].missedShots += 1;
+    setPlayerData(updatedPlayerData);
 
     // Reset current run
     setCurrentRun(0);
@@ -304,7 +287,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save game progress
     saveGameToSupabase(
       gameId || '', 
-      playerData.map((p, i) => i === activePlayerIndex ? {...p, missedShots: p.missedShots + 1} : p),
+      updatedPlayerData,
       [...actions, newAction],
       false,
       null
@@ -423,9 +406,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
           
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            End Game
+            New Game
           </button>
         </div>
       </div>
@@ -462,12 +445,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
         ))}
       </div>
       
-      {/* End Game Modal */}
+      {/* Game Completion / New Game Modal */}
       {showEndGameModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">
-              {gameWinner ? 'Game Completed!' : 'End Game?'}
+              {gameWinner ? 'Game Completed!' : 'Start New Game?'}
             </h3>
             
             {gameWinner ? (
@@ -486,24 +469,22 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 </div>
               </div>
             ) : (
-              <p className="mb-6">Are you sure you want to end the game? This action cannot be undone.</p>
+              <p className="mb-6">Are you sure you want to start a new game? The current game will be saved and ended.</p>
             )}
             
             <div className="flex justify-end space-x-4">
-              {!gameWinner && (
-                <button
-                  onClick={() => setShowEndGameModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-              )}
+              <button
+                onClick={() => setShowEndGameModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+              >
+                {gameWinner ? 'Continue Playing' : 'Cancel'}
+              </button>
               
               <button
                 onClick={handleEndGame}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                {gameWinner ? 'View Statistics' : 'End Game'}
+                {gameWinner ? 'View Statistics' : 'Start New Game'}
               </button>
             </div>
           </div>
