@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameScoringProps, Player, GameAction } from '../types/game';
 import PlayerScoreCard from './PlayerScoreCard';
 import { v4 as uuidv4 } from 'uuid';
+import ReactConfetti from 'react-confetti';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -79,7 +80,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
           players: players,
           actions: actions,
           completed: completed,
-          winner_id: winnerId
+          winner_id: winnerId,
+          owner_id: user?.id || null
         });
 
       if (error) {
@@ -584,6 +586,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {/* Game Completion / New Game Modal */}
       {showEndGameModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          {gameWinner && <ReactConfetti recycle={false} numberOfPieces={500} />}
           <div className="bg-white p-8 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
             {gameWinner ? (
               <>
@@ -655,6 +658,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
                 >
                   Cancel
+                </button>
+              )}
+              
+              {gameWinner && (
+                <button
+                  onClick={handleEndGame}
+                  className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md"
+                >
+                  Start New Game
                 </button>
               )}
               
