@@ -144,33 +144,16 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     setPlayerData(updatedPlayerData);
 
-    // Check for win condition
-    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
-    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
-      const winner = {
-        ...updatedPlayerData[activePlayerIndex]
-      };
-      setGameWinner(winner);
-      setShowEndGameModal(true);
-      
-      // Save completed game
-      saveGameToSupabase(
-        gameId || '', 
-        updatedPlayerData,
-        [...actions, newAction],
-        true,
-        winner.id
-      );
-    } else {
-      // Save game progress
-      saveGameToSupabase(
-        gameId || '', 
-        updatedPlayerData,
-        [...actions, newAction],
-        false,
-        null
-      );
-    }
+    // For new rack, don't show end game even if score is reached
+    // We'll only show the end game when the inning is over (miss/safety/foul)
+    // Just save the game progress
+    saveGameToSupabase(
+      gameId || '', 
+      updatedPlayerData,
+      [...actions, newAction],
+      false,
+      null
+    )
   };
 
   const handleAddFoul = (botsValue?: number) => {
@@ -237,17 +220,37 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save updated player data
     setPlayerData(updatedPlayerData);
     
-    // Switch to next player's turn
-    setActivePlayerIndex(nextPlayerIndex);
-    
-    // Save game progress
-    saveGameToSupabase(
-      gameId || '', 
-      updatedPlayerData,
-      [...actions, newAction],
-      false,
-      null
-    );
+    // Check for win condition - only when player's turn is ending with a foul
+    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
+    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
+      const winner = {
+        ...updatedPlayerData[activePlayerIndex]
+      };
+      setGameWinner(winner);
+      setShowEndGameModal(true);
+      
+      // Save completed game
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        true,
+        winner.id
+      );
+    } else {
+      // No winner yet, continue game
+      // Switch to next player's turn
+      setActivePlayerIndex(nextPlayerIndex);
+      
+      // Save game progress
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null
+      );
+    }
   };
 
   const handleAddSafety = (botsValue?: number) => {
@@ -312,17 +315,37 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save updated player data
     setPlayerData(updatedPlayerData);
     
-    // Switch to next player's turn
-    setActivePlayerIndex(nextPlayerIndex);
-    
-    // Save game progress
-    saveGameToSupabase(
-      gameId || '', 
-      updatedPlayerData,
-      [...actions, newAction],
-      false,
-      null
-    );
+    // Check for win condition - only when player's turn is ending with a safety
+    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
+    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
+      const winner = {
+        ...updatedPlayerData[activePlayerIndex]
+      };
+      setGameWinner(winner);
+      setShowEndGameModal(true);
+      
+      // Save completed game
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        true,
+        winner.id
+      );
+    } else {
+      // No winner yet, continue game
+      // Switch to next player's turn
+      setActivePlayerIndex(nextPlayerIndex);
+      
+      // Save game progress
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null
+      );
+    }
   };
 
   const handleAddMiss = (botsValue?: number) => {
@@ -387,17 +410,37 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Save updated player data
     setPlayerData(updatedPlayerData);
     
-    // Switch to next player's turn
-    setActivePlayerIndex(nextPlayerIndex);
-    
-    // Save game progress
-    saveGameToSupabase(
-      gameId || '', 
-      updatedPlayerData,
-      [...actions, newAction],
-      false,
-      null
-    );
+    // Check for win condition - only when player's turn is ending with a miss
+    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
+    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
+      const winner = {
+        ...updatedPlayerData[activePlayerIndex]
+      };
+      setGameWinner(winner);
+      setShowEndGameModal(true);
+      
+      // Save completed game
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        true,
+        winner.id
+      );
+    } else {
+      // No winner yet, continue game
+      // Switch to next player's turn
+      setActivePlayerIndex(nextPlayerIndex);
+      
+      // Save game progress
+      saveGameToSupabase(
+        gameId || '', 
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null
+      );
+    }
   };
 
   // Player turn is now handled directly in each action handler
@@ -540,44 +583,86 @@ const GameScoring: React.FC<GameScoringProps> = ({
       
       {/* Game Completion / New Game Modal */}
       {showEndGameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">
-              {gameWinner ? 'Game Completed!' : 'Start New Game?'}
-            </h3>
-            
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
             {gameWinner ? (
-              <div className="mb-6">
-                <p className="mb-2">
-                  <span className="font-bold text-blue-700">{gameWinner.name}</span> has won with a score of <span className="font-bold">{gameWinner.score}</span>!
-                </p>
-                
-                <div className="bg-blue-50 p-4 rounded-md">
-                  <h4 className="font-medium mb-2">Game Statistics:</h4>
-                  <ul className="text-sm">
-                    <li>Total Innings: {currentInning}</li>
-                    <li>Winner's High Run: {gameWinner.highRun}</li>
-                    <li>Winner's BPI: {(gameWinner.score / gameWinner.innings).toFixed(2)}</li>
-                  </ul>
+              <>
+                <div className="text-center mb-6 animate-pulse">
+                  <div className="text-6xl mb-2">🏆 🎱</div>
+                  <h3 className="text-2xl font-bold text-blue-700">
+                    Game Completed!
+                  </h3>
                 </div>
-              </div>
+                
+                <div className="mb-8">
+                  <p className="mb-4 text-lg text-center">
+                    <span className="font-bold text-blue-700 text-xl">{gameWinner.name}</span> has won with a score of <span className="font-bold text-xl">{gameWinner.score}</span>!
+                  </p>
+                  
+                  <div className="bg-blue-50 p-6 rounded-md shadow-inner">
+                    <h4 className="font-medium mb-4 text-lg border-b border-blue-200 pb-2">Game Statistics:</h4>
+                    
+                    <div className="grid grid-cols-2 gap-y-3 mb-4">
+                      <div className="font-medium">Total Innings:</div>
+                      <div>{currentInning}</div>
+                      
+                      <div className="font-medium">Game Duration:</div>
+                      <div>
+                        {actions.length > 0 ? 
+                          (() => {
+                            const startTime = new Date(actions[0].timestamp);
+                            const endTime = new Date(actions[actions.length - 1].timestamp);
+                            const durationMs = endTime.getTime() - startTime.getTime();
+                            const minutes = Math.floor(durationMs / 60000);
+                            const seconds = Math.floor((durationMs % 60000) / 1000);
+                            return `${minutes}m ${seconds}s`;
+                          })() 
+                          : "N/A"
+                        }
+                      </div>
+                    </div>
+                    
+                    <h4 className="font-medium mb-2 mt-4 border-b border-blue-200 pb-2">Player Stats:</h4>
+                    <div className="space-y-3">
+                      {playerData.map((player) => (
+                        <div key={player.id} className={`p-3 rounded ${player.id === gameWinner.id ? 'bg-blue-100' : ''}`}>
+                          <div className="font-medium">{player.name} {player.id === gameWinner.id && '🏆'}</div>
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-sm">
+                            <div>Score:</div>
+                            <div>{player.score}</div>
+                            <div>High Run:</div>
+                            <div>{player.highRun}</div>
+                            <div>BPI:</div>
+                            <div>{(player.score / Math.max(1, player.innings)).toFixed(2)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
-              <p className="mb-6">Are you sure you want to start a new game? The current game will be saved and ended.</p>
+              <>
+                <h3 className="text-xl font-bold mb-4">Start New Game?</h3>
+                <p className="mb-6">Are you sure you want to start a new game? The current game will be saved and ended.</p>
+              </>
             )}
             
             <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setShowEndGameModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
-              >
-                {gameWinner ? 'Continue Playing' : 'Cancel'}
-              </button>
+              {!gameWinner && (
+                <button
+                  onClick={() => setShowEndGameModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+              )}
               
               <button
                 onClick={handleEndGame}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md"
               >
-                {gameWinner ? 'View Statistics' : 'Start New Game'}
+                {gameWinner ? 'View Full Statistics' : 'Start New Game'}
               </button>
             </div>
           </div>
