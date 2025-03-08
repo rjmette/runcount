@@ -104,11 +104,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
       return;
     }
     
-    // In straight pool when racking:
-    // Player gets points for all balls not on the table (15 minus botsValue)
-    // If 0 balls left on table, that's 15 points
-    // If 1 ball left on table, that's 14 points
-    const pointsScored = 15 - botsValue;
+    // Calculate balls pocketed for this scoring action
+    // This is the difference between current balls on table (could be any number)
+    // and what the player reported is left (0 or 1)
+    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
+    
+    // For new rack button, we add the number of balls pocketed to the score
+    // The inning continues with the same player, just with a fresh rack
+    const pointsScored = ballsPocketed;
     
     // Create a new action
     const newAction: GameAction = {
@@ -129,7 +132,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update player data
     const updatedPlayerData = [...playerData];
     
-    // Update score with points for all balls pocketed (15 - balls on table)
+    // Update score with total points scored
     updatedPlayerData[activePlayerIndex].score += pointsScored;
     
     // Update current run
@@ -200,8 +203,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
     const nextPlayerIndex = (activePlayerIndex + 1) % players.length;
     const updatedPlayerData = [...playerData];
     
-    // First add the current run plus any ball pocketed on this shot to the player's score
-    const totalToAdd = currentRun + ballsPocketed;
+    // Check if this inning had any 'score' type actions (new rack)
+    const hasScoreActions = actions.some(action => 
+      action.type === 'score' && 
+      action.playerId === playerData[activePlayerIndex].id
+    );
+    
+    // If there were score actions this inning, only add the current shot's balls
+    // Otherwise add the full run plus this shot's balls
+    const totalToAdd = hasScoreActions ? ballsPocketed : (currentRun + ballsPocketed);
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
     
     // Update high run if the current run (including this shot's ball) is higher
@@ -273,8 +283,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update current player stats
     updatedPlayerData[activePlayerIndex].safeties += 1;
     
-    // Add the current run plus any ball pocketed on this shot to the player's score
-    const totalToAdd = currentRun + ballsPocketed;
+    // Check if this inning had any 'score' type actions (new rack)
+    const hasScoreActions = actions.some(action => 
+      action.type === 'score' && 
+      action.playerId === playerData[activePlayerIndex].id
+    );
+    
+    // If there were score actions this inning, only add the current shot's balls
+    // Otherwise add the full run plus this shot's balls
+    const totalToAdd = hasScoreActions ? ballsPocketed : (currentRun + ballsPocketed);
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
     
     // Update high run if the current run (including this shot's ball) is higher
@@ -341,8 +358,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update current player stats
     updatedPlayerData[activePlayerIndex].missedShots += 1;
     
-    // Add the current run plus any ball pocketed on this shot to the player's score
-    const totalToAdd = currentRun + ballsPocketed;
+    // Check if this inning had any 'score' type actions (new rack)
+    const hasScoreActions = actions.some(action => 
+      action.type === 'score' && 
+      action.playerId === playerData[activePlayerIndex].id
+    );
+    
+    // If there were score actions this inning, only add the current shot's balls
+    // Otherwise add the full run plus this shot's balls
+    const totalToAdd = hasScoreActions ? ballsPocketed : (currentRun + ballsPocketed);
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
     
     // Update high run if the current run (including this shot's ball) is higher
@@ -438,8 +462,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setShowBOTModal(false);
     
     if (botAction === 'newrack') {
-      // Pass 15 as the score to handleAddScore to ensure correct scoring
-      handleAddScore(15, botsValue);
+      // No need to pass a specific score - handleAddScore will calculate it
+      handleAddScore(0, botsValue);
     } else if (botAction === 'foul') {
       handleAddFoul(botsValue);
     } else if (botAction === 'safety') {
@@ -458,7 +482,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Game in Progress</h2>
+        <h2 className="text-2xl font-bold">Game Scoring</h2>
         <div className="flex space-x-4">
           <button
             onClick={handleUndoLastAction}
@@ -571,7 +595,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="mb-6">
               <p className="mb-4 text-gray-600">
                 {botAction === 'newrack' 
-                  ? 'How many balls are left on the table before racking? (0 or 1)'
+                  ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${ballsOnTable}`
                   : `Please enter the number of balls currently on the table (2-${ballsOnTable}):`}
               </p>
               
@@ -621,18 +645,20 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <h3 className="text-xl font-bold mb-4">Game History</h3>
             
             <div className="mb-6">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-4 py-2 text-left">Inning</th>
-                    <th className="px-4 py-2 text-left">Player</th>
-                    <th className="px-4 py-2 text-left">Action</th>
-                    <th className="px-4 py-2 text-left">Run</th>
-                    <th className="px-4 py-2 text-left">BOT</th>
-                    <th className="px-4 py-2 text-left">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div className="max-h-96 overflow-y-auto overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 text-left">Inning</th>
+                      <th className="px-4 py-2 text-left">Player</th>
+                      <th className="px-4 py-2 text-left">Action</th>
+                      <th className="px-4 py-2 text-left">Run</th>
+                      <th className="px-4 py-2 text-left font-semibold">Score</th>
+                      <th className="px-4 py-2 text-left">BOT</th>
+                      <th className="px-4 py-2 text-left">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                   {(() => {
                     // Group actions by innings
                     const inningActions: Array<{
@@ -641,6 +667,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       endAction: GameAction;
                       pointsInInning: number;
                       endTime: Date;
+                      currentScore: number;
                     }> = [];
                     
                     let currentInningNumber = 1;
@@ -648,6 +675,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     let currentInningPoints = 0;
                     let currentRun = 0;
                     let inningStartTime: Date | null = actions.length > 0 ? new Date(actions[0].timestamp) : null;
+                    
+                    // Track cumulative scores for each player
+                    const playerScores: Record<number, number> = {};
+                    playerData.forEach(player => {
+                      playerScores[player.id] = 0;
+                    });
                     
                     // Process actions to create inning-based history
                     actions.forEach((action, idx) => {
@@ -671,13 +704,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
                             : currentRun + ballsPocketedOnFinalShot
                         );
                         
+                        // Update player's total score
+                        playerScores[currentPlayerId] += pointsInAction;
+                        
                         // Add the inning to our array
                         inningActions.push({
                           inningNumber: currentInningNumber,
                           playerId: currentPlayerId,
                           endAction: action,
                           pointsInInning: pointsInAction,
-                          endTime: new Date(action.timestamp)
+                          endTime: new Date(action.timestamp),
+                          currentScore: playerScores[currentPlayerId]
                         });
                         
                         // Update for next inning
@@ -713,14 +750,16 @@ const GameScoring: React.FC<GameScoringProps> = ({
                               ? inning.pointsInInning 
                               : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                           </td>
+                          <td className="px-4 py-2 font-medium text-blue-600">{inning.currentScore}</td>
                           <td className="px-4 py-2">{inning.endAction.ballsOnTable}</td>
-                          <td className="px-4 py-2">{inning.endTime.toLocaleTimeString()}</td>
+                          <td className="px-4 py-2">{inning.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
                         </tr>
                       );
                     });
                   })()}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
             
             <div className="flex justify-end">

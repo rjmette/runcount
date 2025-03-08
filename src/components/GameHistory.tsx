@@ -245,15 +245,17 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 {selectedGame.actions.length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-medium mb-3">Game Innings</h4>
-                    <div className="max-h-72 overflow-y-auto bg-gray-50 p-3 rounded">
+                    <div className="max-h-72 overflow-y-auto overflow-x-auto bg-gray-50 p-3 rounded">
                       <table className="w-full border-collapse">
-                        <thead>
+                        <thead className="sticky top-0 z-10">
                           <tr className="bg-gray-100">
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Inning</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Player</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Action</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Run</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 font-semibold">Score</th>
                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">BOT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Time</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -265,18 +267,23 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                               endAction: GameAction;
                               pointsInInning: number;
                               endTime: Date;
+                              currentScore: number;
                             }> = [];
                             
                             let currentInningNumber = 1;
                             let currentPlayerId = selectedGame.players[0]?.id;
-                            let currentInningPoints = 0;
                             let currentRun = 0;
+                            
+                            // Track cumulative scores for each player
+                            const playerScores: Record<number, number> = {};
+                            selectedGame.players.forEach(player => {
+                              playerScores[player.id] = 0;
+                            });
                             
                             // Process actions to create inning-based history
                             selectedGame.actions.forEach((action, idx) => {
                               if (action.type === 'score') {
                                 // For score actions (regular balls or new rack), just add to inning points
-                                currentInningPoints += action.value;
                                 currentRun += action.value;
                               } else if (['miss', 'safety', 'foul'].includes(action.type)) {
                                 // For turn-ending actions (miss, safety, foul), calculate points
@@ -293,13 +300,18 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                                     : currentRun + ballsPocketedOnFinalShot
                                 );
                                 
+                                // Update player's total score
+                                playerScores[currentPlayerId] += pointsInAction;
+                                
+                                
                                 // Add the inning to our array
                                 inningActions.push({
                                   inningNumber: currentInningNumber,
                                   playerId: currentPlayerId,
                                   endAction: action,
                                   pointsInInning: pointsInAction,
-                                  endTime: new Date(action.timestamp)
+                                  endTime: new Date(action.timestamp),
+                                  currentScore: playerScores[currentPlayerId]
                                 });
                                 
                                 // Update for next inning
@@ -313,7 +325,6 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                                 }
                                 
                                 // Reset points for next inning
-                                currentInningPoints = 0;
                                 currentRun = 0;
                               }
                             });
@@ -340,7 +351,13 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                                         : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                                     </span>
                                   </td>
+                                  <td className="px-3 py-2 text-sm font-medium text-blue-600">
+                                    {inning.currentScore}
+                                  </td>
                                   <td className="px-3 py-2 text-sm">{inning.endAction.ballsOnTable}</td>
+                                  <td className="px-3 py-2 text-sm text-gray-500">
+                                    {inning.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </td>
                                 </tr>
                               );
                             });
