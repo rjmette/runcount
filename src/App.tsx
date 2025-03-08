@@ -169,66 +169,90 @@ function AppContent() {
               <div className="flex items-center space-x-3">
                 <span className="hidden md:inline text-sm">{user.email}</span>
                 <div className="relative">
-                  <button 
-                    className="bg-blue-700 hover:bg-blue-600 p-2 rounded-full text-white"
-                    onClick={() => setGameState('profile')}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </button>
+                  {/* Disable profile button during active game */}
+                  {gameState === 'scoring' ? (
+                    <div 
+                      className="bg-blue-400 p-2 rounded-full text-white cursor-not-allowed"
+                      title="Profile unavailable during active game"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <button 
+                      className="bg-blue-700 hover:bg-blue-600 p-2 rounded-full text-white"
+                      onClick={() => setGameState('profile')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
-              <button 
-                onClick={() => setShowAuthModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
-              >
-                Login / Sign Up
-              </button>
+              gameState === 'scoring' ? (
+                <div 
+                  className="px-4 py-2 bg-blue-400 text-white rounded cursor-not-allowed"
+                  title="Login unavailable during active game"
+                >
+                  Login / Sign Up
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setShowAuthModal(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
+                >
+                  Login / Sign Up
+                </button>
+              )
             )}
           </div>
         </div>
       </header>
       
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex space-x-4 overflow-x-auto">
-            <button 
-              onClick={() => setGameState('setup')} 
-              className={`py-3 px-3 text-sm font-medium transition-colors ${
-                gameState === 'setup' 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              New Game
-            </button>
-            <button 
-              onClick={() => setGameState('history')} 
-              className={`py-3 px-3 text-sm font-medium transition-colors ${
-                gameState === 'history' 
-                  ? 'text-blue-600 border-b-2 border-blue-600' 
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Game History
-            </button>
-            {user && (
+      {/* Only show navigation tabs when not in an active game */}
+      {gameState !== 'scoring' && (
+        <nav className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex space-x-4 overflow-x-auto">
               <button 
-                onClick={() => setGameState('profile')} 
+                onClick={() => setGameState('setup')} 
                 className={`py-3 px-3 text-sm font-medium transition-colors ${
-                  gameState === 'profile' 
+                  gameState === 'setup' 
                     ? 'text-blue-600 border-b-2 border-blue-600' 
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
-                My Profile
+                New Game
               </button>
-            )}
+              <button 
+                onClick={() => setGameState('history')} 
+                className={`py-3 px-3 text-sm font-medium transition-colors ${
+                  gameState === 'history' 
+                    ? 'text-blue-600 border-b-2 border-blue-600' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Game History
+              </button>
+              {user && (
+                <button 
+                  onClick={() => setGameState('profile')} 
+                  className={`py-3 px-3 text-sm font-medium transition-colors ${
+                    gameState === 'profile' 
+                      ? 'text-blue-600 border-b-2 border-blue-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  My Profile
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
       
       <main className="flex-grow container mx-auto p-4">
         {renderComponent()}
