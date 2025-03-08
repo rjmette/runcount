@@ -32,7 +32,7 @@ export interface GameData {
   winnerId: number | null;
   completed: boolean;
   actions: GameAction[];
-  owner_id?: string;
+  owner_id?: string; // UUID string from auth.users.id
 }
 
 export interface GameSetupProps {
