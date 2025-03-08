@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameHistoryProps, GameData } from '../types/game';
+import { GameHistoryProps, GameData, GameAction } from '../types/game';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
@@ -244,51 +244,126 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 
                 {selectedGame.actions.length > 0 && (
                   <div className="mt-6">
-                    <h4 className="font-medium mb-3">Game Timeline</h4>
-                    <div className="max-h-72 overflow-y-auto bg-gray-50 p-3 rounded">
-                      {selectedGame.actions.map((action, index) => {
-                        const player = selectedGame.players.find(p => p.id === action.playerId);
-                        const actionTime = new Date(action.timestamp);
-                        
-                        let actionText = '';
-                        switch (action.type) {
-                          case 'score':
-                            actionText = `+${action.value} points`;
-                            break;
-                          case 'foul':
-                            actionText = 'Foul (-1 point)';
-                            break;
-                          case 'safety':
-                            actionText = 'Safety';
-                            break;
-                          case 'miss':
-                            actionText = 'Miss';
-                            break;
-                        }
-                        
-                        return (
-                          <div 
-                            key={index} 
-                            className="mb-2 pb-2 border-b border-gray-200 last:border-0 text-sm"
-                          >
-                            <div className="flex justify-between">
-                              <div>
-                                <span className="font-medium">{player?.name}: </span>
-                                <span className={`${
-                                  action.type === 'score' ? 'text-green-600' :
-                                  action.type === 'foul' ? 'text-red-600' :
-                                  'text-gray-600'
-                                }`}>
-                                  {actionText}
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {actionTime.toLocaleTimeString()}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                    <h4 className="font-medium mb-3">Game Innings</h4>
+                    <div className="max-h-72 overflow-y-auto overflow-x-auto bg-gray-50 p-3 rounded">
+                      <table className="w-full border-collapse">
+                        <thead className="sticky top-0 z-10">
+                          <tr className="bg-gray-100">
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Inning</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Player</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Action</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Run</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 font-semibold">Score</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">BOT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(() => {
+                            // Group actions by innings
+                            const inningActions: Array<{
+                              inningNumber: number;
+                              playerId: number;
+                              endAction: GameAction;
+                              pointsInInning: number;
+                              endTime: Date;
+                              currentScore: number;
+                            }> = [];
+                            
+                            let currentInningNumber = 1;
+                            let currentPlayerId = selectedGame.players[0]?.id;
+                            let currentRun = 0;
+                            
+                            // Track cumulative scores for each player
+                            const playerScores: Record<number, number> = {};
+                            selectedGame.players.forEach(player => {
+                              playerScores[player.id] = 0;
+                            });
+                            
+                            // Process actions to create inning-based history
+                            selectedGame.actions.forEach((action, idx) => {
+                              if (action.type === 'score') {
+                                // For score actions (regular balls or new rack), just add to inning points
+                                currentRun += action.value;
+                              } else if (['miss', 'safety', 'foul'].includes(action.type)) {
+                                // For turn-ending actions (miss, safety, foul), calculate points
+                                
+                                // Calculate balls pocketed in this final shot (if any)
+                                const prevAction = idx > 0 ? selectedGame.actions[idx - 1] : null;
+                                const prevBOT = prevAction?.ballsOnTable ?? 15;
+                                const ballsPocketedOnFinalShot = Math.max(0, prevBOT - (action.ballsOnTable || 0));
+                                
+                                // If it's a foul, subtract 1 point for the penalty
+                                const pointsInAction = (
+                                  action.type === 'foul' 
+                                    ? currentRun + ballsPocketedOnFinalShot - 1 
+                                    : currentRun + ballsPocketedOnFinalShot
+                                );
+                                
+                                // Update player's total score
+                                playerScores[currentPlayerId] += pointsInAction;
+                                
+                                
+                                // Add the inning to our array
+                                inningActions.push({
+                                  inningNumber: currentInningNumber,
+                                  playerId: currentPlayerId,
+                                  endAction: action,
+                                  pointsInInning: pointsInAction,
+                                  endTime: new Date(action.timestamp),
+                                  currentScore: playerScores[currentPlayerId]
+                                });
+                                
+                                // Update for next inning
+                                const nextPlayerId = selectedGame.players.find(p => p.id !== currentPlayerId)?.id;
+                                if (nextPlayerId !== undefined) {
+                                  currentPlayerId = nextPlayerId;
+                                  if (currentPlayerId === selectedGame.players[0]?.id) {
+                                    // If we're back to the first player, increment inning number
+                                    currentInningNumber++;
+                                  }
+                                }
+                                
+                                // Reset points for next inning
+                                currentRun = 0;
+                              }
+                            });
+                            
+                            // Render the innings
+                            return inningActions.map((inning, idx) => {
+                              const player = selectedGame.players.find(p => p.id === inning.playerId);
+                              const actionType = inning.endAction.type;
+                              const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
+                              
+                              return (
+                                <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
+                                  <td className="px-3 py-2 text-sm">{inning.inningNumber}</td>
+                                  <td className="px-3 py-2 text-sm">{player?.name || 'Unknown'}</td>
+                                  <td className="px-3 py-2 text-sm">{actionLabel}</td>
+                                  <td className="px-3 py-2 text-sm">
+                                    <span className={`${
+                                      inning.pointsInInning > 0 ? 'text-green-600 font-medium' :
+                                      inning.pointsInInning < 0 ? 'text-red-600 font-medium' :
+                                      'text-gray-600'
+                                    }`}>
+                                      {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
+                                        ? inning.pointsInInning 
+                                        : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-sm font-medium text-blue-600">
+                                    {inning.currentScore}
+                                  </td>
+                                  <td className="px-3 py-2 text-sm">{inning.endAction.ballsOnTable}</td>
+                                  <td className="px-3 py-2 text-sm text-gray-500">
+                                    {inning.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                  </td>
+                                </tr>
+                              );
+                            });
+                          })()}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}

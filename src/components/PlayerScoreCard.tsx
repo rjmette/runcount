@@ -6,10 +6,12 @@ interface PlayerScoreCardProps {
   player: Player;
   isActive: boolean;
   onAddScore: (score: number) => void;
-  onAddFoul: () => void;
-  onAddSafety: () => void;
-  onAddMiss: () => void;
+  onAddFoul: (ballsOnTable?: number) => void;
+  onAddSafety: (ballsOnTable?: number) => void;
+  onAddMiss: (ballsOnTable?: number) => void;
+  onShowHistory?: () => void;
   targetScore: number;
+  onRegularShot?: (value: number) => void; // New prop for handling regular shots
 }
 
 const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
@@ -19,7 +21,9 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   onAddFoul,
   onAddSafety,
   onAddMiss,
-  targetScore
+  onShowHistory,
+  targetScore,
+  onRegularShot
 }) => {
   // Calculate average balls per inning
   const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
@@ -72,43 +76,50 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       </div>
       
       {isActive && (
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <div className="col-span-2">
-            <p className="font-medium mb-2">Add Score:</p>
-            <div className="grid grid-cols-5 gap-1">
-              {[5, 10, 15, 20, 25].map(value => (
-                <ScoreButton
-                  key={value}
-                  label={`+${value}`}
-                  value={value}
-                  onClick={onAddScore}
-                  className="bg-green-600 hover:bg-green-700"
-                />
-              ))}
-            </div>
+        <>
+          {/* Current Run Display */}
+          <div className="mb-4 p-2 bg-blue-100 rounded-md">
+            <span className="block text-sm font-semibold">Current Run</span>
+            <span className="text-lg font-bold text-blue-800" id="current-run">0</span>
           </div>
-          
-          <ScoreButton
-            label="Foul (-1)"
-            value={-1}
-            onClick={() => onAddFoul()}
-            className="bg-red-600 hover:bg-red-700"
-          />
-          
-          <ScoreButton
-            label="Safety"
-            value={0}
-            onClick={() => onAddSafety()}
-            className="bg-yellow-600 hover:bg-yellow-700"
-          />
-          
-          <ScoreButton
-            label="Miss"
-            value={0}
-            onClick={() => onAddMiss()}
-            className="bg-gray-600 hover:bg-gray-700 col-span-2"
-          />
-        </div>
+        
+          <div className="grid grid-cols-2 gap-3 mt-4">          
+            <ScoreButton
+              label="Miss"
+              value={0}
+              onClick={() => onAddMiss()}
+              className="bg-gray-600 hover:bg-gray-700 col-span-2"
+            />
+            
+            <ScoreButton
+              label="Foul (-1)"
+              value={-1}
+              onClick={() => onAddFoul()}
+              className="bg-red-600 hover:bg-red-700"
+            />
+            
+            <ScoreButton
+              label="Safety"
+              value={0}
+              onClick={() => onAddSafety()}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            />
+            
+            <ScoreButton
+              label="New Rack"
+              value={1}
+              onClick={() => onAddScore(1)}
+              className="bg-green-600 hover:bg-green-700"
+            />
+            
+            <ScoreButton
+              label="History"
+              value={0}
+              onClick={() => onShowHistory && onShowHistory()}
+              className="bg-blue-600 hover:bg-blue-700"
+            />
+          </div>
+        </>
       )}
       
       <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-gray-500">

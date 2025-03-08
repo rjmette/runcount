@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameSetupProps } from '../types/game';
 
-const GameSetup: React.FC<GameSetupProps> = ({ startGame }) => {
+const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlayerTargetScores }) => {
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
   const [player1TargetScore, setPlayer1TargetScore] = useState(75);
   const [player2TargetScore, setPlayer2TargetScore] = useState(60);
   const [error, setError] = useState('');
+  
+  // Set up form using last game settings if available
+  useEffect(() => {
+    if (lastPlayers && lastPlayers.length >= 2) {
+      setPlayer1(lastPlayers[0]);
+      setPlayer2(lastPlayers[1]);
+    }
+    
+    if (lastPlayerTargetScores) {
+      // If we have last player target scores and player names
+      if (lastPlayers && lastPlayers.length >= 2) {
+        if (lastPlayerTargetScores[lastPlayers[0]]) {
+          setPlayer1TargetScore(lastPlayerTargetScores[lastPlayers[0]]);
+        }
+        if (lastPlayerTargetScores[lastPlayers[1]]) {
+          setPlayer2TargetScore(lastPlayerTargetScores[lastPlayers[1]]);
+        }
+      }
+    }
+  }, [lastPlayers, lastPlayerTargetScores]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

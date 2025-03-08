@@ -17,6 +17,7 @@ export interface GameAction {
   playerId: number;
   value: number;
   timestamp: Date;
+  ballsOnTable?: number;
 }
 
 export interface GameSettings {
@@ -35,6 +36,8 @@ export interface GameData {
 
 export interface GameSetupProps {
   startGame: (players: string[], playerTargetScores: Record<string, number>) => void;
+  lastPlayers?: string[];
+  lastPlayerTargetScores?: Record<string, number>;
 }
 
 export interface GameScoringProps {
@@ -68,8 +71,8 @@ export interface ScoreButtonProps {
 export interface PlayerScoreProps {
   player: Player;
   isActive: boolean;
-  onAddScore: (score: number) => void;
-  onAddFoul: () => void;
-  onAddSafety: () => void;
-  onAddMiss: () => void;
+  onAddScore: (score: number, ballsOnTable?: number) => void;
+  onAddFoul: (ballsOnTable?: number) => void;
+  onAddSafety: (ballsOnTable?: number) => void;
+  onAddMiss: (ballsOnTable?: number) => void;
 }
