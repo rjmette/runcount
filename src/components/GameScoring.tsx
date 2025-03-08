@@ -10,7 +10,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   gameId,
   setGameId,
   finishGame,
-  supabase
+  supabase,
+  user
 }) => {
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [playerData, setPlayerData] = useState<Player[]>([]);
@@ -80,7 +81,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
           players: players,
           actions: actions,
           completed: completed,
-          winner_id: winnerId
+          winner_id: winnerId,
+          owner_id: user?.id || null
         });
 
       if (error) {

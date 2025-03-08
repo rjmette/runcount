@@ -3,7 +3,8 @@ import { GameHistoryProps, GameData, GameAction } from '../types/game';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
-  startNewGame
+  startNewGame,
+  user
 }) => {
   const [games, setGames] = useState<GameData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -16,10 +17,17 @@ const GameHistory: React.FC<GameHistoryProps> = ({
       try {
         setLoading(true);
         
-        const { data, error } = await supabase
+        let query = supabase
           .from('games')
           .select('*')
           .order('date', { ascending: false });
+        
+        // If user is authenticated, only fetch their games
+        if (user?.id) {
+          query = query.eq('owner_id', user.id);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
           throw error;
@@ -35,7 +43,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     };
 
     fetchGames();
-  }, [supabase]);
+  }, [supabase, user]);
 
   const handleGameSelect = (gameId: string) => {
     setSelectedGameId(gameId);
