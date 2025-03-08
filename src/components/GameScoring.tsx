@@ -80,8 +80,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           players: players,
           actions: actions,
           completed: completed,
-          winner_id: winnerId,
-          owner_id: user?.id || null
+          winner_id: winnerId
         });
 
       if (error) {
