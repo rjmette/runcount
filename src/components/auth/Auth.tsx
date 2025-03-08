@@ -8,9 +8,10 @@ type AuthTab = 'login' | 'signup' | 'reset-password';
 
 interface AuthProps {
   supabase: SupabaseClient;
+  onAuthSuccess?: () => void;
 }
 
-const Auth: React.FC<AuthProps> = ({ supabase }) => {
+const Auth: React.FC<AuthProps> = ({ supabase, onAuthSuccess }) => {
   const [activeTab, setActiveTab] = useState<AuthTab>('login');
 
   return (
@@ -51,9 +52,9 @@ const Auth: React.FC<AuthProps> = ({ supabase }) => {
       
       {/* Content */}
       <div className="p-6">
-        {activeTab === 'login' && <Login supabase={supabase} />}
-        {activeTab === 'signup' && <SignUp supabase={supabase} />}
-        {activeTab === 'reset-password' && <ResetPassword supabase={supabase} />}
+        {activeTab === 'login' && <Login supabase={supabase} onSuccess={onAuthSuccess} />}
+        {activeTab === 'signup' && <SignUp supabase={supabase} onSuccess={onAuthSuccess} />}
+        {activeTab === 'reset-password' && <ResetPassword supabase={supabase} onSuccess={onAuthSuccess} />}
       </div>
     </div>
   );

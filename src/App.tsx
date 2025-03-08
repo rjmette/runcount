@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { createClient } from '@supabase/supabase-js';
 import GameSetup from './components/GameSetup';
@@ -36,6 +36,13 @@ function AppContent() {
   const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  // Close auth modal when user is authenticated
+  useEffect(() => {
+    if (user) {
+      setShowAuthModal(false);
+    }
+  }, [user]);
   
   // Store last used game settings for quick restart
   const [lastPlayers, setLastPlayers] = useState<string[]>([]);
@@ -124,7 +131,10 @@ function AppContent() {
             </button>
           </div>
           <div className="p-4">
-            <Auth supabase={supabase} />
+            <Auth 
+              supabase={supabase}
+              onAuthSuccess={() => setShowAuthModal(false)} 
+            />
           </div>
         </div>
       </div>

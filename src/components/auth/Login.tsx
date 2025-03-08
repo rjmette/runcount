@@ -3,9 +3,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 interface LoginProps {
   supabase: SupabaseClient;
+  onSuccess?: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ supabase }) => {
+const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,11 @@ const Login: React.FC<LoginProps> = ({ supabase }) => {
       });
       
       if (error) throw error;
+      
+      // Call the onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       setError(error.message || 'An error occurred during login');
     } finally {
@@ -44,6 +50,9 @@ const Login: React.FC<LoginProps> = ({ supabase }) => {
       });
       
       if (error) throw error;
+      
+      // Social logins redirect to the provider, so we don't need to call onSuccess here
+      // The auth state change will be detected after redirect back
     } catch (error: any) {
       setError(error.message || `An error occurred during ${provider} login`);
     } finally {

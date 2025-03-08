@@ -3,9 +3,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 interface SignUpProps {
   supabase: SupabaseClient;
+  onSuccess?: () => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ supabase }) => {
+const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,6 +38,11 @@ const SignUp: React.FC<SignUpProps> = ({ supabase }) => {
       if (error) throw error;
       
       setMessage('Check your email for the confirmation link!');
+      
+      // Even though we need email confirmation, we may want to close the modal
+      if (onSuccess) {
+        onSuccess();
+      }
     } catch (error: any) {
       setError(error.message || 'An error occurred during sign up');
     } finally {

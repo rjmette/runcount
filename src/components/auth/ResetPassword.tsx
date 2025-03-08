@@ -3,9 +3,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 interface ResetPasswordProps {
   supabase: SupabaseClient;
+  onSuccess?: () => void;
 }
 
-const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase }) => {
+const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,13 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase }) => {
       if (error) throw error;
       
       setMessage('Password reset instructions sent to your email!');
+      
+      // Close modal after sending reset link
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 2000); // Short delay so user can see the success message
+      }
     } catch (error: any) {
       setError(error.message || 'An error occurred');
     } finally {
@@ -62,6 +70,13 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase }) => {
       
       // Remove the hash from the URL
       window.history.replaceState(null, '', window.location.pathname);
+      
+      // Close modal after updating password
+      if (onSuccess) {
+        setTimeout(() => {
+          onSuccess();
+        }, 2000); // Short delay so user can see the success message
+      }
     } catch (error: any) {
       setError(error.message || 'An error occurred');
     } finally {
