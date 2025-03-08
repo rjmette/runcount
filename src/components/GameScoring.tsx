@@ -104,10 +104,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       return;
     }
     
-    // Calculate points based on remaining balls (0 or 1)
-    // In straight pool, when you rack with 0 balls left, just restart with a new rack (no points yet)
-    // When you rack with 1 ball left, you get 1 point for the ball you called
-    const pointsScored = botsValue === 0 ? 0 : 1;
+    // In straight pool when racking:
+    // Player gets points for all balls not on the table (15 minus botsValue)
+    // If 0 balls left on table, that's 15 points
+    // If 1 ball left on table, that's 14 points
+    const pointsScored = 15 - botsValue;
     
     // Create a new action
     const newAction: GameAction = {
@@ -128,7 +129,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update player data
     const updatedPlayerData = [...playerData];
     
-    // Update score with points scored from the ball pocketed (if any)
+    // Update score with points for all balls pocketed (15 - balls on table)
     updatedPlayerData[activePlayerIndex].score += pointsScored;
     
     // Update current run
@@ -437,7 +438,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setShowBOTModal(false);
     
     if (botAction === 'newrack') {
-      handleAddScore(1, botsValue);
+      // Pass 15 as the score to handleAddScore to ensure correct scoring
+      handleAddScore(15, botsValue);
     } else if (botAction === 'foul') {
       handleAddFoul(botsValue);
     } else if (botAction === 'safety') {
@@ -569,7 +571,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="mb-6">
               <p className="mb-4 text-gray-600">
                 {botAction === 'newrack' 
-                  ? 'How many balls are left on the table before racking?'
+                  ? 'How many balls are left on the table before racking? (0 or 1)'
                   : `Please enter the number of balls currently on the table (2-${ballsOnTable}):`}
               </p>
               
