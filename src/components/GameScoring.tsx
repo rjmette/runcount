@@ -10,7 +10,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   gameId,
   setGameId,
   finishGame,
-  supabase
+  supabase,
+  user
 }) => {
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [playerData, setPlayerData] = useState<Player[]>([]);
@@ -71,20 +72,52 @@ const GameScoring: React.FC<GameScoringProps> = ({
     completed: boolean,
     winnerId: number | null
   ) => {
+    // Only save to Supabase if user is authenticated
+    if (!user) {
+      console.log('Game not saved: User not authenticated');
+      return;
+    }
+    
+    // Debug info
+    console.log('Saving game with owner_id:', user.id);
+    
     try {
+      // Make sure the UUID is in the correct format for PostgreSQL
+      // The user.id from Supabase Auth is already a valid UUID string
+      const payload = {
+        id: gameId,
+        date: new Date(),
+        players: players,
+        actions: actions,
+        completed: completed,
+        winner_id: winnerId,
+        owner_id: user.id  // This should be a valid UUID string from auth
+      };
+      
+      console.log('Saving payload:', {
+        ...payload,
+        players: `[${players.length} players]`, // Simplify console output
+        actions: `[${actions.length} actions]`  // Simplify console output
+      });
+      
       const { error } = await supabase
         .from('games')
-        .upsert({
-          id: gameId,
-          date: new Date(),
-          players: players,
-          actions: actions,
-          completed: completed,
-          winner_id: winnerId
-        });
+        .upsert(payload);
 
       if (error) {
         console.error('Error saving game:', error);
+        // Show full error details for debugging
+        console.error('Error details:', JSON.stringify(error, null, 2));
+        
+        // Check for specific PostgreSQL error codes
+        if (error.code === '42804') {
+          console.error('Type mismatch error: Check that owner_id is UUID type in the database');
+        } else if (error.code === '42501') {
+          console.error('RLS policy violation: Make sure you have the correct policies set up');
+          console.error('Current user ID:', user.id);
+        }
+      } else {
+        console.log('Game saved successfully');
       }
     } catch (err) {
       console.error('Error saving game:', err);

@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 
 export interface Player {
   id: number;
@@ -32,6 +32,7 @@ export interface GameData {
   winnerId: number | null;
   completed: boolean;
   actions: GameAction[];
+  owner_id?: string; // UUID string from auth.users.id
 }
 
 export interface GameSetupProps {
@@ -47,6 +48,7 @@ export interface GameScoringProps {
   setGameId: (id: string) => void;
   finishGame: () => void;
   supabase: SupabaseClient;
+  user?: User | null;
 }
 
 export interface GameStatisticsProps {
@@ -59,6 +61,7 @@ export interface GameStatisticsProps {
 export interface GameHistoryProps {
   supabase: SupabaseClient;
   startNewGame: () => void;
+  user?: User | null;
 }
 
 export interface ScoreButtonProps {
