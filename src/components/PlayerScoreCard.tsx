@@ -28,59 +28,61 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   // Calculate average balls per inning
   const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
   
-  // Calculate percentage to target
-  const percentage = Math.floor((player.score / targetScore) * 100);
+  // Calculate percentage to target (capped at 100%)
+  const percentage = Math.min(100, Math.floor((player.score / targetScore) * 100));
   
   return (
     <div 
-      className={`rounded-lg shadow-md p-4 mb-4 transition-all ${
+      className={`rounded-lg shadow-md p-3 mb-2 transition-all ${
         isActive 
           ? 'bg-blue-50 border-2 border-blue-500' 
           : 'bg-white border border-gray-200 opacity-80'
       }`}
     >
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{player.name}</h3>
-        {isActive && <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">Active</span>}
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-bold">
+          {player.name}
+          {player.score >= targetScore && <span className="ml-1 text-yellow-500">🏆</span>}
+        </h3>
+        {isActive && <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">Active</span>}
       </div>
       
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <div className="text-center sm:text-left mb-4 sm:mb-0">
-          <span className="block text-4xl font-bold text-blue-700">{player.score}</span>
-          <span className="text-sm text-gray-500">Score</span>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-3">
+        <div className="text-center sm:text-left mb-2 sm:mb-0">
+          <span className={`block text-3xl font-bold ${player.score >= targetScore ? 'text-green-600' : 'text-blue-700'}`}>{player.score}</span>
+          <span className="text-xs text-gray-500">Score</span>
         </div>
         
-        <div className="flex space-x-4">
+        <div className="flex space-x-3">
           <div className="text-center">
-            <span className="block text-lg font-semibold">{player.innings}</span>
+            <span className="block text-base font-semibold">{player.innings}</span>
             <span className="text-xs text-gray-500">Innings</span>
           </div>
           
           <div className="text-center">
-            <span className="block text-lg font-semibold">{player.highRun}</span>
+            <span className="block text-base font-semibold">{player.highRun}</span>
             <span className="text-xs text-gray-500">High Run</span>
           </div>
           
           <div className="text-center">
-            <span className="block text-lg font-semibold">{bpi}</span>
+            <span className="block text-base font-semibold">{bpi}</span>
             <span className="text-xs text-gray-500">BPI</span>
           </div>
         </div>
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
+      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
         <div 
-          className="bg-blue-600 h-2.5 rounded-full" 
+          className={`${player.score >= targetScore ? 'bg-green-600' : 'bg-blue-600'} h-2 rounded-full`}
           style={{ width: `${percentage}%` }}
         />
       </div>
       
       {isActive && (
         <>
-          {/* Current Run Display */}
-          <div className="mb-4 p-2 bg-blue-100 rounded-md">
-            <span className="block text-sm font-semibold">Current Run</span>
-            <span className="text-lg font-bold text-blue-800" id="current-run">0</span>
+          {/* Current run is still tracked in the DOM but hidden from display */}
+          <div className="hidden">
+            <span id="current-run">0</span>
           </div>
         
           <div className="grid grid-cols-2 gap-3 mt-4">          
@@ -122,18 +124,15 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </>
       )}
       
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs text-gray-500">
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500">
         <div>
-          <span className="block font-medium">{player.fouls}</span>
-          <span>Fouls</span>
+          <span className="font-medium">{player.fouls}</span> Fouls
         </div>
         <div>
-          <span className="block font-medium">{player.safeties}</span>
-          <span>Safeties</span>
+          <span className="font-medium">{player.safeties}</span> Safeties
         </div>
         <div>
-          <span className="block font-medium">{player.missedShots}</span>
-          <span>Misses</span>
+          <span className="font-medium">{player.missedShots}</span> Misses
         </div>
       </div>
     </div>

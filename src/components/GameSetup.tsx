@@ -168,16 +168,6 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
           </button>
         </div>
       </form>
-      
-      <div className="mt-8 text-center text-sm text-gray-600">
-        <h3 className="font-medium mb-2">Game Rules Summary:</h3>
-        <ul className="list-disc text-left pl-8">
-          <li>Straight Pool (14.1 continuous)</li>
-          <li>Each successful shot earns 1 point</li>
-          <li>Fouls deduct 1 point</li>
-          <li>First player to reach target score wins</li>
-        </ul>
-      </div>
     </div>
   );
 };

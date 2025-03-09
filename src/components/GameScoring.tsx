@@ -485,45 +485,156 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Get the last action
     const lastAction = actions[actions.length - 1];
     
-    // Remove the last action
-    setActions(prev => prev.slice(0, -1));
+    // Simple approach: re-calculate the entire game state from scratch
+    // This ensures everything is consistent
     
-    // Undo the action effect
-    setPlayerData(prev => {
-      const updated = [...prev];
-      const playerIndex = updated.findIndex(p => p.id === lastAction.playerId);
+    // Start with initial state
+    const initialPlayerData: Player[] = players.map((name, index) => ({
+      id: index,
+      name,
+      score: 0,
+      innings: index === 0 ? 1 : 0,
+      highRun: 0,
+      fouls: 0,
+      safeties: 0,
+      missedShots: 0,
+      targetScore: playerTargetScores[name] || 100
+    }));
+    
+    // Remove the last action
+    const previousActions = [...actions.slice(0, -1)];
+    
+    // Reset to the initial state
+    let updatedPlayerData = [...initialPlayerData];
+    let currentInningCount = 1;
+    let currentActivePlayer = 0;
+    let runningBOT = 15;
+    let runningScore = 0;
+    
+    // Replay all actions except the last one
+    for (let i = 0; i < previousActions.length; i++) {
+      const action = previousActions[i];
+      const playerIdx = updatedPlayerData.findIndex(p => p.id === action.playerId);
       
-      if (playerIndex !== -1) {
-        switch (lastAction.type) {
-          case 'score':
-            updated[playerIndex].score -= lastAction.value;
-            break;
-          case 'foul':
-            updated[playerIndex].score = Math.min(updated[playerIndex].targetScore, updated[playerIndex].score + 1);
-            updated[playerIndex].fouls -= 1;
-            break;
-          case 'safety':
-            updated[playerIndex].safeties -= 1;
-            break;
-          case 'miss':
-            updated[playerIndex].missedShots -= 1;
-            break;
-        }
+      if (playerIdx === -1) continue;
+      
+      // Track who should be the active player
+      currentActivePlayer = playerIdx;
+      
+      // Handle action based on type
+      switch (action.type) {
+        case 'score':
+          // Add points to player's score
+          updatedPlayerData[playerIdx].score += action.value;
+          
+          // Update high run if needed
+          runningScore += action.value;
+          if (runningScore > updatedPlayerData[playerIdx].highRun) {
+            updatedPlayerData[playerIdx].highRun = runningScore;
+          }
+          
+          // Update BOT
+          if (action.ballsOnTable !== undefined) {
+            runningBOT = action.ballsOnTable;
+          }
+          break;
+          
+        case 'foul':
+          // Add points for balls pocketed (if any)
+          if (action.ballsOnTable !== undefined) {
+            const ballsPocketed = Math.max(0, runningBOT - action.ballsOnTable);
+            updatedPlayerData[playerIdx].score += ballsPocketed;
+            
+            // Update high run if needed
+            runningScore += ballsPocketed;
+            if (runningScore > updatedPlayerData[playerIdx].highRun) {
+              updatedPlayerData[playerIdx].highRun = runningScore;
+            }
+            
+            // Deduct 1 for the foul
+            updatedPlayerData[playerIdx].score = Math.max(0, updatedPlayerData[playerIdx].score - 1);
+            
+            // Update BOT
+            runningBOT = action.ballsOnTable;
+          }
+          
+          // Increment foul count
+          updatedPlayerData[playerIdx].fouls += 1;
+          
+          // Switch to next player - this is a turn-ending action
+          currentActivePlayer = (playerIdx + 1) % players.length;
+          
+          // If we're going back to player 0, increment inning
+          if (currentActivePlayer === 0) {
+            currentInningCount++;
+          }
+          
+          // Increment innings for next player
+          updatedPlayerData[currentActivePlayer].innings += 1;
+          
+          // Reset running score (current run)
+          runningScore = 0;
+          break;
+          
+        case 'safety':
+        case 'miss':
+          // Add points for balls pocketed (if any)
+          if (action.ballsOnTable !== undefined) {
+            const ballsPocketed = Math.max(0, runningBOT - action.ballsOnTable);
+            updatedPlayerData[playerIdx].score += ballsPocketed;
+            
+            // Update high run if needed
+            runningScore += ballsPocketed;
+            if (runningScore > updatedPlayerData[playerIdx].highRun) {
+              updatedPlayerData[playerIdx].highRun = runningScore;
+            }
+            
+            // Update BOT
+            runningBOT = action.ballsOnTable;
+          }
+          
+          // Increment the specific counter
+          if (action.type === 'safety') {
+            updatedPlayerData[playerIdx].safeties += 1;
+          } else {
+            updatedPlayerData[playerIdx].missedShots += 1;
+          }
+          
+          // Switch to next player - this is a turn-ending action
+          currentActivePlayer = (playerIdx + 1) % players.length;
+          
+          // If we're going back to player 0, increment inning
+          if (currentActivePlayer === 0) {
+            currentInningCount++;
+          }
+          
+          // Increment innings for next player
+          updatedPlayerData[currentActivePlayer].innings += 1;
+          
+          // Reset running score (current run)
+          runningScore = 0;
+          break;
       }
-      
-      return updated;
-    });
+    }
+    
+    // Update all state values
+    setPlayerData(updatedPlayerData);
+    setActivePlayerIndex(currentActivePlayer);
+    setCurrentInning(currentInningCount);
+    setBallsOnTable(runningBOT);
+    setCurrentRun(runningScore);
+    setActions(previousActions);
     
     // If no more actions, disable undo
-    if (actions.length <= 1) {
+    if (previousActions.length === 0) {
       setIsUndoEnabled(false);
     }
     
     // Update game in database
     saveGameToSupabase(
       gameId || '',
-      playerData,
-      actions.slice(0, -1),
+      updatedPlayerData,
+      previousActions,
       false,
       null
     );
@@ -558,13 +669,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Game Scoring</h2>
-        <div className="flex space-x-4">
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-lg font-bold">Game Scoring</h2>
+        <div className="flex space-x-2">
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-4 py-2 rounded-md text-lg font-medium ${
               isUndoEnabled 
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -575,30 +686,30 @@ const GameScoring: React.FC<GameScoringProps> = ({
           
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
           >
             New Game
           </button>
         </div>
       </div>
       
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+      <div className="bg-white p-2 rounded-lg shadow-md mb-3">
         <div className="flex justify-between items-center">
           {playerData.map((player, index) => (
             <div key={index}>
-              <span className="text-sm text-gray-500">{player.name}'s Target</span>
-              <span className="block text-xl font-bold">{player.targetScore}</span>
+              <span className="text-xs text-gray-500">{player.name}'s Target</span>
+              <span className="block text-lg font-bold">{player.targetScore}</span>
             </div>
           ))}
           
-          <div className="bg-blue-50 p-2 rounded-md">
-            <span className="text-sm text-gray-500">Balls on Table (BOT)</span>
-            <span className="block text-xl font-bold text-blue-700">{ballsOnTable}</span>
+          <div className="bg-blue-50 p-1.5 rounded-md">
+            <span className="text-xs text-gray-500">Balls on Table (BOT)</span>
+            <span className="block text-lg font-bold text-blue-700">{ballsOnTable}</span>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {playerData.map((player, index) => (
           <PlayerScoreCard
             key={player.id}
@@ -619,29 +730,28 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {showEndGameModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           {gameWinner && <ReactConfetti recycle={false} numberOfPieces={500} />}
-          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
+          <div className="bg-white p-4 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
             {gameWinner ? (
               <>
-                <div className="text-center mb-6 animate-pulse">
-                  <div className="text-6xl mb-2">🏆 🎱</div>
-                  <h3 className="text-2xl font-bold text-blue-700">
-                    Game Completed!
-                  </h3>
+                <div className="text-center mb-3 animate-pulse">
+                  <div className="text-4xl mb-1 flex justify-center items-center">
+                    <span className="mr-2">🏆</span>
+                    <h3 className="text-xl font-bold text-blue-700 inline">Game Completed!</h3>
+                    <span className="ml-2">🎱</span>
+                  </div>
                 </div>
                 
-                <div className="mb-8">
-                  <p className="mb-4 text-lg text-center">
-                    <span className="font-bold text-blue-700 text-xl">{gameWinner.name}</span> has won with a score of <span className="font-bold text-xl">{gameWinner.score}</span>!
+                <div className="mb-4">
+                  <p className="mb-2 text-center">
+                    <span className="font-bold text-blue-700">{gameWinner.name}</span> won with <span className="font-bold">{gameWinner.score}</span> points!
                   </p>
                   
-                  <div className="bg-blue-50 p-6 rounded-md shadow-inner">
-                    <h4 className="font-medium mb-4 text-lg border-b border-blue-200 pb-2">Game Statistics:</h4>
-                    
-                    <div className="grid grid-cols-2 gap-y-3 mb-4">
+                  <div className="bg-blue-50 p-3 rounded-md shadow-inner">
+                    <div className="grid grid-cols-2 gap-y-2 mb-2 text-sm">
                       <div className="font-medium">Total Innings:</div>
                       <div>{currentInning}</div>
                       
-                      <div className="font-medium">Game Duration:</div>
+                      <div className="font-medium">Duration:</div>
                       <div>
                         {actions.length > 0 ? 
                           (() => {
@@ -657,21 +767,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       </div>
                     </div>
                     
-                    <h4 className="font-medium mb-2 mt-4 border-b border-blue-200 pb-2">Player Stats:</h4>
-                    <div className="space-y-3">
-                      {playerData.map((player) => (
-                        <div key={player.id} className={`p-3 rounded ${player.id === gameWinner.id ? 'bg-blue-100' : ''}`}>
-                          <div className="font-medium">{player.name} {player.id === gameWinner.id && '🏆'}</div>
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-sm">
-                            <div>Score:</div>
-                            <div>{player.score}</div>
-                            <div>High Run:</div>
-                            <div>{player.highRun}</div>
-                            <div>BPI:</div>
-                            <div>{(player.score / Math.max(1, player.innings)).toFixed(2)}</div>
+                    <div className="border-t border-blue-200 pt-2 mt-2">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-0">
+                        {playerData.map((player) => (
+                          <div key={player.id} className={`text-sm ${player.id === gameWinner.id ? 'font-semibold' : ''}`}>
+                            <div>{player.name} {player.id === gameWinner.id && '🏆'}</div>
+                            <div className="grid grid-cols-3 gap-x-1 text-xs mt-1">
+                              <div>Score: {player.score}</div>
+                              <div>Run: {player.highRun}</div>
+                              <div>BPI: {(player.score / Math.max(1, player.innings)).toFixed(2)}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -683,11 +791,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
               </>
             )}
             
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-3 mt-2">
               {!gameWinner && (
                 <button
                   onClick={() => setShowEndGameModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                  className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
                 >
                   Cancel
                 </button>
@@ -696,17 +804,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {gameWinner && (
                 <button
                   onClick={handleEndGame}
-                  className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md"
+                  className="px-5 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md text-lg"
                 >
-                  Start New Game
+                  New Game
                 </button>
               )}
               
               <button
                 onClick={handleEndGame}
-                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md text-lg"
               >
-                {gameWinner ? 'View Full Statistics' : 'Start New Game'}
+                {gameWinner ? 'View Stats' : 'New Game'}
               </button>
             </div>
           </div>
@@ -735,7 +843,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -746,7 +854,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -758,7 +866,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowBOTModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
               >
                 Cancel
               </button>
@@ -863,8 +971,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       }
                     });
                     
-                    // Render the innings
-                    return inningActions.map((inning, idx) => {
+                    // Sort innings in descending order (most recent first)
+                    const sortedInnings = [...inningActions].sort((a, b) => {
+                      // First sort by inning number (descending)
+                      if (b.inningNumber !== a.inningNumber) {
+                        return b.inningNumber - a.inningNumber;
+                      }
+                      // If same inning, sort by time (descending)
+                      return b.endTime.getTime() - a.endTime.getTime();
+                    });
+                    
+                    // Render the sorted innings
+                    return sortedInnings.map((inning, idx) => {
                       const player = playerData.find(p => p.id === inning.playerId);
                       const actionType = inning.endAction.type;
                       const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
@@ -894,7 +1012,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
               >
                 Close
               </button>

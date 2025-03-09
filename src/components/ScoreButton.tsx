@@ -5,7 +5,7 @@ const ScoreButton: React.FC<ScoreButtonProps> = ({ label, value, onClick, classN
   return (
     <button
       onClick={() => onClick(value)}
-      className={`px-4 py-2 rounded-md text-white font-medium shadow-md hover:shadow-lg transition-all ${className}`}
+      className={`px-5 py-4 rounded-md text-white font-medium text-lg shadow-md hover:shadow-lg transition-all ${className}`}
     >
       {label}
     </button>
