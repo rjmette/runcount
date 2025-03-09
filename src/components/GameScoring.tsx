@@ -484,148 +484,157 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Get the last action
     const lastAction = actions[actions.length - 1];
-    const prevActions = actions.slice(0, -1);
     
-    // Find if this was the only action by this player this inning
-    // or if there were other actions (like new rack) in the same inning
-    // We'll need this to properly restore the current run
-    let previousRunInThisInning = 0;
-    let isFirstActionInInning = true;
-    let previousBallsOnTable = 15;
+    // Simple approach: re-calculate the entire game state from scratch
+    // This ensures everything is consistent
     
-    // Iterate backwards through previous actions to find prior state
-    for (let i = prevActions.length - 1; i >= 0; i--) {
-      const action = prevActions[i];
-      
-      // If we find an action by the same player, it's not the first action in the inning
-      if (action.playerId === lastAction.playerId) {
-        isFirstActionInInning = false;
-        
-        // If it's a score type action, add to the previous run
-        if (action.type === 'score') {
-          previousRunInThisInning += action.value;
-        }
-      }
-      
-      // If we find an action by a different player, we've gone back to the previous inning
-      if (action.playerId !== lastAction.playerId) {
-        break;
-      }
-      
-      // Track the previous balls on table count
-      if (action.ballsOnTable !== undefined) {
-        previousBallsOnTable = action.ballsOnTable;
-      }
-    }
-    
-    // Find the index of the previous player
-    let previousPlayerIndex;
-    if (prevActions.length === 0) {
-      // If this was the first action, previous player is the same player (player 0)
-      previousPlayerIndex = 0;
-    } else if (isFirstActionInInning) {
-      // If this was the first action in an inning, we need to go back to the previous player
-      const prevPlayerId = prevActions[prevActions.length - 1].playerId;
-      previousPlayerIndex = playerData.findIndex(p => p.id === prevPlayerId);
-      if (previousPlayerIndex === -1) previousPlayerIndex = 0;
-    } else {
-      // Otherwise, it's the same player who made the last action
-      previousPlayerIndex = playerData.findIndex(p => p.id === lastAction.playerId);
-      if (previousPlayerIndex === -1) previousPlayerIndex = 0;
-    }
+    // Start with initial state
+    const initialPlayerData: Player[] = players.map((name, index) => ({
+      id: index,
+      name,
+      score: 0,
+      innings: index === 0 ? 1 : 0,
+      highRun: 0,
+      fouls: 0,
+      safeties: 0,
+      missedShots: 0,
+      targetScore: playerTargetScores[name] || 100
+    }));
     
     // Remove the last action
-    setActions(prevActions);
+    const previousActions = [...actions.slice(0, -1)];
     
-    // Reset the current run
-    setCurrentRun(previousRunInThisInning);
+    // Reset to the initial state
+    let updatedPlayerData = [...initialPlayerData];
+    let currentInningCount = 1;
+    let currentActivePlayer = 0;
+    let runningBOT = 15;
+    let runningScore = 0;
     
-    // Reset balls on table
-    setBallsOnTable(previousBallsOnTable);
-    
-    // Switch back to previous player
-    setActivePlayerIndex(previousPlayerIndex);
-    
-    // Undo the action effect on player data
-    setPlayerData(prev => {
-      const updated = [...prev];
-      const playerIndex = updated.findIndex(p => p.id === lastAction.playerId);
+    // Replay all actions except the last one
+    for (let i = 0; i < previousActions.length; i++) {
+      const action = previousActions[i];
+      const playerIdx = updatedPlayerData.findIndex(p => p.id === action.playerId);
       
-      if (playerIndex !== -1) {
-        // Handle scoring reversals
-        if (['miss', 'safety', 'foul'].includes(lastAction.type)) {
-          // For turn-ending actions, need to calculate how many points to remove
-          // This includes the points from this final shot, which may include balls pocketed
+      if (playerIdx === -1) continue;
+      
+      // Track who should be the active player
+      currentActivePlayer = playerIdx;
+      
+      // Handle action based on type
+      switch (action.type) {
+        case 'score':
+          // Add points to player's score
+          updatedPlayerData[playerIdx].score += action.value;
           
-          // Find the action before this one to get previous BOT
-          let prevBOT = 15;
-          let actionIndex = actions.length - 2;
-          while (actionIndex >= 0) {
-            if (actions[actionIndex].ballsOnTable !== undefined) {
-              prevBOT = actions[actionIndex].ballsOnTable || 15;
-              break;
+          // Update high run if needed
+          runningScore += action.value;
+          if (runningScore > updatedPlayerData[playerIdx].highRun) {
+            updatedPlayerData[playerIdx].highRun = runningScore;
+          }
+          
+          // Update BOT
+          if (action.ballsOnTable !== undefined) {
+            runningBOT = action.ballsOnTable;
+          }
+          break;
+          
+        case 'foul':
+          // Add points for balls pocketed (if any)
+          if (action.ballsOnTable !== undefined) {
+            const ballsPocketed = Math.max(0, runningBOT - action.ballsOnTable);
+            updatedPlayerData[playerIdx].score += ballsPocketed;
+            
+            // Update high run if needed
+            runningScore += ballsPocketed;
+            if (runningScore > updatedPlayerData[playerIdx].highRun) {
+              updatedPlayerData[playerIdx].highRun = runningScore;
             }
-            actionIndex--;
+            
+            // Deduct 1 for the foul
+            updatedPlayerData[playerIdx].score = Math.max(0, updatedPlayerData[playerIdx].score - 1);
+            
+            // Update BOT
+            runningBOT = action.ballsOnTable;
           }
           
-          // Calculate balls pocketed in that shot
-          const ballsPocketedOnShot = Math.max(0, prevBOT - (lastAction.ballsOnTable || 0));
+          // Increment foul count
+          updatedPlayerData[playerIdx].fouls += 1;
           
-          // If there were score actions this inning, only subtract this shot's balls
-          // Otherwise subtract the full run plus this shot's balls
-          const pointsToSubtract = isFirstActionInInning 
-            ? ballsPocketedOnShot 
-            : (previousRunInThisInning + ballsPocketedOnShot);
+          // Switch to next player - this is a turn-ending action
+          currentActivePlayer = (playerIdx + 1) % players.length;
           
-          // Remove the points
-          updated[playerIndex].score -= pointsToSubtract;
-          
-          // For fouls, add back the 1 point penalty
-          if (lastAction.type === 'foul') {
-            updated[playerIndex].score += 1;
+          // If we're going back to player 0, increment inning
+          if (currentActivePlayer === 0) {
+            currentInningCount++;
           }
-        } else if (lastAction.type === 'score') {
-          // For new rack, just subtract the score value
-          updated[playerIndex].score -= lastAction.value;
-        }
-        
-        // Decrement the specific counter
-        switch (lastAction.type) {
-          case 'foul':
-            updated[playerIndex].fouls -= 1;
-            break;
-          case 'safety':
-            updated[playerIndex].safeties -= 1;
-            break;
-          case 'miss':
-            updated[playerIndex].missedShots -= 1;
-            break;
-        }
-        
-        // If this was the first action in an inning, decrement the innings count
-        if (isFirstActionInInning && lastAction.type !== 'score') {
-          updated[playerIndex].innings -= 1;
           
-          // If this player is player 0, we need to decrement the current inning
-          if (playerIndex === 0) {
-            setCurrentInning(prev => Math.max(1, prev - 1));
+          // Increment innings for next player
+          updatedPlayerData[currentActivePlayer].innings += 1;
+          
+          // Reset running score (current run)
+          runningScore = 0;
+          break;
+          
+        case 'safety':
+        case 'miss':
+          // Add points for balls pocketed (if any)
+          if (action.ballsOnTable !== undefined) {
+            const ballsPocketed = Math.max(0, runningBOT - action.ballsOnTable);
+            updatedPlayerData[playerIdx].score += ballsPocketed;
+            
+            // Update high run if needed
+            runningScore += ballsPocketed;
+            if (runningScore > updatedPlayerData[playerIdx].highRun) {
+              updatedPlayerData[playerIdx].highRun = runningScore;
+            }
+            
+            // Update BOT
+            runningBOT = action.ballsOnTable;
           }
-        }
+          
+          // Increment the specific counter
+          if (action.type === 'safety') {
+            updatedPlayerData[playerIdx].safeties += 1;
+          } else {
+            updatedPlayerData[playerIdx].missedShots += 1;
+          }
+          
+          // Switch to next player - this is a turn-ending action
+          currentActivePlayer = (playerIdx + 1) % players.length;
+          
+          // If we're going back to player 0, increment inning
+          if (currentActivePlayer === 0) {
+            currentInningCount++;
+          }
+          
+          // Increment innings for next player
+          updatedPlayerData[currentActivePlayer].innings += 1;
+          
+          // Reset running score (current run)
+          runningScore = 0;
+          break;
       }
-      
-      return updated;
-    });
+    }
+    
+    // Update all state values
+    setPlayerData(updatedPlayerData);
+    setActivePlayerIndex(currentActivePlayer);
+    setCurrentInning(currentInningCount);
+    setBallsOnTable(runningBOT);
+    setCurrentRun(runningScore);
+    setActions(previousActions);
     
     // If no more actions, disable undo
-    if (prevActions.length === 0) {
+    if (previousActions.length === 0) {
       setIsUndoEnabled(false);
     }
     
     // Update game in database
     saveGameToSupabase(
       gameId || '',
-      playerData,
-      prevActions,
+      updatedPlayerData,
+      previousActions,
       false,
       null
     );
