@@ -44,9 +44,29 @@ function AppContent() {
     }
   }, [user]);
   
-  // Store last used game settings for quick restart
-  const [lastPlayers, setLastPlayers] = useState<string[]>([]);
-  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>({});
+  // Persist game settings to localStorage
+  useEffect(() => {
+    if (lastPlayers.length > 0) {
+      localStorage.setItem('runcount_lastPlayers', JSON.stringify(lastPlayers));
+    }
+  }, [lastPlayers]);
+  
+  useEffect(() => {
+    if (Object.keys(lastPlayerTargetScores).length > 0) {
+      localStorage.setItem('runcount_lastPlayerTargetScores', JSON.stringify(lastPlayerTargetScores));
+    }
+  }, [lastPlayerTargetScores]);
+  
+  // Store last used game settings for quick restart with persistence
+  const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
+    const savedPlayers = localStorage.getItem('runcount_lastPlayers');
+    return savedPlayers ? JSON.parse(savedPlayers) : [];
+  });
+  
+  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>(() => {
+    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
+    return savedTargetScores ? JSON.parse(savedTargetScores) : {};
+  });
 
   // Handle user sign out
   const handleSignOut = async () => {
