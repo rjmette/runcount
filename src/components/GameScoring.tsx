@@ -671,11 +671,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Game Scoring</h2>
-        <div className="flex space-x-4">
+        <div className="flex space-x-3">
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`px-4 py-2 rounded-md ${
+            className={`px-5 py-3 rounded-md text-lg font-medium ${
               isUndoEnabled 
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -686,7 +686,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
           >
             New Game
           </button>
@@ -795,7 +795,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {!gameWinner && (
                 <button
                   onClick={() => setShowEndGameModal(false)}
-                  className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-100 text-sm"
+                  className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
                 >
                   Cancel
                 </button>
@@ -804,7 +804,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {gameWinner && (
                 <button
                   onClick={handleEndGame}
-                  className="px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md text-sm"
+                  className="px-5 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md text-lg"
                 >
                   New Game
                 </button>
@@ -812,7 +812,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               
               <button
                 onClick={handleEndGame}
-                className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md text-sm"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md text-lg"
               >
                 {gameWinner ? 'View Stats' : 'New Game'}
               </button>
@@ -843,7 +843,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -854,7 +854,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -866,7 +866,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowBOTModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
               >
                 Cancel
               </button>
@@ -1012,7 +1012,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
               >
                 Close
               </button>
