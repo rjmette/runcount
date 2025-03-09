@@ -37,6 +37,17 @@ function AppContent() {
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
+  // Store last used game settings for quick restart with persistence
+  const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
+    const savedPlayers = localStorage.getItem('runcount_lastPlayers');
+    return savedPlayers ? JSON.parse(savedPlayers) : [];
+  });
+  
+  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>(() => {
+    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
+    return savedTargetScores ? JSON.parse(savedTargetScores) : {};
+  });
+
   // Close auth modal when user is authenticated
   useEffect(() => {
     if (user) {
@@ -56,17 +67,6 @@ function AppContent() {
       localStorage.setItem('runcount_lastPlayerTargetScores', JSON.stringify(lastPlayerTargetScores));
     }
   }, [lastPlayerTargetScores]);
-  
-  // Store last used game settings for quick restart with persistence
-  const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
-    const savedPlayers = localStorage.getItem('runcount_lastPlayers');
-    return savedPlayers ? JSON.parse(savedPlayers) : [];
-  });
-  
-  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>(() => {
-    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
-    return savedTargetScores ? JSON.parse(savedTargetScores) : {};
-  });
 
   // Handle user sign out
   const handleSignOut = async () => {
