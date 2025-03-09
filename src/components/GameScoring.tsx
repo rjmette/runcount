@@ -863,8 +863,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       }
                     });
                     
-                    // Render the innings
-                    return inningActions.map((inning, idx) => {
+                    // Sort innings in descending order (most recent first)
+                    const sortedInnings = [...inningActions].sort((a, b) => {
+                      // First sort by inning number (descending)
+                      if (b.inningNumber !== a.inningNumber) {
+                        return b.inningNumber - a.inningNumber;
+                      }
+                      // If same inning, sort by time (descending)
+                      return b.endTime.getTime() - a.endTime.getTime();
+                    });
+                    
+                    // Render the sorted innings
+                    return sortedInnings.map((inning, idx) => {
                       const player = playerData.find(p => p.id === inning.playerId);
                       const actionType = inning.endAction.type;
                       const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
