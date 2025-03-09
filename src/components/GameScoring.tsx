@@ -669,13 +669,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Game Scoring</h2>
-        <div className="flex space-x-3">
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-lg font-bold">Game Scoring</h2>
+        <div className="flex space-x-2">
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`px-5 py-3 rounded-md text-lg font-medium ${
+            className={`px-4 py-2 rounded-md text-lg font-medium ${
               isUndoEnabled 
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700' 
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -686,30 +686,30 @@ const GameScoring: React.FC<GameScoringProps> = ({
           
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
           >
             New Game
           </button>
         </div>
       </div>
       
-      <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+      <div className="bg-white p-2 rounded-lg shadow-md mb-3">
         <div className="flex justify-between items-center">
           {playerData.map((player, index) => (
             <div key={index}>
-              <span className="text-sm text-gray-500">{player.name}'s Target</span>
-              <span className="block text-xl font-bold">{player.targetScore}</span>
+              <span className="text-xs text-gray-500">{player.name}'s Target</span>
+              <span className="block text-lg font-bold">{player.targetScore}</span>
             </div>
           ))}
           
-          <div className="bg-blue-50 p-2 rounded-md">
-            <span className="text-sm text-gray-500">Balls on Table (BOT)</span>
-            <span className="block text-xl font-bold text-blue-700">{ballsOnTable}</span>
+          <div className="bg-blue-50 p-1.5 rounded-md">
+            <span className="text-xs text-gray-500">Balls on Table (BOT)</span>
+            <span className="block text-lg font-bold text-blue-700">{ballsOnTable}</span>
           </div>
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {playerData.map((player, index) => (
           <PlayerScoreCard
             key={player.id}

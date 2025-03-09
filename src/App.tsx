@@ -178,11 +178,11 @@ function AppContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
-      <header className="bg-blue-800 text-white p-4 shadow-md">
+      <header className="bg-blue-800 text-white py-2 px-3 shadow-md">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">RunCount</h1>
-            <p className="text-sm">Straight Pool (14.1) Scoring App</p>
+            <h1 className="text-xl font-bold">RunCount</h1>
+            <p className="text-xs">Straight Pool (14.1) Scoring App</p>
           </div>
           <div>
             {user ? (
