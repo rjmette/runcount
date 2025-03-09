@@ -619,29 +619,28 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {showEndGameModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           {gameWinner && <ReactConfetti recycle={false} numberOfPieces={500} />}
-          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
+          <div className="bg-white p-4 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
             {gameWinner ? (
               <>
-                <div className="text-center mb-6 animate-pulse">
-                  <div className="text-6xl mb-2">🏆 🎱</div>
-                  <h3 className="text-2xl font-bold text-blue-700">
-                    Game Completed!
-                  </h3>
+                <div className="text-center mb-3 animate-pulse">
+                  <div className="text-4xl mb-1 flex justify-center items-center">
+                    <span className="mr-2">🏆</span>
+                    <h3 className="text-xl font-bold text-blue-700 inline">Game Completed!</h3>
+                    <span className="ml-2">🎱</span>
+                  </div>
                 </div>
                 
-                <div className="mb-8">
-                  <p className="mb-4 text-lg text-center">
-                    <span className="font-bold text-blue-700 text-xl">{gameWinner.name}</span> has won with a score of <span className="font-bold text-xl">{gameWinner.score}</span>!
+                <div className="mb-4">
+                  <p className="mb-2 text-center">
+                    <span className="font-bold text-blue-700">{gameWinner.name}</span> won with <span className="font-bold">{gameWinner.score}</span> points!
                   </p>
                   
-                  <div className="bg-blue-50 p-6 rounded-md shadow-inner">
-                    <h4 className="font-medium mb-4 text-lg border-b border-blue-200 pb-2">Game Statistics:</h4>
-                    
-                    <div className="grid grid-cols-2 gap-y-3 mb-4">
+                  <div className="bg-blue-50 p-3 rounded-md shadow-inner">
+                    <div className="grid grid-cols-2 gap-y-2 mb-2 text-sm">
                       <div className="font-medium">Total Innings:</div>
                       <div>{currentInning}</div>
                       
-                      <div className="font-medium">Game Duration:</div>
+                      <div className="font-medium">Duration:</div>
                       <div>
                         {actions.length > 0 ? 
                           (() => {
@@ -657,21 +656,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       </div>
                     </div>
                     
-                    <h4 className="font-medium mb-2 mt-4 border-b border-blue-200 pb-2">Player Stats:</h4>
-                    <div className="space-y-3">
-                      {playerData.map((player) => (
-                        <div key={player.id} className={`p-3 rounded ${player.id === gameWinner.id ? 'bg-blue-100' : ''}`}>
-                          <div className="font-medium">{player.name} {player.id === gameWinner.id && '🏆'}</div>
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-1 text-sm">
-                            <div>Score:</div>
-                            <div>{player.score}</div>
-                            <div>High Run:</div>
-                            <div>{player.highRun}</div>
-                            <div>BPI:</div>
-                            <div>{(player.score / Math.max(1, player.innings)).toFixed(2)}</div>
+                    <div className="border-t border-blue-200 pt-2 mt-2">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-0">
+                        {playerData.map((player) => (
+                          <div key={player.id} className={`text-sm ${player.id === gameWinner.id ? 'font-semibold' : ''}`}>
+                            <div>{player.name} {player.id === gameWinner.id && '🏆'}</div>
+                            <div className="grid grid-cols-3 gap-x-1 text-xs mt-1">
+                              <div>Score: {player.score}</div>
+                              <div>Run: {player.highRun}</div>
+                              <div>BPI: {(player.score / Math.max(1, player.innings)).toFixed(2)}</div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -683,11 +680,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
               </>
             )}
             
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-3 mt-2">
               {!gameWinner && (
                 <button
                   onClick={() => setShowEndGameModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100"
+                  className="px-3 py-1.5 border border-gray-300 rounded-md hover:bg-gray-100 text-sm"
                 >
                   Cancel
                 </button>
@@ -696,17 +693,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {gameWinner && (
                 <button
                   onClick={handleEndGame}
-                  className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md"
+                  className="px-4 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md text-sm"
                 >
-                  Start New Game
+                  New Game
                 </button>
               )}
               
               <button
                 onClick={handleEndGame}
-                className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md"
+                className="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md text-sm"
               >
-                {gameWinner ? 'View Full Statistics' : 'Start New Game'}
+                {gameWinner ? 'View Stats' : 'New Game'}
               </button>
             </div>
           </div>
