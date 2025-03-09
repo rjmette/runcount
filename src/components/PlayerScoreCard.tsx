@@ -77,10 +77,9 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       
       {isActive && (
         <>
-          {/* Current Run Display */}
-          <div className="mb-4 p-2 bg-blue-100 rounded-md">
-            <span className="block text-sm font-semibold">Current Run</span>
-            <span className="text-lg font-bold text-blue-800" id="current-run">0</span>
+          {/* Current run is still tracked in the DOM but hidden from display */}
+          <div className="hidden">
+            <span id="current-run">0</span>
           </div>
         
           <div className="grid grid-cols-2 gap-3 mt-4">          
