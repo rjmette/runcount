@@ -45,17 +45,96 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   }, [gameId, supabase]);
 
   // Calculate additional statistics
-  const calculateStats = (players: Player[]) => {
+  const calculateStats = (players: Player[], actions: any[]) => {
+    // First, let's analyze actions to determine safety effectiveness and shot counts
+    // This requires looking at the sequence of actions
+    
+    // Create a map to track results
+    const playerStats: Record<number, {
+      totalBallsPocketed: number;
+      totalInnings: number;
+      safetyInnings: number;
+      successfulSafeties: number;
+      failedSafeties: number;
+      totalSafeties: number;
+      ballsMade: number;
+      shotsTaken: number;
+    }> = {};
+    
+    // Initialize stats for each player
+    players.forEach(player => {
+      playerStats[player.id] = {
+        totalBallsPocketed: player.score, // Base score is balls pocketed
+        totalInnings: player.innings,
+        safetyInnings: 0,
+        successfulSafeties: 0,
+        failedSafeties: 0, 
+        totalSafeties: player.safeties,
+        ballsMade: player.score,
+        shotsTaken: player.score + player.missedShots + player.safeties + player.fouls
+      };
+    });
+    
+    // Analyze action sequence to determine safety effectiveness
+    // A safety is successful if the next action by opponent is a foul or miss
+    // A safety is failed if the opponent gets to continue their turn
+    for (let i = 0; i < actions.length - 1; i++) {
+      const currentAction = actions[i];
+      const nextAction = actions[i + 1];
+      
+      // If current action is a safety
+      if (currentAction.type === 'safety') {
+        // Get current and next player IDs
+        const currentPlayerId = currentAction.playerId;
+        const nextPlayerId = nextAction.playerId;
+        
+        // Count as a safety inning
+        playerStats[currentPlayerId].safetyInnings++;
+        
+        // If next action is by a different player (opponent)
+        if (nextPlayerId !== currentPlayerId) {
+          // Check if next action is a foul or miss (successful safety)
+          if (nextAction.type === 'foul' || nextAction.type === 'miss') {
+            playerStats[currentPlayerId].successfulSafeties++;
+          } else {
+            // Opponent got to continue (failed safety)
+            playerStats[currentPlayerId].failedSafeties++;
+          }
+        }
+      }
+    }
+    
+    // Calculate final statistics for each player
     return players.map(player => {
-      const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
-      const accuracy = player.missedShots + player.score > 0
-        ? Math.round((player.score / (player.missedShots + player.score)) * 100)
+      const stats = playerStats[player.id];
+      
+      // 1. Traditional BPI
+      const traditionalBPI = stats.totalInnings > 0 
+        ? (stats.totalBallsPocketed / stats.totalInnings).toFixed(2) 
+        : '0.00';
+      
+      // 2. Offensive BPI (excluding safety innings)
+      const offensiveInnings = Math.max(1, stats.totalInnings - stats.safetyInnings);
+      const offensiveBPI = (stats.totalBallsPocketed / offensiveInnings).toFixed(2);
+      
+      // 3. Safety Efficiency percentage
+      const safetyEfficiency = stats.totalSafeties > 0
+        ? Math.round((stats.successfulSafeties / stats.totalSafeties) * 100)
+        : 0;
+      
+      // 4. Shooting Percentage
+      const shootingPercentage = stats.shotsTaken > 0
+        ? Math.round((stats.ballsMade / stats.shotsTaken) * 100)
         : 0;
       
       return {
         ...player,
-        bpi,
-        accuracy
+        bpi: traditionalBPI,
+        offensiveBPI,
+        safetyEfficiency,
+        successfulSafeties: stats.successfulSafeties,
+        failedSafeties: stats.failedSafeties,
+        shootingPercentage
       };
     });
   };
@@ -86,7 +165,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   }
 
   const winner = gameData.players.find(p => p.id === gameData.winnerId);
-  const playersWithStats = calculateStats(gameData.players);
+  const playersWithStats = calculateStats(gameData.players, gameData.actions);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -167,6 +246,48 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         </div>
       </div>
       
+      {/* Performance Metrics Summary */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h3 className="text-lg font-semibold mb-4">Performance Metrics</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {playersWithStats.map((player: any) => (
+            <React.Fragment key={player.id}>
+              <div className="bg-blue-50 p-3 rounded col-span-4 mt-2 mb-2">
+                <div className="font-medium text-blue-800">{player.name}'s Key Metrics</div>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded">
+                <span className="block text-sm text-gray-500">Offensive BPI</span>
+                <span className="text-lg font-semibold text-blue-700">
+                  {player.offensiveBPI}
+                </span>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded">
+                <span className="block text-sm text-gray-500">Shooting %</span>
+                <span className="text-lg font-semibold text-blue-700">
+                  {player.shootingPercentage}%
+                </span>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded">
+                <span className="block text-sm text-gray-500">Safety Efficiency</span>
+                <span className="text-lg font-semibold text-blue-700">
+                  {player.safetyEfficiency}%
+                </span>
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded">
+                <span className="block text-sm text-gray-500">High Run</span>
+                <span className="text-lg font-semibold text-blue-700">
+                  {player.highRun}
+                </span>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      
       {/* Detailed player statistics */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4">Player Statistics</h3>
@@ -188,13 +309,16 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                   Innings
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  BPI
+                  Trad. BPI
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Accuracy
+                  Off. BPI
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Fouls
+                  Shooting %
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Safety Eff.
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Safeties
@@ -202,7 +326,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {playersWithStats.map((player, i) => (
+              {playersWithStats.map((player: any, i) => (
                 <tr key={player.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -229,10 +353,13 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                     {player.bpi}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {player.accuracy}%
+                    {player.offensiveBPI}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {player.fouls}
+                    {player.shootingPercentage}%
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {player.safetyEfficiency}% ({player.successfulSafeties}/{player.successfulSafeties + player.failedSafeties})
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {player.safeties}
@@ -241,6 +368,33 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
               ))}
             </tbody>
           </table>
+        </div>
+        
+        {/* Add a stats explanation section */}
+        <div className="mt-8 border-t pt-4">
+          <h4 className="text-md font-semibold mb-3">Understanding the Statistics</h4>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="bg-gray-50 p-3 rounded">
+              <span className="font-medium">Traditional BPI</span>
+              <p>Total Balls Pocketed ÷ Total Innings. The classic measure of scoring pace.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded">
+              <span className="font-medium">Offensive BPI</span>
+              <p>Balls Pocketed ÷ (Total Innings - Safety Innings). Shows scoring rate when playing offensively.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded">
+              <span className="font-medium">Safety Efficiency</span>
+              <p>Percentage of safeties that resulted in the opponent fouling or missing. Higher is better.</p>
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded">
+              <span className="font-medium">Shooting Percentage</span>
+              <p>(Balls Made ÷ Shots Taken) × 100. Indicates overall shooting accuracy.</p>
+            </div>
+          </div>
         </div>
         
         <div className="mt-6 text-center">
