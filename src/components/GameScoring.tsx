@@ -31,6 +31,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<'newrack' | 'foul' | 'safety' | 'miss' | null>(null);
   
   // Calculate additional statistics for real-time display
@@ -96,6 +98,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       innings: index === 0 ? 1 : 0, // Set first player's innings to 1 directly
       highRun: 0,
       fouls: 0,
+      consecutiveFouls: 0,
       safeties: 0,
       missedShots: 0,
       targetScore: playerTargetScores[name] || 100 // Default to 100 if not found
@@ -199,6 +202,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const handleRegularShot = (value: number) => {
     // Increment current run
     setCurrentRun(prev => prev + value);
+    
+    // Legal shot - reset consecutive fouls counter
+    const updatedPlayerData = [...playerData];
+    updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
+    setPlayerData(updatedPlayerData);
   };
 
   // Handle new rack and scoring
@@ -239,6 +247,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Update score with total points scored
     updatedPlayerData[activePlayerIndex].score += pointsScored;
+    
+    // Reset consecutive fouls (pocketing a ball is a legal shot)
+    updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
     
     // Update current run
     const newCurrentRun = currentRun + pointsScored;
@@ -307,9 +318,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
       updatedPlayerData[activePlayerIndex].highRun = totalToAdd;
     }
     
-    // Then deduct 1 point for the foul
-    updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+    // Increment consecutive fouls count
+    updatedPlayerData[activePlayerIndex].consecutiveFouls += 1;
     
+    // Check for three consecutive fouls
+    if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
+      // Apply 15-point penalty for three consecutive fouls
+      updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 15);
+      // Reset consecutive fouls counter
+      updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
+      // Show alert about three-foul penalty
+      const playerName = updatedPlayerData[activePlayerIndex].name;
+      setAlertMessage(`${playerName} has committed three consecutive fouls! 15-point penalty applied.`);
+      setShowAlertModal(true);
+    } else {
+      // Regular 1-point foul penalty
+      updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+      
+      // Show warning after second consecutive foul
+      if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
+        const playerName = updatedPlayerData[activePlayerIndex].name;
+        setAlertMessage(`Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty.`);
+        setShowAlertModal(true);
+      }
+    }
+    
+    // Increment total fouls counter
     updatedPlayerData[activePlayerIndex].fouls += 1;
     
     // Reset current run
@@ -390,6 +424,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Update current player stats
     updatedPlayerData[activePlayerIndex].safeties += 1;
+    
+    // Reset consecutive fouls counter - safety is a legal shot
+    updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
     
     // Check if this inning had any 'score' type actions (new rack)
     const hasScoreActions = actions.some(action => 
@@ -486,6 +523,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update current player stats
     updatedPlayerData[activePlayerIndex].missedShots += 1;
     
+    // Reset consecutive fouls - a miss is not a foul in straight pool
+    // as long as it drives a ball to a rail (which we assume here)
+    updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
+    
     // Check if this inning had any 'score' type actions (new rack)
     const hasScoreActions = actions.some(action => 
       action.type === 'score' && 
@@ -567,6 +608,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       innings: index === 0 ? 1 : 0,
       highRun: 0,
       fouls: 0,
+      consecutiveFouls: 0,
       safeties: 0,
       missedShots: 0,
       targetScore: playerTargetScores[name] || 100
@@ -629,8 +671,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
             runningBOT = action.ballsOnTable;
           }
           
-          // Increment foul count
+          // Increment foul count and consecutive fouls
           updatedPlayerData[playerIdx].fouls += 1;
+          updatedPlayerData[playerIdx].consecutiveFouls += 1;
           
           // Switch to next player - this is a turn-ending action
           currentActivePlayer = (playerIdx + 1) % players.length;
@@ -667,8 +710,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
           // Increment the specific counter
           if (action.type === 'safety') {
             updatedPlayerData[playerIdx].safeties += 1;
+            // Safety is a legal shot, reset consecutive fouls
+            updatedPlayerData[playerIdx].consecutiveFouls = 0;
           } else {
             updatedPlayerData[playerIdx].missedShots += 1;
+            // Miss is not a foul in straight pool rules, reset consecutive fouls
+            updatedPlayerData[playerIdx].consecutiveFouls = 0;
           }
           
           // Switch to next player - this is a turn-ending action
@@ -963,6 +1010,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
         </div>
       )}
 
+      {/* Alert Modal */}
+      {showAlertModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full dark:text-white border-2 border-orange-500 dark:border-orange-600">
+            <h3 className="text-xl font-bold mb-4">
+              Alert
+            </h3>
+            
+            <div className="mb-6">
+              <p className="mb-4 text-gray-700 dark:text-gray-300">
+                {alertMessage}
+              </p>
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowAlertModal(false)}
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-lg font-medium"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* History Modal */}
       {showHistoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

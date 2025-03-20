@@ -31,6 +31,7 @@ describe('PlayerScoreCard Component', () => {
     innings: 5,
     highRun: 8,
     fouls: 2,
+    consecutiveFouls: 0,
     safeties: 1,
     missedShots: 3,
     targetScore: 75
@@ -87,7 +88,8 @@ describe('PlayerScoreCard Component', () => {
   test('displays trophy icon when player reaches target score', () => {
     const winningPlayer = {
       ...mockPlayer,
-      score: 75 // Equal to target score
+      score: 75, // Equal to target score
+      consecutiveFouls: 0
     };
     
     render(
@@ -195,7 +197,8 @@ describe('PlayerScoreCard Component', () => {
   test('handles zero innings case correctly for BPI calculation', () => {
     const newPlayer = {
       ...mockPlayer,
-      innings: 0
+      innings: 0,
+      consecutiveFouls: 0
     };
     
     render(

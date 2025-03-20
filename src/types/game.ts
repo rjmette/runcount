@@ -7,6 +7,7 @@ export interface Player {
   innings: number;
   highRun: number;
   fouls: number;
+  consecutiveFouls: number;
   safeties: number;
   missedShots: number;
   targetScore: number;
