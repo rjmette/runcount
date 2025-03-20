@@ -824,14 +824,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 <div className="text-center mb-3 animate-pulse">
                   <div className="text-4xl mb-1 flex justify-center items-center">
                     <span className="mr-2">🏆</span>
-                    <h3 className="text-xl font-bold text-blue-700 inline">Game Completed!</h3>
+                    <h3 className="text-xl font-bold text-blue-700 dark:text-blue-400 inline">Game Completed!</h3>
                     <span className="ml-2">🎱</span>
                   </div>
                 </div>
                 
                 <div className="mb-4">
                   <p className="mb-2 text-center">
-                    <span className="font-bold text-blue-700">{gameWinner.name}</span> won with <span className="font-bold">{gameWinner.score}</span> points!
+                    <span className="font-bold text-blue-700 dark:text-blue-400">{gameWinner.name}</span> won with <span className="font-bold">{gameWinner.score}</span> points!
                   </p>
                   
                   <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-md shadow-inner dark:text-gray-100">
@@ -855,7 +855,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       </div>
                     </div>
                     
-                    <div className="border-t border-blue-200 pt-2 mt-2">
+                    <div className="border-t border-blue-200 dark:border-blue-800 pt-2 mt-2">
                       <div className="grid grid-cols-2 gap-x-3 gap-y-0">
                         {playerData.map((player) => (
                           <div key={player.id} className={`text-sm ${player.id === gameWinner.id ? 'font-semibold' : ''}`}>
@@ -883,7 +883,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {!gameWinner && (
                 <button
                   onClick={() => setShowEndGameModal(false)}
-                  className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
+                  className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-lg font-medium dark:text-gray-200"
                 >
                   Cancel
                 </button>
@@ -892,7 +892,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               {gameWinner && (
                 <button
                   onClick={handleEndGame}
-                  className="px-5 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 font-medium shadow-md text-lg"
+                  className="px-5 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 font-medium shadow-md text-lg"
                 >
                   New Game
                 </button>
@@ -900,7 +900,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
               
               <button
                 onClick={handleEndGame}
-                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium shadow-md text-lg"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 font-medium shadow-md text-lg"
               >
                 {gameWinner ? 'View Stats' : 'New Game'}
               </button>
@@ -918,7 +918,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             </h3>
             
             <div className="mb-6">
-              <p className="mb-4 text-gray-600">
+              <p className="mb-4 text-gray-600 dark:text-gray-300">
                 {botAction === 'newrack' 
                   ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${ballsOnTable}`
                   : `Please enter the number of balls currently on the table (2-${ballsOnTable}):`}
@@ -931,7 +931,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -942,7 +942,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <button
                       key={num}
                       onClick={() => handleBOTSubmit(num)}
-                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium text-2xl rounded-md"
+                      className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 font-medium text-2xl rounded-md"
                     >
                       {num}
                     </button>
@@ -954,7 +954,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowBOTModal(false)}
-                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-100 text-lg font-medium"
+                className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-lg font-medium dark:text-gray-200"
               >
                 Cancel
               </button>
@@ -1100,7 +1100,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
+                className="px-5 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-lg font-medium"
               >
                 Close
               </button>
