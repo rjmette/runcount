@@ -99,7 +99,10 @@ function AppContent() {
             playerTargetScores={playerTargetScores}
             gameId={currentGameId}
             setGameId={setCurrentGameId}
-            finishGame={() => setGameState('statistics')}
+            finishGame={() => {
+              // Don't reset gameId here, as we need it for statistics
+              setGameState('statistics');
+            }}
             supabase={supabase}
             user={user}
           />
@@ -109,7 +112,10 @@ function AppContent() {
           <GameStatistics 
             gameId={currentGameId}
             supabase={supabase}
-            startNewGame={() => setGameState('setup')}
+            startNewGame={() => {
+              setCurrentGameId(null);
+              setGameState('setup');
+            }}
             viewHistory={() => setGameState('history')}
           />
         );

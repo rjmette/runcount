@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GameScoringProps, Player, GameAction } from '../types/game';
+import { GameScoringProps, Player, GameAction, GameData } from '../types/game';
 import PlayerScoreCard from './PlayerScoreCard';
 import { v4 as uuidv4 } from 'uuid';
 import ReactConfetti from 'react-confetti';
@@ -64,7 +64,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
   }, [players, gameId, setGameId, playerTargetScores, supabase]);
 
-  // Save game data to Supabase
+  // Save game data to Supabase and localStorage
   const saveGameToSupabase = async (
     gameId: string, 
     players: Player[], 
@@ -72,14 +72,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
     completed: boolean,
     winnerId: number | null
   ) => {
+    // Create game data object
+    const gameData: GameData = {
+      id: gameId,
+      date: new Date(),
+      players: players,
+      actions: actions,
+      completed: completed,
+      winnerId: winnerId
+    };
+    
+    // Always save to localStorage regardless of authentication
+    try {
+      localStorage.setItem(`runcount_game_${gameId}`, JSON.stringify(gameData));
+      console.log('Game saved to localStorage');
+    } catch (err) {
+      console.error('Error saving game to localStorage:', err);
+    }
+    
     // Only save to Supabase if user is authenticated
     if (!user) {
-      console.log('Game not saved: User not authenticated');
+      console.log('Game not saved to Supabase: User not authenticated');
       return;
     }
     
     // Debug info
-    console.log('Saving game with owner_id:', user.id);
+    console.log('Saving game to Supabase with owner_id:', user.id);
     
     try {
       // Make sure the UUID is in the correct format for PostgreSQL
@@ -105,7 +123,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         .upsert(payload);
 
       if (error) {
-        console.error('Error saving game:', error);
+        console.error('Error saving game to Supabase:', error);
         // Show full error details for debugging
         console.error('Error details:', JSON.stringify(error, null, 2));
         
@@ -117,10 +135,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
           console.error('Current user ID:', user.id);
         }
       } else {
-        console.log('Game saved successfully');
+        console.log('Game saved to Supabase successfully');
       }
     } catch (err) {
-      console.error('Error saving game:', err);
+      console.error('Error saving game to Supabase:', err);
     }
   };
 
@@ -643,6 +661,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const handleEndGame = () => {
     // The current game settings are already saved in App.tsx state
     // through the lastPlayers and lastPlayerTargetScores variables
+    
+    // Save the game as completed if it's not already
+    if (!gameWinner && gameId) {
+      // Mark the current game as completed when leaving without a winner
+      saveGameToSupabase(
+        gameId,
+        playerData,
+        actions,
+        true,
+        null
+      );
+    }
+    
+    // If there's already a gameWinner, no need to save again as it was saved when the winner was determined
+    
     finishGame();
   };
   
