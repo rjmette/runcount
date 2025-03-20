@@ -33,6 +33,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   
   return (
     <div 
+      data-testid="player-card"
       className={`rounded-lg shadow-md p-3 mb-2 transition-all ${
         isActive 
           ? 'bg-blue-50 border-2 border-blue-500' 

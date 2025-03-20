@@ -1,20 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import PlayerScoreCard from './PlayerScoreCard';
 import { Player } from '../types/game';
 
-// We need to explicitly add a "getByClassName" method to make our tests work
-import { getByText, getByRole } from '@testing-library/dom';
-import { within } from '@testing-library/react';
-
-// Mock the Screen object to add getByClassName method
-const originalScreen = { ...screen };
-screen.getByClassName = (className: string) => {
-  const elements = document.getElementsByClassName(className);
-  if (!elements || elements.length === 0) {
-    throw new Error(`No elements found with class: ${className}`);
-  }
-  return elements[0] as HTMLElement;
+// Helper function to get element by class name using Testing Library's built-in queries
+const getByClassName = (container: HTMLElement, className: string): HTMLElement => {
+  return container.querySelector(`.${className}`) as HTMLElement;
 };
 
 // Mock the ScoreButton component to simplify testing
@@ -88,7 +79,8 @@ describe('PlayerScoreCard Component', () => {
     expect(screen.getByText('3')).toBeInTheDocument(); // Misses
     
     // Check progress percentage (25/75 = 33%)
-    const progressBar = screen.getByClassName('bg-blue-600');
+    const container = screen.getByTestId('player-card') || document.body;
+    const progressBar = getByClassName(container, 'bg-blue-600');
     expect(progressBar).toHaveStyle('width: 33%');
   });
   
@@ -114,7 +106,8 @@ describe('PlayerScoreCard Component', () => {
     expect(screen.getByText('🏆')).toBeInTheDocument();
     
     // Check progress bar is at 100%
-    const progressBar = screen.getByClassName('bg-green-600');
+    const container = screen.getByTestId('player-card') || document.body;
+    const progressBar = getByClassName(container, 'bg-green-600');
     expect(progressBar).toHaveStyle('width: 100%');
   });
   
