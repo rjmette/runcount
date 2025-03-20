@@ -323,14 +323,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Check for three consecutive fouls
     if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
-      // Apply 15-point penalty for three consecutive fouls
+      // Apply regular 1-point foul penalty
+      updatedPlayerData[activePlayerIndex].score -= 1;
+      
+      // Plus additional 15-point penalty for three consecutive fouls (total 16 points)
       // Allow score to go negative per official straight pool rules
       updatedPlayerData[activePlayerIndex].score -= 15;
+      
       // Reset consecutive fouls counter
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
+      
       // Show alert about three-foul penalty
       const playerName = updatedPlayerData[activePlayerIndex].name;
-      setAlertMessage(`${playerName} has committed three consecutive fouls! 15-point penalty applied.`);
+      setAlertMessage(`${playerName} has committed three consecutive fouls! 16-point penalty applied (1 for foul + 15 for three consecutive fouls).`);
       setShowAlertModal(true);
     } else {
       // Regular 1-point foul penalty
@@ -340,7 +345,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Show warning after second consecutive foul
       if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
         const playerName = updatedPlayerData[activePlayerIndex].name;
-        setAlertMessage(`Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty.`);
+        setAlertMessage(`Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular 1-point deduction.`);
         setShowAlertModal(true);
       }
     }
@@ -677,6 +682,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
           // Increment foul count and consecutive fouls
           updatedPlayerData[playerIdx].fouls += 1;
           updatedPlayerData[playerIdx].consecutiveFouls += 1;
+          
+          // Check for three consecutive fouls and apply additional penalty
+          if (updatedPlayerData[playerIdx].consecutiveFouls === 3) {
+            // Apply additional 15-point penalty for three consecutive fouls
+            // (regular 1-point foul penalty is already applied above)
+            updatedPlayerData[playerIdx].score -= 15;
+            // Reset consecutive fouls counter
+            updatedPlayerData[playerIdx].consecutiveFouls = 0;
+          }
           
           // Switch to next player - this is a turn-ending action
           currentActivePlayer = (playerIdx + 1) % players.length;
