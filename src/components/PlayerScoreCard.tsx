@@ -36,12 +36,12 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       data-testid="player-card"
       className={`rounded-lg shadow-md p-3 mb-2 transition-all ${
         isActive 
-          ? 'bg-blue-50 border-2 border-blue-500' 
-          : 'bg-white border border-gray-200 opacity-80'
+          ? 'bg-blue-50 dark:bg-blue-900 border-2 border-blue-500' 
+          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80'
       }`}
     >
       <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-bold">
+        <h3 className="text-lg font-bold dark:text-white">
           {player.name}
           {player.score >= targetScore && <span className="ml-1 text-yellow-500">🏆</span>}
         </h3>
@@ -50,31 +50,31 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       
       <div className="flex flex-col sm:flex-row justify-between items-center mb-3">
         <div className="text-center sm:text-left mb-2 sm:mb-0">
-          <span className={`block text-3xl font-bold ${player.score >= targetScore ? 'text-green-600' : 'text-blue-700'}`}>{player.score}</span>
-          <span className="text-xs text-gray-500">Score</span>
+          <span className={`block text-3xl font-bold ${player.score >= targetScore ? 'text-green-600 dark:text-green-500' : 'text-blue-700 dark:text-blue-400'}`}>{player.score}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Score</span>
         </div>
         
         <div className="flex space-x-3">
           <div className="text-center">
-            <span className="block text-base font-semibold">{player.innings}</span>
-            <span className="text-xs text-gray-500">Innings</span>
+            <span className="block text-base font-semibold dark:text-white">{player.innings}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Innings</span>
           </div>
           
           <div className="text-center">
-            <span className="block text-base font-semibold">{player.highRun}</span>
-            <span className="text-xs text-gray-500">High Run</span>
+            <span className="block text-base font-semibold dark:text-white">{player.highRun}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">High Run</span>
           </div>
           
           <div className="text-center">
-            <span className="block text-base font-semibold">{bpi}</span>
-            <span className="text-xs text-gray-500">BPI</span>
+            <span className="block text-base font-semibold dark:text-white">{bpi}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">BPI</span>
           </div>
         </div>
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
         <div 
-          className={`${player.score >= targetScore ? 'bg-green-600' : 'bg-blue-600'} h-2 rounded-full`}
+          className={`${player.score >= targetScore ? 'bg-green-600 dark:bg-green-500' : 'bg-blue-600 dark:bg-blue-500'} h-2 rounded-full`}
           style={{ width: `${percentage}%` }}
         />
       </div>
@@ -125,15 +125,15 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </>
       )}
       
-      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500">
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500 dark:text-gray-400">
         <div>
-          <span className="font-medium">{player.fouls}</span> Fouls
+          <span className="font-medium dark:text-gray-300">{player.fouls}</span> Fouls
         </div>
         <div>
-          <span className="font-medium">{player.safeties}</span> Safeties
+          <span className="font-medium dark:text-gray-300">{player.safeties}</span> Safeties
         </div>
         <div>
-          <span className="font-medium">{player.missedShots}</span> Misses
+          <span className="font-medium dark:text-gray-300">{player.missedShots}</span> Misses
         </div>
       </div>
     </div>
