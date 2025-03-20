@@ -324,7 +324,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Check for three consecutive fouls
     if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
       // Apply 15-point penalty for three consecutive fouls
-      updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 15);
+      // Allow score to go negative per official straight pool rules
+      updatedPlayerData[activePlayerIndex].score -= 15;
       // Reset consecutive fouls counter
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
       // Show alert about three-foul penalty
@@ -333,7 +334,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setShowAlertModal(true);
     } else {
       // Regular 1-point foul penalty
-      updatedPlayerData[activePlayerIndex].score = Math.max(0, updatedPlayerData[activePlayerIndex].score - 1);
+      // Allow score to go negative per official straight pool rules
+      updatedPlayerData[activePlayerIndex].score -= 1;
       
       // Show warning after second consecutive foul
       if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
@@ -665,7 +667,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
             }
             
             // Deduct 1 for the foul
-            updatedPlayerData[playerIdx].score = Math.max(0, updatedPlayerData[playerIdx].score - 1);
+            // Allow score to go negative per official straight pool rules
+            updatedPlayerData[playerIdx].score -= 1;
             
             // Update BOT
             runningBOT = action.ballsOnTable;
