@@ -144,40 +144,40 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 </h3>
                 
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="bg-gray-50 p-3 rounded">
-                    <span className="block text-sm text-gray-500">Target Score</span>
-                    <span className="text-lg font-semibold">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                    <span className="block text-sm text-gray-500 dark:text-gray-400">Target Score</span>
+                    <span className="text-lg font-semibold dark:text-white">
                       {selectedGame.players.length > 0 
                         ? selectedGame.players.map(p => `${p.name}: ${p.targetScore}`).join(', ')
                         : 'N/A'}
                     </span>
                   </div>
                   
-                  <div className="bg-gray-50 p-3 rounded">
-                    <span className="block text-sm text-gray-500">Status</span>
-                    <span className="text-lg font-semibold">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                    <span className="block text-sm text-gray-500 dark:text-gray-400">Status</span>
+                    <span className="text-lg font-semibold dark:text-white">
                       {selectedGame.completed ? 'Completed' : 'In Progress'}
                     </span>
                   </div>
                   
-                  <div className="bg-gray-50 p-3 rounded col-span-2">
-                    <span className="block text-sm text-gray-500 mb-2">Players</span>
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded col-span-2">
+                    <span className="block text-sm text-gray-500 dark:text-gray-400 mb-2">Players</span>
                     <div className="flex space-x-4">
                       {selectedGame.players.map(player => (
                         <div 
                           key={player.id} 
                           className={`p-2 rounded-md ${
                             player.id === selectedGame.winnerId
-                              ? 'bg-blue-100 border border-blue-300'
-                              : 'bg-white border border-gray-200'
+                              ? 'bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-700'
+                              : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
                           }`}
                         >
-                          <div className="font-medium">{player.name}</div>
-                          <div className="text-sm">
+                          <div className="font-medium dark:text-white">{player.name}</div>
+                          <div className="text-sm dark:text-gray-300">
                             Score: {player.score} | High Run: {player.highRun}
                           </div>
                           {player.id === selectedGame.winnerId && (
-                            <div className="text-xs text-blue-600 mt-1">
+                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                               Winner
                             </div>
                           )}
@@ -189,59 +189,59 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 
                 <h4 className="font-medium mb-3">Player Statistics</h4>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           Player
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           Score
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           High Run
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           Innings
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           BPI
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           Fouls
                         </th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
                           Safeties
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {selectedGame.players.map((player, i) => (
-                        <tr key={player.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <tr key={player.id} className={i % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+                          <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                             {player.name}
                             {player.id === selectedGame.winnerId && (
-                              <span className="ml-2 text-xs text-blue-600">
+                              <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
                                 (Winner)
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.score}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.highRun}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.innings}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00'}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.fouls}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                             {player.safeties}
                           </td>
                         </tr>
@@ -253,17 +253,17 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 {selectedGame.actions.length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-medium mb-3">Game Innings</h4>
-                    <div className="max-h-72 overflow-y-auto overflow-x-auto bg-gray-50 p-3 rounded">
+                    <div className="max-h-72 overflow-y-auto overflow-x-auto bg-gray-50 dark:bg-gray-700 p-3 rounded">
                       <table className="w-full border-collapse">
                         <thead className="sticky top-0 z-10">
-                          <tr className="bg-gray-100">
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Inning</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Player</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Action</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Run</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 font-semibold">Score</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">BOT</th>
-                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">Time</th>
+                          <tr className="bg-gray-100 dark:bg-gray-800">
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Inning</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Player</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Action</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Run</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 font-semibold">Score</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">BOT</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300">Time</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -344,26 +344,26 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                               const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
                               
                               return (
-                                <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
-                                  <td className="px-3 py-2 text-sm">{inning.inningNumber}</td>
-                                  <td className="px-3 py-2 text-sm">{player?.name || 'Unknown'}</td>
-                                  <td className="px-3 py-2 text-sm">{actionLabel}</td>
+                                <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'} border-t dark:border-gray-600`}>
+                                  <td className="px-3 py-2 text-sm dark:text-gray-300">{inning.inningNumber}</td>
+                                  <td className="px-3 py-2 text-sm dark:text-gray-300">{player?.name || 'Unknown'}</td>
+                                  <td className="px-3 py-2 text-sm dark:text-gray-300">{actionLabel}</td>
                                   <td className="px-3 py-2 text-sm">
                                     <span className={`${
-                                      inning.pointsInInning > 0 ? 'text-green-600 font-medium' :
-                                      inning.pointsInInning < 0 ? 'text-red-600 font-medium' :
-                                      'text-gray-600'
+                                      inning.pointsInInning > 0 ? 'text-green-600 dark:text-green-400 font-medium' :
+                                      inning.pointsInInning < 0 ? 'text-red-600 dark:text-red-400 font-medium' :
+                                      'text-gray-600 dark:text-gray-400'
                                     }`}>
                                       {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
                                         ? inning.pointsInInning 
                                         : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                                     </span>
                                   </td>
-                                  <td className="px-3 py-2 text-sm font-medium text-blue-600">
+                                  <td className="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400">
                                     {inning.currentScore}
                                   </td>
-                                  <td className="px-3 py-2 text-sm">{inning.endAction.ballsOnTable}</td>
-                                  <td className="px-3 py-2 text-sm text-gray-500">
+                                  <td className="px-3 py-2 text-sm dark:text-gray-300">{inning.endAction.ballsOnTable}</td>
+                                  <td className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                                     {inning.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                   </td>
                                 </tr>
@@ -377,8 +377,8 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 )}
               </div>
             ) : (
-              <div className="bg-gray-50 p-6 rounded-lg shadow-md flex flex-col items-center justify-center h-full">
-                <p className="text-gray-600 mb-4">Select a game to view details</p>
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-md flex flex-col items-center justify-center h-full">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">Select a game to view details</p>
                 <img 
                   src="https://placehold.co/300x200/e2e8f0/475569?text=Game+Details" 
                   alt="Select a game" 
