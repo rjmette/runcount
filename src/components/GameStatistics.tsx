@@ -40,6 +40,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
           .from('games')
           .select('*')
           .eq('id', gameId)
+          .eq('deleted', false)
           .single();
         
         if (error) {

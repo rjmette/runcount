@@ -33,6 +33,7 @@ export interface GameData {
   completed: boolean;
   actions: GameAction[];
   owner_id?: string; // UUID string from auth.users.id
+  deleted?: boolean; // Flag for soft deletion
 }
 
 export interface GameSetupProps {

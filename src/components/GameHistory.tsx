@@ -11,6 +11,8 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   const [error, setError] = useState('');
   const [selectedGameId, setSelectedGameId] = useState<string | null>(null);
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [gameToDelete, setGameToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -20,6 +22,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         let query = supabase
           .from('games')
           .select('*')
+          .eq('deleted', false)
           .order('date', { ascending: false });
         
         // If user is authenticated, only fetch their games
@@ -50,6 +53,45 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     const game = games.find(g => g.id === gameId) || null;
     setSelectedGame(game);
   };
+  
+  const confirmDelete = (gameId: string) => {
+    setGameToDelete(gameId);
+    setShowDeleteConfirmation(true);
+  };
+  
+  const cancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setGameToDelete(null);
+  };
+  
+  const deleteGame = async () => {
+    if (!gameToDelete) return;
+    
+    try {
+      // Soft delete - update game with deleted flag
+      const { error } = await supabase
+        .from('games')
+        .update({ deleted: true })
+        .eq('id', gameToDelete);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setGames(games.filter(g => g.id !== gameToDelete));
+      
+      // If the deleted game was selected, clear selection
+      if (gameToDelete === selectedGameId) {
+        setSelectedGameId(null);
+        setSelectedGame(null);
+      }
+      
+      setShowDeleteConfirmation(false);
+      setGameToDelete(null);
+    } catch (err) {
+      console.error('Error deleting game:', err);
+      setError('Failed to delete game');
+    }
+  };
 
   if (loading) {
     return (
@@ -78,6 +120,30 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm mx-auto">
+            <h3 className="text-lg font-medium mb-4 dark:text-white">Delete Game</h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this game? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteGame}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Game History</h2>
         <button
@@ -111,24 +177,39 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                   return (
                     <div 
                       key={game.id}
-                      onClick={() => handleGameSelect(game.id)}
                       className={`p-3 rounded-md cursor-pointer transition-colors ${
                         selectedGameId === game.id 
                           ? 'bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700' 
                           : 'hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
                       }`}
                     >
-                      <div className="text-sm font-medium">
-                        {gameDate.toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        {game.players.map(p => p.name).join(' vs ')}
-                      </div>
-                      {winner && (
-                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                          Winner: {winner.name} ({winner.score} pts)
+                      <div 
+                        className="flex-grow"
+                        onClick={() => handleGameSelect(game.id)}
+                      >
+                        <div className="text-sm font-medium">
+                          {gameDate.toLocaleDateString()}
                         </div>
-                      )}
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {game.players.map(p => p.name).join(' vs ')}
+                        </div>
+                        {winner && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            Winner: {winner.name} ({winner.score} pts)
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDelete(game.id);
+                          }}
+                          className="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
