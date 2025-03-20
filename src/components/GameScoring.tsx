@@ -693,7 +693,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         </div>
       </div>
       
-      <div className="bg-white p-2 rounded-lg shadow-md mb-3">
+      <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md mb-3">
         <div className="flex justify-between items-center">
           {playerData.map((player, index) => (
             <div key={index}>
@@ -702,9 +702,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
             </div>
           ))}
           
-          <div className="bg-blue-50 p-1.5 rounded-md">
-            <span className="text-xs text-gray-500">Balls on Table (BOT)</span>
-            <span className="block text-lg font-bold text-blue-700">{ballsOnTable}</span>
+          <div className="bg-blue-50 dark:bg-blue-900 p-1.5 rounded-md">
+            <span className="text-xs text-gray-500 dark:text-gray-400">Balls on Table (BOT)</span>
+            <span className="block text-lg font-bold text-blue-700 dark:text-blue-400">{ballsOnTable}</span>
           </div>
         </div>
       </div>
@@ -730,7 +730,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {showEndGameModal && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
           {gameWinner && <ReactConfetti recycle={false} numberOfPieces={500} />}
-          <div className="bg-white p-4 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-2xl max-w-lg w-full border-4 border-blue-500 dark:border-blue-600 dark:text-white">
             {gameWinner ? (
               <>
                 <div className="text-center mb-3 animate-pulse">
@@ -746,7 +746,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                     <span className="font-bold text-blue-700">{gameWinner.name}</span> won with <span className="font-bold">{gameWinner.score}</span> points!
                   </p>
                   
-                  <div className="bg-blue-50 p-3 rounded-md shadow-inner">
+                  <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded-md shadow-inner dark:text-gray-100">
                     <div className="grid grid-cols-2 gap-y-2 mb-2 text-sm">
                       <div className="font-medium">Total Innings:</div>
                       <div>{currentInning}</div>
@@ -824,7 +824,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {/* Balls on Table Modal */}
       {showBOTModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full dark:text-white">
             <h3 className="text-xl font-bold mb-4">
               How many balls are on the table?
             </h3>
@@ -878,14 +878,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
       {/* History Modal */}
       {showHistoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-auto">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-auto dark:text-white">
             <h3 className="text-xl font-bold mb-4">Game History</h3>
             
             <div className="mb-6">
               <div className="max-h-96 overflow-y-auto overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead className="sticky top-0 z-10">
-                    <tr className="bg-gray-100">
+                    <tr className="bg-gray-100 dark:bg-gray-700">
                       <th className="px-4 py-2 text-left">Inning</th>
                       <th className="px-4 py-2 text-left">Player</th>
                       <th className="px-4 py-2 text-left">Action</th>
@@ -988,7 +988,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                       const actionLabel = actionType.charAt(0).toUpperCase() + actionType.slice(1);
                       
                       return (
-                        <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t`}>
+                        <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'} border-t dark:border-gray-700`}>
                           <td className="px-4 py-2">{inning.inningNumber}</td>
                           <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
                           <td className="px-4 py-2">{actionLabel}</td>
@@ -997,7 +997,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                               ? inning.pointsInInning 
                               : (inning.endAction.type === 'foul' ? inning.pointsInInning + 1 : 0)}
                           </td>
-                          <td className="px-4 py-2 font-medium text-blue-600">{inning.currentScore}</td>
+                          <td className="px-4 py-2 font-medium text-blue-600 dark:text-blue-400">{inning.currentScore}</td>
                           <td className="px-4 py-2">{inning.endAction.ballsOnTable}</td>
                           <td className="px-4 py-2">{inning.endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</td>
                         </tr>
