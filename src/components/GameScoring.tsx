@@ -32,6 +32,59 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [botAction, setBotAction] = useState<'newrack' | 'foul' | 'safety' | 'miss' | null>(null);
+  
+  // Calculate additional statistics for real-time display
+  const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
+    // Filter actions for this player
+    const playerActions = actions.filter(action => action.playerId === player.id);
+    
+    // Calculate safety efficiency
+    let successfulSafeties = 0;
+    let totalSafeties = player.safeties;
+    
+    // A safety is successful if the next action by opponent is a foul or miss
+    for (let i = 0; i < actions.length - 1; i++) {
+      const currentAction = actions[i];
+      const nextAction = actions[i + 1];
+      
+      // If current action is a safety by this player
+      if (currentAction.type === 'safety' && currentAction.playerId === player.id) {
+        // Get next player ID
+        const nextPlayerId = nextAction.playerId;
+        
+        // If next action is by a different player (opponent)
+        if (nextPlayerId !== player.id) {
+          // Check if next action is a foul or miss (successful safety)
+          if (nextAction.type === 'foul' || nextAction.type === 'miss') {
+            successfulSafeties++;
+          }
+        }
+      }
+    }
+    
+    // Calculate safety efficiency percentage
+    const safetyEfficiency = totalSafeties > 0
+      ? Math.round((successfulSafeties / totalSafeties) * 100)
+      : 0;
+    
+    // Calculate shooting percentage
+    const shotsTaken = player.score + player.missedShots + player.safeties + player.fouls;
+    const shootingPercentage = shotsTaken > 0
+      ? Math.round((player.score / shotsTaken) * 100)
+      : 0;
+    
+    // Calculate BPI (Balls Per Inning)
+    const bpi = player.innings > 0 
+      ? (player.score / player.innings).toFixed(2) 
+      : '0.00';
+      
+    return {
+      shootingPercentage,
+      safetyEfficiency,
+      successfulSafeties,
+      bpi
+    };
+  };
 
   // Initialize game data
   useEffect(() => {
@@ -726,18 +779,20 @@ const GameScoring: React.FC<GameScoringProps> = ({
         </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md mb-3">
-        <div className="flex justify-between items-center">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-3">
+        <div className="grid grid-cols-3 gap-4">
           {playerData.map((player, index) => (
-            <div key={index}>
-              <span className="text-xs text-gray-500">{player.name}'s Target</span>
-              <span className="block text-lg font-bold">{player.targetScore}</span>
+            <div key={index} className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+              <span className="block text-sm text-gray-500 dark:text-gray-400">{player.name}'s Target</span>
+              <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                {player.targetScore}
+              </span>
             </div>
           ))}
           
-          <div className="bg-blue-50 dark:bg-blue-900 p-1.5 rounded-md">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Balls on Table (BOT)</span>
-            <span className="block text-lg font-bold text-blue-700 dark:text-blue-400">{ballsOnTable}</span>
+          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+            <span className="block text-sm text-gray-500 dark:text-gray-400">Balls on Table</span>
+            <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">{ballsOnTable}</span>
           </div>
         </div>
       </div>
