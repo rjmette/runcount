@@ -112,7 +112,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
               id="player1TargetScore"
               value={player1TargetScore}
               onChange={(e) => setPlayer1TargetScore(Number(e.target.value))}
-              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               min="5"
               step="5"
               required
@@ -144,7 +144,7 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
               id="player2TargetScore"
               value={player2TargetScore}
               onChange={(e) => setPlayer2TargetScore(Number(e.target.value))}
-              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               min="5"
               step="5"
               required
