@@ -19,6 +19,7 @@ export interface GameAction {
   value: number;
   timestamp: Date;
   ballsOnTable?: number;
+  reBreak?: boolean; // Flag for when a player must re-break after three consecutive fouls
 }
 
 export interface GameSettings {

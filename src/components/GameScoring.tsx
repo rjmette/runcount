@@ -34,6 +34,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<'newrack' | 'foul' | 'safety' | 'miss' | null>(null);
+  const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(null);
   
   // Calculate additional statistics for real-time display
   const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
@@ -115,6 +116,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     
     // Initialize first player's turn
     setActivePlayerIndex(0);
+    
+    // Reset re-break flag
+    setPlayerNeedsReBreak(null);
 
     // Save initial game state to Supabase
     saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
@@ -207,6 +211,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     const updatedPlayerData = [...playerData];
     updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
     setPlayerData(updatedPlayerData);
+    
+    // Clear re-break flag if this player had it
+    if (playerNeedsReBreak === updatedPlayerData[activePlayerIndex].id) {
+      setPlayerNeedsReBreak(null);
+    }
   };
 
   // Handle new rack and scoring
@@ -234,6 +243,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
       timestamp: new Date(),
       ballsOnTable: 15 // New rack always has 15 balls
     };
+    
+    // Clear the re-break flag if this player had it
+    // This is important since scoring means the player successfully completed the re-break
+    if (playerNeedsReBreak === playerData[activePlayerIndex].id) {
+      setPlayerNeedsReBreak(null);
+    }
 
     // Update balls on table to 15 (full rack)
     setBallsOnTable(15);
@@ -279,13 +294,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
       return;
     }
     
+    // Check if this will be a three-consecutive-fouls scenario
+    const isThirdConsecutiveFoul = playerData[activePlayerIndex].consecutiveFouls === 2;
+    
     // Create a new action
     const newAction: GameAction = {
       type: 'foul',
       playerId: playerData[activePlayerIndex].id,
       value: -1,
       timestamp: new Date(),
-      ballsOnTable: botsValue
+      ballsOnTable: botsValue,
+      reBreak: isThirdConsecutiveFoul // Set reBreak flag if this is the third consecutive foul
     };
 
     // Calculate how many balls were pocketed on the foul shot
@@ -333,9 +352,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Reset consecutive fouls counter
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
       
-      // Show alert about three-foul penalty
+      // Set balls on table to 15 for a new rack
+      setBallsOnTable(15);
+      
+      // Mark this player as needing to re-break
+      setPlayerNeedsReBreak(updatedPlayerData[activePlayerIndex].id);
+      
+      // Show alert about three-foul penalty and re-break requirement
       const playerName = updatedPlayerData[activePlayerIndex].name;
-      setAlertMessage(`${playerName} has committed three consecutive fouls! 16-point penalty applied (1 for foul + 15 for three consecutive fouls).`);
+      setAlertMessage(`${playerName} has committed three consecutive fouls! 16-point penalty applied (1 for foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`);
       setShowAlertModal(true);
     } else {
       // Regular 1-point foul penalty
@@ -356,12 +381,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Reset current run
     setCurrentRun(0);
     
-    // Update next player's innings
-    if (nextPlayerIndex === 0) {
-      // We're going to a new inning
-      setCurrentInning(prev => prev + 1);
+    // Only update innings if we're not in a three-foul re-break situation
+    if (!isThirdConsecutiveFoul) {
+      // Update next player's innings
+      if (nextPlayerIndex === 0) {
+        // We're going to a new inning
+        setCurrentInning(prev => prev + 1);
+      }
+      updatedPlayerData[nextPlayerIndex].innings += 1;
     }
-    updatedPlayerData[nextPlayerIndex].innings += 1;
     
     // Save updated player data
     setPlayerData(updatedPlayerData);
@@ -385,17 +413,31 @@ const GameScoring: React.FC<GameScoringProps> = ({
       );
     } else {
       // No winner yet, continue game
-      // Switch to next player's turn
-      setActivePlayerIndex(nextPlayerIndex);
       
-      // Save game progress
-      saveGameToSupabase(
-        gameId || '', 
-        updatedPlayerData,
-        [...actions, newAction],
-        false,
-        null
-      );
+      // Check if it's a three-consecutive-fouls situation requiring re-break
+      if (isThirdConsecutiveFoul) {
+        // Don't switch players - the player who committed the three fouls must re-break
+        // Just save the game progress
+        saveGameToSupabase(
+          gameId || '', 
+          updatedPlayerData,
+          [...actions, newAction],
+          false,
+          null
+        );
+      } else {
+        // Regular foul - switch to next player's turn
+        setActivePlayerIndex(nextPlayerIndex);
+        
+        // Save game progress
+        saveGameToSupabase(
+          gameId || '', 
+          updatedPlayerData,
+          [...actions, newAction],
+          false,
+          null
+        );
+      }
     }
   };
 
@@ -414,6 +456,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       timestamp: new Date(),
       ballsOnTable: botsValue
     };
+    
+    // Clear the re-break flag if this player had it
+    if (playerNeedsReBreak === playerData[activePlayerIndex].id) {
+      setPlayerNeedsReBreak(null);
+    }
 
     // Calculate how many balls were pocketed on the safety shot
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
@@ -512,6 +559,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       timestamp: new Date(),
       ballsOnTable: botsValue
     };
+    
+    // Clear the re-break flag if this player had it
+    if (playerNeedsReBreak === playerData[activePlayerIndex].id) {
+      setPlayerNeedsReBreak(null);
+    }
 
     // Calculate how many balls were pocketed on the miss shot
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
@@ -684,24 +736,31 @@ const GameScoring: React.FC<GameScoringProps> = ({
           updatedPlayerData[playerIdx].consecutiveFouls += 1;
           
           // Check for three consecutive fouls and apply additional penalty
-          if (updatedPlayerData[playerIdx].consecutiveFouls === 3) {
+          const isThreeConsecutiveFouls = updatedPlayerData[playerIdx].consecutiveFouls === 3;
+          
+          if (isThreeConsecutiveFouls) {
             // Apply additional 15-point penalty for three consecutive fouls
             // (regular 1-point foul penalty is already applied above)
             updatedPlayerData[playerIdx].score -= 15;
             // Reset consecutive fouls counter
             updatedPlayerData[playerIdx].consecutiveFouls = 0;
+            // Set balls on table to 15 for a re-break
+            runningBOT = 15;
           }
           
-          // Switch to next player - this is a turn-ending action
-          currentActivePlayer = (playerIdx + 1) % players.length;
-          
-          // If we're going back to player 0, increment inning
-          if (currentActivePlayer === 0) {
-            currentInningCount++;
+          // Only switch players if this is not a three-consecutive-fouls situation
+          if (!isThreeConsecutiveFouls) {
+            // Switch to next player - this is a turn-ending action for normal fouls
+            currentActivePlayer = (playerIdx + 1) % players.length;
+            
+            // If we're going back to player 0, increment inning
+            if (currentActivePlayer === 0) {
+              currentInningCount++;
+            }
+            
+            // Increment innings for next player
+            updatedPlayerData[currentActivePlayer].innings += 1;
           }
-          
-          // Increment innings for next player
-          updatedPlayerData[currentActivePlayer].innings += 1;
           
           // Reset running score (current run)
           runningScore = 0;
@@ -759,6 +818,16 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setBallsOnTable(runningBOT);
     setCurrentRun(runningScore);
     setActions(previousActions);
+    
+    // Check if the last action was a three-foul that requires re-break
+    const finalAction = previousActions.length > 0 ? previousActions[previousActions.length - 1] : null;
+    if (finalAction && finalAction.type === 'foul' && finalAction.reBreak) {
+      // Set the re-break flag for the player who committed three fouls
+      setPlayerNeedsReBreak(finalAction.playerId);
+    } else {
+      // Clear the re-break flag
+      setPlayerNeedsReBreak(null);
+    }
     
     // If no more actions, disable undo
     if (previousActions.length === 0) {
@@ -874,6 +943,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onShowHistory={handleShowHistory}
             targetScore={player.targetScore}
             onRegularShot={handleRegularShot}
+            needsReBreak={playerNeedsReBreak === player.id}
           />
         ))}
       </div>
@@ -1169,7 +1239,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
                         <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'} border-t dark:border-gray-700`}>
                           <td className="px-4 py-2">{inning.inningNumber}</td>
                           <td className="px-4 py-2">{player?.name || 'Unknown'}</td>
-                          <td className="px-4 py-2">{actionLabel}</td>
+                          <td className="px-4 py-2">
+                            {actionLabel}
+                            {inning.endAction.reBreak && 
+                              <span className="ml-1 text-red-500 dark:text-red-400 font-medium">(Re-Break)</span>
+                            }
+                          </td>
                           <td className="px-4 py-2">
                             {inning.pointsInInning > 0 && inning.endAction.type !== 'foul' 
                               ? inning.pointsInInning 
