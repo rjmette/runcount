@@ -12,6 +12,7 @@ interface PlayerScoreCardProps {
   onShowHistory?: () => void;
   targetScore: number;
   onRegularShot?: (value: number) => void; // New prop for handling regular shots
+  needsReBreak?: boolean; // New prop to indicate if this player needs to re-break
 }
 
 const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
@@ -23,7 +24,8 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   onAddMiss,
   onShowHistory,
   targetScore,
-  onRegularShot
+  onRegularShot,
+  needsReBreak
 }) => {
   // Calculate average balls per inning
   const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
@@ -45,7 +47,10 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           {player.name}
           {player.score >= targetScore && <span className="ml-1 text-yellow-500">🏆</span>}
         </h3>
-        {isActive && <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">Active</span>}
+        <div className="flex space-x-2">
+          {isActive && <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">Active</span>}
+          {needsReBreak && <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">Re-Break</span>}
+        </div>
       </div>
       
       <div className="flex flex-col sm:flex-row justify-between items-center mb-3">

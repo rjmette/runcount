@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GameSetup from './GameSetup';
+import { GameSetupProps, Player } from '../types/game';
 
 describe('GameSetup Component', () => {
   const mockStartGame = jest.fn();
