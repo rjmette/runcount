@@ -3,6 +3,7 @@ import { GameScoringProps, Player, GameAction, GameData } from '../types/game';
 import PlayerScoreCard from './PlayerScoreCard';
 import { v4 as uuidv4 } from 'uuid';
 import ReactConfetti from 'react-confetti';
+import { useGamePersist } from '../context/GamePersistContext';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -13,6 +14,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   supabase,
   user
 }) => {
+  const { saveGameState, getGameState, clearGameState } = useGamePersist();
   const [activePlayerIndex, setActivePlayerIndex] = useState(0);
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
@@ -91,38 +93,107 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   // Initialize game data
   useEffect(() => {
-    // Create player data from names
-    const initialPlayerData: Player[] = players.map((name, index) => ({
-      id: index,
-      name,
-      score: 0,
-      innings: index === 0 ? 1 : 0, // Set first player's innings to 1 directly
-      highRun: 0,
-      fouls: 0,
-      consecutiveFouls: 0,
-      safeties: 0,
-      missedShots: 0,
-      targetScore: playerTargetScores[name] || 100 // Default to 100 if not found
-    }));
-
-    setPlayerData(initialPlayerData);
-
-    // Create or use game ID
-    const newGameId = gameId || uuidv4();
-    setGameId(newGameId);
-
-    // Initialize first inning
-    setCurrentInning(1);
+    // Check if there's a saved game state to restore
+    const savedGameState = getGameState();
     
-    // Initialize first player's turn
-    setActivePlayerIndex(0);
-    
-    // Reset re-break flag
-    setPlayerNeedsReBreak(null);
+    if (savedGameState && savedGameState.id === gameId) {
+      // Restore from saved game state
+      setPlayerData(savedGameState.players);
+      setActions(savedGameState.actions);
+      
+      // Calculate current state based on actions
+      let activePlayer = 0;
+      let currentInningValue = 1;
+      let currentRunValue = 0;
+      let currentBOT = 15;
+      let needsReBreak = null;
 
-    // Save initial game state to Supabase
-    saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
-  }, [players, gameId, setGameId, playerTargetScores, supabase]);
+      // Replay actions to determine current state
+      if (savedGameState.actions.length > 0) {
+        const playerIds = savedGameState.players.map(p => p.id);
+        
+        savedGameState.actions.forEach((action, index) => {
+          // Set current balls on table
+          if (action.ballsOnTable !== undefined) {
+            currentBOT = action.ballsOnTable;
+          }
+          
+          // Track active player
+          const playerIndex = playerIds.indexOf(action.playerId);
+          if (playerIndex !== -1) {
+            activePlayer = playerIndex;
+          }
+          
+          // Handle turn-ending actions
+          if (action.type === 'foul' || action.type === 'safety' || action.type === 'miss') {
+            // Reset current run
+            currentRunValue = 0;
+            
+            // Switch to next player
+            if (!action.reBreak) {
+              activePlayer = (playerIds.indexOf(action.playerId) + 1) % playerIds.length;
+              if (activePlayer === 0) {
+                currentInningValue++;
+              }
+            }
+          }
+          
+          // Check for re-break flag
+          if (action.reBreak) {
+            needsReBreak = action.playerId;
+          }
+          
+          // Track current run if it's the last action by active player
+          if (index === savedGameState.actions.length - 1 || 
+              savedGameState.actions[index + 1].playerId !== action.playerId) {
+            if (action.type === 'score') {
+              currentRunValue += action.value;
+            }
+          }
+        });
+      }
+      
+      // Set game state
+      setActivePlayerIndex(activePlayer);
+      setCurrentInning(currentInningValue);
+      setCurrentRun(currentRunValue);
+      setBallsOnTable(currentBOT);
+      setPlayerNeedsReBreak(needsReBreak);
+      setIsUndoEnabled(savedGameState.actions.length > 0);
+    } else {
+      // Create player data from names
+      const initialPlayerData: Player[] = players.map((name, index) => ({
+        id: index,
+        name,
+        score: 0,
+        innings: index === 0 ? 1 : 0, // Set first player's innings to 1 directly
+        highRun: 0,
+        fouls: 0,
+        consecutiveFouls: 0,
+        safeties: 0,
+        missedShots: 0,
+        targetScore: playerTargetScores[name] || 100 // Default to 100 if not found
+      }));
+
+      setPlayerData(initialPlayerData);
+
+      // Create or use game ID
+      const newGameId = gameId || uuidv4();
+      setGameId(newGameId);
+
+      // Initialize first inning
+      setCurrentInning(1);
+      
+      // Initialize first player's turn
+      setActivePlayerIndex(0);
+      
+      // Reset re-break flag
+      setPlayerNeedsReBreak(null);
+
+      // Save initial game state to Supabase and localStorage
+      saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
+    }
+  }, [players, gameId, setGameId, playerTargetScores, supabase, getGameState]);
 
   // Save game data to Supabase and localStorage
   const saveGameToSupabase = async (
@@ -142,12 +213,22 @@ const GameScoring: React.FC<GameScoringProps> = ({
       winnerId: winnerId
     };
     
-    // Always save to localStorage regardless of authentication
+    // Save game state to our persistent storage context
+    // This helps with page refreshes/browser crashes
+    if (completed) {
+      // If game is completed, clear the active game state
+      clearGameState();
+    } else {
+      // Otherwise save the current state
+      saveGameState(gameData);
+    }
+    
+    // Always save to game history localStorage regardless of authentication
     try {
       localStorage.setItem(`runcount_game_${gameId}`, JSON.stringify(gameData));
-      console.log('Game saved to localStorage');
+      console.log('Game saved to localStorage history');
     } catch (err) {
-      console.error('Error saving game to localStorage:', err);
+      console.error('Error saving game to localStorage history:', err);
     }
     
     // Only save to Supabase if user is authenticated
@@ -858,6 +939,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
         true,
         null
       );
+    } else {
+      // Make sure to clear active game state from localStorage
+      clearGameState();
     }
     
     // If there's already a gameWinner, no need to save again as it was saved when the winner was determined

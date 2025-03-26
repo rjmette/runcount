@@ -8,6 +8,7 @@ import GameHistory from './components/GameHistory';
 import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { GamePersistProvider, useGamePersist } from './context/GamePersistContext';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
 const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co';
@@ -21,7 +22,9 @@ type GameState = 'setup' | 'scoring' | 'statistics' | 'history' | 'profile';
 function App() {
   return (
     <AuthProvider supabase={supabase}>
-      <AppContent />
+      <GamePersistProvider>
+        <AppContent />
+      </GamePersistProvider>
     </AuthProvider>
   );
 }
@@ -29,6 +32,7 @@ function App() {
 // The actual app content, using the auth context
 function AppContent() {
   const { user, loading, signOut } = useAuth();
+  const { getGameState, getGameSettings, hasActiveGame } = useGamePersist();
   
   // Game state management
   const [gameState, setGameState] = useState<GameState>('setup');
@@ -47,6 +51,33 @@ function AppContent() {
     const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
     return savedTargetScores ? JSON.parse(savedTargetScores) : {};
   });
+
+  // Check for saved game on initial load
+  useEffect(() => {
+    if (hasActiveGame) {
+      const savedGame = getGameState();
+      if (savedGame) {
+        // Set player names from the saved game
+        const playerNames = savedGame.players.map(player => player.name);
+        setPlayers(playerNames);
+
+        // Set target scores from the saved game
+        const targetScores: Record<string, number> = {};
+        savedGame.players.forEach(player => {
+          targetScores[player.name] = player.targetScore;
+        });
+        setPlayerTargetScores(targetScores);
+
+        // Set the game ID
+        setCurrentGameId(savedGame.id);
+
+        // Redirect to scoring screen if game was in progress
+        if (!savedGame.completed) {
+          setGameState('scoring');
+        }
+      }
+    }
+  }, [hasActiveGame, getGameState]);
 
   // Close auth modal when user is authenticated
   useEffect(() => {
