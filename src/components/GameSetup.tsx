@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GameSetupProps } from '../types/game';
+import { useGamePersist } from '../context/GamePersistContext';
 
 const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlayerTargetScores }) => {
+  const { clearGameState } = useGamePersist();
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
   const [player1TargetScore, setPlayer1TargetScore] = useState(75);
@@ -51,6 +53,10 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
       [player2]: player2TargetScore
     };
     
+    // Clear any existing game state when starting a new game
+    clearGameState();
+    
+    // Start new game
     startGame([player1, player2], playerTargetScores);
   };
 
