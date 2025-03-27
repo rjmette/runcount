@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameStatisticsProps, GameData, Player } from '../types/game';
 import { InningsModal } from './GameStatistics/components/InningsModal';
+import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
@@ -12,6 +13,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showInningsModal, setShowInningsModal] = useState(false);
+  const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
@@ -477,23 +479,44 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
       {/* Performance Metrics Panel */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <div className="flex items-center space-x-3 mb-6">
-          <svg
-            className="w-6 h-6 text-blue-500 dark:text-blue-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <svg
+              className="w-6 h-6 text-blue-500 dark:text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            <h3 className="text-lg font-semibold dark:text-white">
+              Performance Metrics
+            </h3>
+          </div>
+          <button
+            onClick={() => setShowDescriptionsModal(true)}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            title="View Statistic Descriptions"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            />
-          </svg>
-          <h3 className="text-lg font-semibold dark:text-white">
-            Performance Metrics
-          </h3>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
         </div>
 
         <div className="overflow-x-auto">
@@ -502,110 +525,78 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700">
-                      Player
-                    </th>
-                    {Object.entries(tooltipContent).map(
-                      ([statName, description]) => (
+                    <th className="w-32 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"></th>
+                    {[...playersWithStats]
+                      .sort((a, b) => {
+                        if (a.id === gameData.winner_id) return -1;
+                        if (b.id === gameData.winner_id) return 1;
+                        return 0;
+                      })
+                      .map((player: any) => (
                         <th
-                          key={statName}
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider relative group"
+                          key={player.id}
+                          className="w-32 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                         >
-                          <button
-                            onClick={() => toggleTooltip(statName)}
-                            className="flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
-                          >
-                            <span>{statName}</span>
-                            <svg
-                              className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                          {activeTooltip === statName && (
-                            <div className="absolute z-20 bg-gray-900 text-white text-xs rounded py-2 px-3 w-48 mt-2 left-1/2 transform -translate-x-1/2 shadow-lg">
-                              {description.toUpperCase()}
-                              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900"></div>
-                            </div>
-                          )}
+                          <div className="flex items-center">
+                            <span>{player.name}</span>
+                          </div>
                         </th>
-                      )
-                    )}
+                      ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {[...playersWithStats]
-                    .sort((a, b) => {
-                      if (a.id === gameData.winner_id) return -1;
-                      if (b.id === gameData.winner_id) return 1;
-                      return 0;
-                    })
-                    .map((player: any) => (
+                  {Object.entries(tooltipContent).map(
+                    ([statName, description]) => (
                       <tr
-                        key={player.id}
-                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
-                          player.id === gameData.winner_id
-                            ? 'bg-blue-50 dark:bg-blue-900/30'
-                            : ''
-                        }`}
+                        key={statName}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                       >
-                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center space-x-2">
-                            {player.id === gameData.winner_id && (
-                              <span className="text-yellow-500">🏆</span>
-                            )}
-                            <span>{player.name}</span>
+                        <td className="w-32 px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {statName}
                           </div>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.highRun}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.bpi}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.offensiveBPI}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.shootingPercentage}%
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.safetyEfficiency}%
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.safeties}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 dark:text-gray-300">
-                            {player.fouls}
-                          </div>
-                        </td>
+                        {[...playersWithStats]
+                          .sort((a, b) => {
+                            if (a.id === gameData.winner_id) return -1;
+                            if (b.id === gameData.winner_id) return 1;
+                            return 0;
+                          })
+                          .map((player: any) => (
+                            <td
+                              key={player.id}
+                              className="w-32 px-4 py-3 whitespace-nowrap"
+                            >
+                              <div className="text-sm text-gray-900 dark:text-gray-300">
+                                {statName === 'High Run' && player.highRun}
+                                {statName === 'BPI' && player.bpi}
+                                {statName === 'Offensive BPI' &&
+                                  player.offensiveBPI}
+                                {statName === 'Shooting %' &&
+                                  `${player.shootingPercentage}%`}
+                                {statName === 'Safety Eff.' &&
+                                  `${player.safetyEfficiency}%`}
+                                {statName === 'Safeties' && player.safeties}
+                                {statName === 'Fouls' && player.fouls}
+                              </div>
+                            </td>
+                          ))}
                       </tr>
-                    ))}
+                    )
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Stat Descriptions Modal */}
+      <StatDescriptionsModal
+        isOpen={showDescriptionsModal}
+        onClose={() => setShowDescriptionsModal(false)}
+        descriptions={tooltipContent}
+      />
     </div>
   );
 };
