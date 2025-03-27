@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import GameSetup from './components/GameSetup';
 import GameScoring from './components/GameScoring/index';
 import GameStatistics from './components/GameStatistics';
-import GameHistory from './components/GameHistory';
+import GameHistory from './components/GameHistory/index';
 import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
 import { AuthProvider, useAuth } from './context/AuthContext';
