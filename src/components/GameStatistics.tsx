@@ -297,8 +297,8 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         </div>
       </div>
 
-      {/* Performance Metrics Summary */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+      {/* Combined Performance Metrics and Statistics */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4 dark:text-white">
           Performance Metrics
         </h3>
@@ -309,6 +309,24 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                 <div className="font-medium text-blue-800 dark:text-blue-200">
                   {player.name}'s Key Metrics
                 </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                  High Run
+                </span>
+                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                  {player.highRun}
+                </span>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                  BPI
+                </span>
+                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                  {player.bpi}
+                </span>
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
@@ -340,110 +358,26 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
                 <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  High Run
+                  Total Safeties
                 </span>
                 <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.highRun}
+                  {player.safeties}
+                </span>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                <span className="block text-sm text-gray-500 dark:text-gray-400">
+                  Total Fouls
+                </span>
+                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                  {player.fouls}
                 </span>
               </div>
             </React.Fragment>
           ))}
         </div>
-      </div>
 
-      {/* Detailed player statistics */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">
-          Player Statistics
-        </h3>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Player
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Score
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  High Run
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Innings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Trad. BPI
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Off. BPI
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Shooting %
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Safety Eff.
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Safeties
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {playersWithStats.map((player: any, i) => (
-                <tr
-                  key={player.id}
-                  className={
-                    i % 2 === 0
-                      ? 'bg-white dark:bg-gray-800'
-                      : 'bg-gray-50 dark:bg-gray-900'
-                  }
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {player.name}
-                        {player.id === gameData.winner_id && (
-                          <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
-                            (Winner)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.score}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.highRun}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.innings}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.bpi}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.offensiveBPI}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.shootingPercentage}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.safetyEfficiency}% ({player.successfulSafeties}/
-                    {player.successfulSafeties + player.failedSafeties})
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {player.safeties}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Add a stats explanation section */}
+        {/* Stats explanation section */}
         <div className="mt-8 border-t dark:border-gray-700 pt-4">
           <h4 className="text-md font-semibold mb-3 dark:text-white">
             Understanding the Statistics
