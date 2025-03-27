@@ -82,6 +82,42 @@ export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
     (action) => action.playerId === player.id
   );
 
+  // Calculate safety statistics
+  let successfulSafeties = 0;
+  let safetyInnings = 0;
+
+  // A safety is successful if the next action by opponent is a foul or miss
+  for (let i = 0; i < actions.length - 1; i++) {
+    const currentAction = actions[i];
+    const nextAction = actions[i + 1];
+
+    // If current action is a safety by this player
+    if (
+      currentAction.type === 'safety' &&
+      currentAction.playerId === player.id
+    ) {
+      safetyInnings++;
+
+      // If next action is by a different player (opponent)
+      if (nextAction.playerId !== player.id) {
+        // Check if next action is a foul or miss (successful safety)
+        if (nextAction.type === 'foul' || nextAction.type === 'miss') {
+          successfulSafeties++;
+        }
+      }
+    }
+  }
+
+  // Calculate safety efficiency percentage
+  const safetyEfficiency =
+    player.safeties > 0
+      ? Math.round((successfulSafeties / player.safeties) * 100)
+      : 0;
+
+  // Calculate offensive BPI (excluding safety innings)
+  const offensiveInnings = Math.max(1, player.innings - safetyInnings);
+  const offensiveBPI = (player.score / offensiveInnings).toFixed(2);
+
   return {
     bpi:
       player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00',
@@ -90,5 +126,8 @@ export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
       playerActions.length > 0
         ? Math.round((player.score / playerActions.length) * 100)
         : 0,
+    offensiveBPI,
+    safetyEfficiency,
+    successfulSafeties,
   };
 };
