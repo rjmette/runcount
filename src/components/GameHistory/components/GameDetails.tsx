@@ -52,7 +52,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
                 <div
                   key={player.id}
                   className={`p-2 rounded-md ${
-                    player.id === game.winnerId
+                    player.id === game.winner_id
                       ? 'bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-700'
                       : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
                   }`}
@@ -66,7 +66,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     BPI: {stats.bpi} | Shooting: {stats.shootingPercentage}%
                   </div>
-                  {player.id === game.winnerId && (
+                  {player.id === game.winner_id && (
                     <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                       Winner
                     </div>
@@ -120,7 +120,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
                 >
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                     {player.name}
-                    {player.id === game.winnerId && (
+                    {player.id === game.winner_id && (
                       <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
                         (Winner)
                       </span>

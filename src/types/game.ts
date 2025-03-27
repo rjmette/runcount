@@ -33,7 +33,7 @@ export interface GameData {
   id: string;
   date: Date;
   players: Player[];
-  winnerId: number | null;
+  winner_id: number | null;
   completed: boolean;
   actions: GameAction[];
   owner_id?: string; // UUID string from auth.users.id

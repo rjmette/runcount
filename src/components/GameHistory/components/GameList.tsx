@@ -25,21 +25,21 @@ export const GameList: React.FC<GameListProps> = ({
   }
 
   // Debug log to check game data
-  console.log(
-    'Games:',
-    games.map((g) => ({
-      id: g.id,
-      completed: g.completed,
-      winnerId: g.winnerId,
-      winnerIdType: typeof g.winnerId,
-      players: g.players.map((p) => ({
-        name: p.name,
-        score: p.score,
-        id: p.id,
-        idType: typeof p.id,
-      })),
-    }))
-  );
+  // console.log(
+  //   'Games:',
+  //   games.map((g) => ({
+  //     id: g.id,
+  //     completed: g.completed,
+  //     winner_id: g.winner_id,
+  //     winnerIdType: typeof g.winner_id,
+  //     players: g.players.map((p) => ({
+  //       name: p.name,
+  //       score: p.score,
+  //       id: p.id,
+  //       idType: typeof p.id,
+  //     })),
+  //   }))
+  // );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 dark:text-white">
@@ -50,7 +50,7 @@ export const GameList: React.FC<GameListProps> = ({
         <div className="space-y-2">
           {games.map((game) => {
             const gameDate = new Date(game.date);
-            const winner = game.players.find((p) => p.id === game.winnerId);
+            const winner = game.players.find((p) => p.id === game.winner_id);
             const dayOfWeek = gameDate.toLocaleDateString('en-US', {
               weekday: 'short',
             });
@@ -91,12 +91,12 @@ export const GameList: React.FC<GameListProps> = ({
                         <span
                           key={player.id}
                           className={`${
-                            player.id === game.winnerId
+                            player.id === game.winner_id
                               ? 'text-blue-600 dark:text-blue-400 font-bold'
                               : 'text-gray-600 dark:text-gray-400'
                           }`}
                         >
-                          {player.id === game.winnerId && game.completed && (
+                          {player.id === game.winner_id && game.completed && (
                             <span className="mr-1">🏆</span>
                           )}
                           {player.name} ({player.score})

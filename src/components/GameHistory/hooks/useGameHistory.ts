@@ -16,6 +16,7 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
     const fetchGames = async () => {
       try {
         setLoading(true);
+        console.log('Fetching game history...');
 
         let query = supabase
           .from('games')
@@ -25,19 +26,27 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
 
         // If user is authenticated, only fetch their games
         if (user?.id) {
+          console.log(
+            'User authenticated, filtering games by owner_id:',
+            user.id
+          );
           query = query.eq('owner_id', user.id);
+        } else {
+          console.log('No authenticated user, fetching all games');
         }
 
         const { data, error } = await query;
 
         if (error) {
+          console.error('Error fetching games from Supabase:', error);
           throw error;
         }
 
+        console.log('Fetched games from Supabase:', data);
         setGames(data as unknown as GameData[]);
       } catch (err) {
+        console.error('Error in fetchGames:', err);
         setError('Failed to load game history');
-        console.error(err);
       } finally {
         setLoading(false);
       }
