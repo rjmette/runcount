@@ -303,106 +303,158 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
       {/* Combined Status and Player Panel */}
       <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg shadow-md mb-6 border-2 border-blue-500 dark:border-blue-600">
-        <div className="flex justify-between items-start mb-6">
-          <div className="flex items-center space-x-4">
-            <div
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                gameData.completed
-                  ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                  : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-              }`}
-            >
-              {gameData.completed ? 'Completed' : 'In Progress'}
-            </div>
-            <div className="text-blue-800 dark:text-blue-200">
-              Total Innings:{' '}
-              {Math.max(...gameData.players.map((p) => p.innings))}
-            </div>
-            <div className="text-blue-800 dark:text-blue-200">
-              Match Length:{' '}
-              {(() => {
-                const startTime = new Date(gameData.date);
-                const endTime = gameData.completed
-                  ? new Date(gameData.date)
-                  : new Date();
-                const diffMs = endTime.getTime() - startTime.getTime();
-                const hours = Math.floor(diffMs / (1000 * 60 * 60));
-                const minutes = Math.ceil(
-                  (diffMs % (1000 * 60 * 60)) / (1000 * 60)
-                );
-                return `${hours}h ${minutes}m`;
-              })()}
-            </div>
+        {/* Top Row: Status and Date */}
+        <div className="flex justify-between items-center mb-6">
+          {/* Left side: Game Status */}
+          <div
+            className={`px-4 py-2 rounded-full text-sm font-medium ${
+              gameData.completed
+                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+            }`}
+          >
+            {gameData.completed ? 'Completed' : 'In Progress'}
           </div>
-          <div className="flex flex-col items-end space-y-2">
-            <div className="text-blue-800 dark:text-blue-200">
-              {(() => {
-                const gameDate = new Date(gameData.date);
-                const dayOfWeek = gameDate.toLocaleDateString('en-US', {
-                  weekday: 'short',
-                });
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                });
-                const formattedTime = gameDate.toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                });
-                return gameData.completed
-                  ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
-                  : 'Not completed';
-              })()}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={copyMatchResults}
-                className={`px-3 py-1 text-sm ${
-                  copySuccess
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800'
-                } rounded-md transition-colors duration-200`}
-              >
-                {copySuccess ? 'Copied!' : 'Copy Match Results'}
-              </button>
-              <button
-                onClick={() => setShowInningsModal(true)}
-                className="px-3 py-1 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
-              >
-                View Innings
-              </button>
-            </div>
+
+          {/* Right side: Date */}
+          <div className="text-blue-800 dark:text-blue-200 font-medium">
+            {(() => {
+              const gameDate = new Date(gameData.date);
+              const dayOfWeek = gameDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+              });
+              const formattedDate = gameDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              });
+              const formattedTime = gameDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              });
+              return gameData.completed
+                ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
+                : 'Not completed';
+            })()}
           </div>
         </div>
 
-        <div className="flex space-x-4">
+        {/* Player Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           {gameData.players.map((player) => {
             const stats = calculateStats([player], gameData.actions)[0];
             return (
               <div
                 key={player.id}
-                className={`p-3 rounded-md ${
+                className={`p-4 rounded-lg ${
                   player.id === gameData.winner_id
-                    ? 'bg-blue-200 dark:bg-blue-800 border border-blue-300 dark:border-blue-700'
+                    ? 'bg-blue-200 dark:bg-blue-800 border-2 border-blue-300 dark:border-blue-700'
                     : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
                 }`}
               >
-                <div className="font-medium dark:text-white">{player.name}</div>
-                <div className="text-sm dark:text-gray-300">
-                  Score: {player.score} | High Run: {player.highRun}
-                </div>
-                <div className="text-sm dark:text-gray-300">
-                  Target: {player.targetScore} | BPI: {stats.bpi}
-                </div>
-                {player.id === gameData.winner_id && (
-                  <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    Winner
+                <div className="flex justify-between items-start mb-2">
+                  <div className="font-medium dark:text-white text-lg">
+                    {player.name}
                   </div>
-                )}
+                  {player.id === gameData.winner_id && (
+                    <div className="text-blue-600 dark:text-blue-400 font-medium">
+                      Winner
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm dark:text-gray-300">
+                  <div>
+                    <span className="font-medium">Score:</span> {player.score}
+                  </div>
+                  <div>
+                    <span className="font-medium">Target:</span>{' '}
+                    {player.targetScore}
+                  </div>
+                  <div>
+                    <span className="font-medium">High Run:</span>{' '}
+                    {player.highRun}
+                  </div>
+                  <div>
+                    <span className="font-medium">BPI:</span> {stats.bpi}
+                  </div>
+                </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Bottom Row: Stats and Action Buttons */}
+        <div className="flex flex-col items-center space-y-4">
+          {/* Game Stats */}
+          <div className="flex items-center space-x-6 text-blue-800 dark:text-blue-200">
+            <div className="flex items-center space-x-2">
+              <span className="font-medium">Length:</span>
+              <span>
+                {(() => {
+                  const startTime = new Date(gameData.date);
+                  const endTime = gameData.completed
+                    ? new Date(gameData.date)
+                    : new Date();
+                  const diffMs = endTime.getTime() - startTime.getTime();
+                  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                  const minutes = Math.ceil(
+                    (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+                  );
+                  return `${hours}h ${minutes}m`;
+                })()}
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="font-medium">Innings:</span>
+              <span>{Math.max(...gameData.players.map((p) => p.innings))}</span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-2">
+            <button
+              onClick={copyMatchResults}
+              className={`px-4 py-2 text-sm ${
+                copySuccess
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800'
+              } rounded-md transition-colors duration-200 flex items-center space-x-2`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                />
+              </svg>
+              <span>{copySuccess ? 'Copied!' : 'Copy Results'}</span>
+            </button>
+            <button
+              onClick={() => setShowInningsModal(true)}
+              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800 flex items-center space-x-2"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+              <span>View Innings</span>
+            </button>
+          </div>
         </div>
       </div>
 
