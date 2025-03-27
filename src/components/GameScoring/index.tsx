@@ -68,20 +68,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     ) => {
       // Save game state to our persistent storage context
       if (completed) {
-        console.log('Clearing game state after completion');
         clearGameState();
       } else {
-        console.log('Saving game state:', {
-          id: gameId,
-          date: new Date(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-        });
         saveGameState({
           id: gameId,
-          date: new Date(),
+          date: new Date().toISOString(),
           players,
           actions,
           completed,
@@ -89,21 +80,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
         });
       }
 
-      // Always save to game history localStorage regardless of authentication
+      // First save to localStorage
       try {
-        console.log('Saving game to localStorage history:', {
-          id: gameId,
-          date: new Date(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-        });
+        const now = new Date();
         localStorage.setItem(
           `runcount_game_${gameId}`,
           JSON.stringify({
             id: gameId,
-            date: new Date(),
+            date: now.toISOString(),
             players,
             actions,
             completed,
@@ -116,21 +100,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
       // Only save to Supabase if user is authenticated
       if (!user) {
-        console.log('User not authenticated, skipping Supabase save');
         return;
       }
 
       try {
+        const now = new Date();
         const payload = {
           id: gameId,
-          date: new Date(),
+          date: now.toISOString(),
           players,
           actions,
           completed,
           winner_id: winner_id,
           owner_id: user.id,
+          deleted: false,
         };
-        console.log('Saving game to Supabase:', payload);
 
         const { error } = await supabase.from('games').upsert(payload);
 
@@ -145,8 +129,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
               'RLS policy violation: Make sure you have the correct policies set up'
             );
           }
-        } else {
-          console.log('Successfully saved game to Supabase');
         }
       } catch (err) {
         console.error('Error saving game to Supabase:', err);
@@ -173,20 +155,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ) => {
         // Save game state to our persistent storage context
         if (completed) {
-          console.log('Clearing game state after completion');
           clearGameState();
         } else {
-          console.log('Saving game state:', {
-            id: gameId,
-            date: new Date(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
           saveGameState({
             id: gameId,
-            date: new Date(),
+            date: new Date().toISOString(),
             players,
             actions,
             completed,
@@ -194,21 +167,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
           });
         }
 
-        // Always save to game history localStorage regardless of authentication
+        // First save to localStorage
         try {
-          console.log('Saving game to localStorage history:', {
-            id: gameId,
-            date: new Date(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
+          const now = new Date();
           localStorage.setItem(
             `runcount_game_${gameId}`,
             JSON.stringify({
               id: gameId,
-              date: new Date(),
+              date: now.toISOString(),
               players,
               actions,
               completed,
@@ -221,21 +187,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
         // Only save to Supabase if user is authenticated
         if (!user) {
-          console.log('User not authenticated, skipping Supabase save');
           return;
         }
 
         try {
+          const now = new Date();
           const payload = {
             id: gameId,
-            date: new Date(),
+            date: now.toISOString(),
             players,
             actions,
             completed,
             winner_id: winner_id,
             owner_id: user.id,
+            deleted: false,
           };
-          console.log('Saving game to Supabase:', payload);
 
           const { error } = await supabase.from('games').upsert(payload);
 
@@ -250,8 +216,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 'RLS policy violation: Make sure you have the correct policies set up'
               );
             }
-          } else {
-            console.log('Successfully saved game to Supabase');
           }
         } catch (err) {
           console.error('Error saving game to Supabase:', err);
@@ -289,20 +253,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ) => {
         // Save game state to our persistent storage context
         if (completed) {
-          console.log('Clearing game state after completion');
           clearGameState();
         } else {
-          console.log('Saving game state:', {
-            id: gameId,
-            date: new Date(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
           saveGameState({
             id: gameId,
-            date: new Date(),
+            date: new Date().toISOString(),
             players,
             actions,
             completed,
@@ -310,21 +265,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
           });
         }
 
-        // Always save to game history localStorage regardless of authentication
+        // First save to localStorage
         try {
-          console.log('Saving game to localStorage history:', {
-            id: gameId,
-            date: new Date(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
+          const now = new Date();
           localStorage.setItem(
             `runcount_game_${gameId}`,
             JSON.stringify({
               id: gameId,
-              date: new Date(),
+              date: now.toISOString(),
               players,
               actions,
               completed,
@@ -337,21 +285,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
         // Only save to Supabase if user is authenticated
         if (!user) {
-          console.log('User not authenticated, skipping Supabase save');
           return;
         }
 
         try {
+          const now = new Date();
           const payload = {
             id: gameId,
-            date: new Date(),
+            date: now.toISOString(),
             players,
             actions,
             completed,
             winner_id: winner_id,
             owner_id: user.id,
+            deleted: false,
           };
-          console.log('Saving game to Supabase:', payload);
 
           const { error } = await supabase.from('games').upsert(payload);
 
@@ -366,8 +314,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 'RLS policy violation: Make sure you have the correct policies set up'
               );
             }
-          } else {
-            console.log('Successfully saved game to Supabase');
           }
         } catch (err) {
           console.error('Error saving game to Supabase:', err);
@@ -428,7 +374,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     const currentGameId = gameId || '';
     saveGameState({
       id: currentGameId,
-      date: new Date(),
+      date: new Date().toISOString(),
       players: updatedPlayerData,
       actions,
       completed: false,
@@ -460,7 +406,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     const currentGameId = gameId || '';
     saveGameState({
       id: currentGameId,
-      date: new Date(),
+      date: new Date().toISOString(),
       players: updatedPlayerData,
       actions,
       completed: false,
@@ -473,12 +419,43 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Mark the current game as completed when leaving without a winner
       saveGameState({
         id: gameId,
-        date: new Date(),
+        date: new Date().toISOString(),
         players: playerData,
         actions,
         completed: true,
         winner_id: null,
       });
+
+      // Make sure to also update Supabase directly
+      if (user) {
+        try {
+          const now = new Date();
+          const payload = {
+            id: gameId,
+            date: now.toISOString(),
+            players: playerData,
+            actions,
+            completed: true,
+            winner_id: null,
+            owner_id: user.id,
+            deleted: false, // Explicitly set deleted to false
+          };
+
+          supabase
+            .from('games')
+            .upsert(payload)
+            .then(({ error }) => {
+              if (error) {
+                console.error(
+                  'Error updating completed game in Supabase:',
+                  error
+                );
+              }
+            });
+        } catch (err) {
+          console.error('Error updating completed game in Supabase:', err);
+        }
+      }
     } else {
       // Make sure to clear active game state from localStorage
       clearGameState();

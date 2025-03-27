@@ -31,7 +31,7 @@ export interface GameSettings {
 
 export interface GameData {
   id: string;
-  date: Date;
+  date: Date | string;
   players: Player[];
   winner_id: number | null;
   completed: boolean;

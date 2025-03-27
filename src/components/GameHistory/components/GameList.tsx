@@ -27,12 +27,37 @@ export const GameList: React.FC<GameListProps> = ({
   return (
     <div className="rounded-lg shadow-md dark:text-white">
       <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
-        Recent Games
+        Recent Games ({games.length})
       </h3>
       <div className="h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
         <div className="space-y-3">
           {games.map((game) => {
-            const gameDate = new Date(game.date);
+            // Safely parse the date
+            let gameDate;
+            try {
+              // Handle different date formats
+              if (typeof game.date === 'string') {
+                gameDate = new Date(game.date);
+              } else if (game.date instanceof Date) {
+                gameDate = game.date;
+              } else {
+                console.error(
+                  `Invalid date type for game ${game.id}:`,
+                  typeof game.date
+                );
+                gameDate = new Date(); // Fallback to current date
+              }
+
+              // Check if date is valid
+              if (isNaN(gameDate.getTime())) {
+                console.error('Invalid date for game:', game.id, game.date);
+                gameDate = new Date(); // Fallback to current date
+              }
+            } catch (error) {
+              console.error('Error parsing date for game:', game.id, error);
+              gameDate = new Date(); // Fallback to current date
+            }
+
             const winner = game.players.find((p) => p.id === game.winner_id);
             const loser = game.players.find((p) => p.id !== game.winner_id);
             const dayOfWeek = gameDate.toLocaleDateString('en-US', {
@@ -73,23 +98,23 @@ export const GameList: React.FC<GameListProps> = ({
                       {formattedTime}
                     </div>
 
-                    {/* Winner */}
-                    {winner && (
-                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                        <span>
-                          {winner.name} ({winner.score})
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Loser */}
-                    {loser && (
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        <span>
-                          {loser.name} ({loser.score})
-                        </span>
-                      </div>
-                    )}
+                    {/* Players */}
+                    <div className="text-xs mt-1">
+                      {game.players.map((player, index) => (
+                        <div
+                          key={player.id}
+                          className={`${
+                            player.id === game.winner_id
+                              ? 'text-blue-600 dark:text-blue-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`}
+                        >
+                          <span>
+                            {player.name} ({player.score})
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-end items-center mt-2">
