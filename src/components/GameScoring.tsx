@@ -185,8 +185,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Initialize first inning
       setCurrentInning(1);
       
-      // Initialize first player's turn
-      setActivePlayerIndex(0);
+      // Initialize with the breaking player's turn
+      setActivePlayerIndex(breakingPlayerId);
       
       // Reset re-break flag
       setPlayerNeedsReBreak(null);
