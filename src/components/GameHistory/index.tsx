@@ -15,6 +15,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     supabase,
     user,
   });
+
   const {
     selectedGameId,
     selectedGame,
@@ -67,7 +68,9 @@ const GameHistory: React.FC<GameHistoryProps> = ({
       />
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Game History</h2>
+        <h2 className="text-2xl font-bold">
+          Game History {games.length > 0 ? `(${games.length})` : ''}
+        </h2>
         <button
           onClick={startNewGame}
           className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
@@ -76,8 +79,8 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[calc(100vh-15rem)]">
+        <div className="md:col-span-1 h-full">
           <GameList
             games={games}
             selectedGameId={selectedGameId}
@@ -86,7 +89,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
           />
         </div>
 
-        <div className="md:col-span-3">
+        <div className="md:col-span-3 h-full">
           {selectedGame ? (
             <GameDetails game={selectedGame} />
           ) : (
@@ -108,10 +111,12 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Select a Game
+                  {games.length > 0 ? 'Select a Game' : 'No Games Found'}
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  Choose a game from the list on the left to view its details
+                  {games.length > 0
+                    ? 'Choose a game from the list on the left to view its details'
+                    : 'No game history was found. Start a new game!'}
                 </p>
                 {games.length === 0 && (
                   <button

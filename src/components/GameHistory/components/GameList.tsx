@@ -24,33 +24,39 @@ export const GameList: React.FC<GameListProps> = ({
     );
   }
 
-  // Debug log to check game data
-  // console.log(
-  //   'Games:',
-  //   games.map((g) => ({
-  //     id: g.id,
-  //     completed: g.completed,
-  //     winner_id: g.winner_id,
-  //     winnerIdType: typeof g.winner_id,
-  //     players: g.players.map((p) => ({
-  //       name: p.name,
-  //       score: p.score,
-  //       id: p.id,
-  //       idType: typeof p.id,
-  //     })),
-  //   }))
-  // );
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 dark:text-white">
-      <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
-        Recent Games
-      </h3>
-      <div className="h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-        <div className="space-y-2">
+    <div className="rounded-lg shadow-md dark:text-white relative h-full bg-white dark:bg-gray-800">
+      <div className="absolute inset-0 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <div className="space-y-3 p-4">
           {games.map((game) => {
-            const gameDate = new Date(game.date);
+            // Safely parse the date
+            let gameDate;
+            try {
+              // Handle different date formats
+              if (typeof game.date === 'string') {
+                gameDate = new Date(game.date);
+              } else if (game.date instanceof Date) {
+                gameDate = game.date;
+              } else {
+                console.error(
+                  `Invalid date type for game ${game.id}:`,
+                  typeof game.date
+                );
+                gameDate = new Date(); // Fallback to current date
+              }
+
+              // Check if date is valid
+              if (isNaN(gameDate.getTime())) {
+                console.error('Invalid date for game:', game.id, game.date);
+                gameDate = new Date(); // Fallback to current date
+              }
+            } catch (error) {
+              console.error('Error parsing date for game:', game.id, error);
+              gameDate = new Date(); // Fallback to current date
+            }
+
             const winner = game.players.find((p) => p.id === game.winner_id);
+            const loser = game.players.find((p) => p.id !== game.winner_id);
             const dayOfWeek = gameDate.toLocaleDateString('en-US', {
               weekday: 'short',
             });
@@ -77,30 +83,33 @@ export const GameList: React.FC<GameListProps> = ({
                   className="flex-grow"
                   onClick={() => onGameSelect(game.id)}
                 >
-                  <div className="flex justify-between items-start mb-1">
+                  {/* Vertical layout for game information */}
+                  <div className="flex flex-col space-y-1">
+                    {/* Date */}
                     <div className="text-sm font-medium">
                       {dayOfWeek}, {formattedDate}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+
+                    {/* Time */}
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
                       {formattedTime}
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <div className="flex space-x-2">
-                      {game.players.map((player) => (
-                        <span
+
+                    {/* Players */}
+                    <div className="text-xs mt-1">
+                      {game.players.map((player, index) => (
+                        <div
                           key={player.id}
                           className={`${
                             player.id === game.winner_id
-                              ? 'text-blue-600 dark:text-blue-400 font-bold'
+                              ? 'text-blue-600 dark:text-blue-400 font-medium'
                               : 'text-gray-600 dark:text-gray-400'
                           }`}
                         >
-                          {player.id === game.winner_id && game.completed && (
-                            <span className="mr-1">🏆</span>
-                          )}
-                          {player.name} ({player.score})
-                        </span>
+                          <span>
+                            {player.name} ({player.score})
+                          </span>
+                        </div>
                       ))}
                     </div>
                   </div>
