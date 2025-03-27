@@ -93,9 +93,6 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             {player.score < 0 && '-'}
             {Math.abs(player.score)}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Score
-          </span>
         </div>
 
         <div>
@@ -136,27 +133,15 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       </div>
 
       {isActive && (
-        <>
-          {/* Current run is still tracked in the DOM but hidden from display */}
-          <div className="hidden">
-            <span id="current-run">0</span>
-          </div>
+        <div className="mt-6 space-y-3">
+          <ScoreButton
+            label="Miss"
+            value={0}
+            onClick={() => onAddMiss()}
+            className="bg-gray-600 hover:bg-gray-700 w-full"
+          />
 
-          <div className="grid grid-cols-2 gap-3 mt-6">
-            <ScoreButton
-              label="Miss"
-              value={0}
-              onClick={() => onAddMiss()}
-              className="bg-gray-600 hover:bg-gray-700 col-span-2"
-            />
-
-            <ScoreButton
-              label="Foul (-1)"
-              value={-1}
-              onClick={() => onAddFoul()}
-              className="bg-red-600 hover:bg-red-700"
-            />
-
+          <div className="grid grid-cols-3 gap-3">
             <ScoreButton
               label="Safety"
               value={0}
@@ -165,20 +150,20 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             />
 
             <ScoreButton
-              label="New Rack"
-              value={1}
-              onClick={() => onAddScore(1)}
-              className="bg-green-600 hover:bg-green-700"
+              label="Foul"
+              value={-1}
+              onClick={() => onAddFoul()}
+              className="bg-red-600 hover:bg-red-700"
             />
 
             <ScoreButton
-              label="History"
-              value={0}
-              onClick={() => onShowHistory && onShowHistory()}
-              className="bg-blue-600 hover:bg-blue-700"
+              label="New Rack"
+              value={1}
+              onClick={() => onAddScore(1)}
+              className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
             />
           </div>
-        </>
+        </div>
       )}
 
       <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500 dark:text-gray-400">
