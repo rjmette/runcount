@@ -553,6 +553,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onShowHistory={() => setShowHistoryModal(true)}
             targetScore={player.targetScore}
             needsReBreak={playerNeedsReBreak === player.id}
+            currentInning={currentInning}
           />
         ))}
       </div>
