@@ -48,16 +48,16 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80'
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-bold dark:text-white">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold dark:text-white">
           {player.name}
           {player.score >= targetScore && (
             <span className="ml-1 text-yellow-500">🏆</span>
           )}
         </h3>
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           {isActive && (
-            <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Active
             </span>
           )}
@@ -67,7 +67,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             </span>
           )}
           {needsReBreak && (
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Re-Break
             </span>
           )}
@@ -79,49 +79,48 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-3">
-        <div className="text-center sm:text-left mb-2 sm:mb-0">
+      <div className="grid grid-cols-4 gap-4 text-center">
+        <div>
           <span
-            className={`block text-3xl font-bold ${
+            className={`block text-6xl font-bold ${
               player.score >= targetScore
                 ? 'text-green-600 dark:text-green-500'
+                : player.score < 0
+                ? 'text-red-600 dark:text-red-500'
                 : 'text-blue-700 dark:text-blue-400'
             }`}
           >
-            {player.score}
+            {player.score < 0 && '-'}
+            {Math.abs(player.score)}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             Score
           </span>
         </div>
 
-        <div className="flex space-x-3">
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {player.innings}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Innings
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {player.innings}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Innings
+          </span>
+        </div>
 
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {player.highRun}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              High Run
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {player.highRun}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            High Run
+          </span>
+        </div>
 
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {bpi}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              BPI
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {bpi}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">BPI</span>
         </div>
       </div>
 
@@ -143,7 +142,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             <span id="current-run">0</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-2 gap-3 mt-6">
             <ScoreButton
               label="Miss"
               value={0}
