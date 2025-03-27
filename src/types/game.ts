@@ -20,6 +20,7 @@ export interface GameAction {
   timestamp: Date;
   ballsOnTable?: number;
   reBreak?: boolean; // Flag for when a player must re-break after three consecutive fouls
+  isBreakFoul?: boolean; // Flag for fouls that occur during the opening break
 }
 
 export interface GameSettings {
@@ -40,7 +41,11 @@ export interface GameData {
 }
 
 export interface GameSetupProps {
-  startGame: (players: string[], playerTargetScores: Record<string, number>, breakingPlayerId: number) => void;
+  startGame: (
+    players: string[],
+    playerTargetScores: Record<string, number>,
+    breakingPlayerId: number
+  ) => void;
   lastPlayers?: string[];
   lastPlayerTargetScores?: Record<string, number>;
   lastBreakingPlayerId?: number;

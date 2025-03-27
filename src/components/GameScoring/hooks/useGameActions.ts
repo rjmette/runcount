@@ -27,6 +27,7 @@ interface UseGameActionsProps {
   setPlayerNeedsReBreak: (playerId: number | null) => void;
   setShowAlertModal: (show: boolean) => void;
   setAlertMessage: (message: string) => void;
+  setIsUndoEnabled: (enabled: boolean) => void;
   playerNeedsReBreak: number | null;
 }
 
@@ -50,6 +51,7 @@ export const useGameActions = ({
   setPlayerNeedsReBreak,
   setShowAlertModal,
   setAlertMessage,
+  setIsUndoEnabled,
   playerNeedsReBreak,
 }: UseGameActionsProps) => {
   const handleAddScore = (score: number, botsValue?: number) => {
@@ -74,6 +76,7 @@ export const useGameActions = ({
 
     setBallsOnTable(15);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const updatedPlayerData = [...playerData];
     updatedPlayerData[activePlayerIndex].score += pointsScored;
@@ -105,18 +108,26 @@ export const useGameActions = ({
     const isThirdConsecutiveFoul =
       playerData[activePlayerIndex].consecutiveFouls === 2;
 
+    // Check if this is the first action of the game (i.e., the opening break)
+    // or if the player needs to re-break
+    const isOpeningBreak =
+      (actions.length === 0 && currentInning === 1) ||
+      playerNeedsReBreak === playerData[activePlayerIndex].id;
+
     const newAction: GameAction = {
       type: 'foul',
       playerId: playerData[activePlayerIndex].id,
-      value: -1,
+      value: isOpeningBreak ? -2 : -1, // -2 for foul on break, -1 for regular foul
       timestamp: new Date(),
       ballsOnTable: botsValue,
       reBreak: isThirdConsecutiveFoul,
+      isBreakFoul: isOpeningBreak,
     };
 
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
@@ -139,18 +150,54 @@ export const useGameActions = ({
     updatedPlayerData[activePlayerIndex].consecutiveFouls += 1;
     updatedPlayerData[activePlayerIndex].fouls += 1;
 
+    // Check for three consecutive fouls first (regardless of break or not)
     if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
-      updatedPlayerData[activePlayerIndex].score -= 16; // 1 for foul + 15 for three consecutive fouls
+      // Apply the foul penalty first (-1 or -2 depending on if it's a break foul)
+      updatedPlayerData[activePlayerIndex].score -= isOpeningBreak ? 2 : 1;
+
+      // Then apply the additional 15-point penalty for three consecutive fouls
+      updatedPlayerData[activePlayerIndex].score -= 15;
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
       setBallsOnTable(15);
       setPlayerNeedsReBreak(updatedPlayerData[activePlayerIndex].id);
 
       const playerName = updatedPlayerData[activePlayerIndex].name;
       setAlertMessage(
-        `${playerName} has committed three consecutive fouls! 16-point penalty applied (1 for foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`
+        `${playerName} has committed three consecutive fouls! ${
+          isOpeningBreak ? 17 : 16
+        }-point penalty applied (${isOpeningBreak ? 2 : 1} for ${
+          isOpeningBreak ? 'break ' : ''
+        }foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`
       );
       setShowAlertModal(true);
-    } else {
+    }
+    // Handle break fouls that are not three consecutive fouls
+    else if (isOpeningBreak) {
+      // Apply a -2 penalty for fouling on the break
+      updatedPlayerData[activePlayerIndex].score -= 2;
+
+      const breakerName = updatedPlayerData[activePlayerIndex].name;
+      const incomingPlayerName = updatedPlayerData[nextPlayerIndex].name;
+
+      setAlertMessage(
+        `${breakerName} fouled on the break! 2-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
+      );
+      setShowAlertModal(true);
+
+      // Display warning if they now have two consecutive fouls
+      if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
+        const playerName = updatedPlayerData[activePlayerIndex].name;
+        setAlertMessage(
+          `Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular foul deduction.`
+        );
+        setShowAlertModal(true);
+      }
+
+      // Keep the same player as the active player in case a re-break is chosen
+      // The actual player switch will be handled by the UI after the incoming player makes their choice
+    }
+    // Handle regular fouls (not break fouls and not three consecutive)
+    else {
       updatedPlayerData[activePlayerIndex].score -= 1;
 
       if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
@@ -164,7 +211,9 @@ export const useGameActions = ({
 
     setCurrentRun(0);
 
-    if (!isThirdConsecutiveFoul) {
+    // Only switch players if it's not a break foul or a three-foul situation
+    // For break fouls, we'll let the UI handle it after the incoming player makes their choice
+    if (!isOpeningBreak && !isThirdConsecutiveFoul) {
       if (nextPlayerIndex === 0) {
         setCurrentInning(currentInning + 1);
       }
@@ -219,6 +268,7 @@ export const useGameActions = ({
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
@@ -296,6 +346,7 @@ export const useGameActions = ({
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
