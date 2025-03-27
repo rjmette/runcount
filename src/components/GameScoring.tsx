@@ -759,10 +759,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
   // Player turn is now handled directly in each action handler
 
   const handleUndoLastAction = () => {
-    if (actions.length === 0) return;
+    console.log("Undo: Starting undo operation with breakingPlayerId =", breakingPlayerId);
+    if (actions.length === 0) {
+      console.log("Undo: No actions to undo");
+      return;
+    }
     
     // Get the last action
     const lastAction = actions[actions.length - 1];
+    console.log("Undo: Removing last action:", lastAction);
     
     // Simple approach: re-calculate the entire game state from scratch
     // This ensures everything is consistent
@@ -772,7 +777,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       id: index,
       name,
       score: 0,
-      innings: index === 0 ? 1 : 0,
+      innings: index === breakingPlayerId ? 1 : 0, // Use breaking player ID instead of hardcoded 0
       highRun: 0,
       fouls: 0,
       consecutiveFouls: 0,
@@ -787,7 +792,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Reset to the initial state
     let updatedPlayerData = [...initialPlayerData];
     let currentInningCount = 1;
-    let currentActivePlayer = 0;
+    let currentActivePlayer = breakingPlayerId; // Start with the breaking player
     let runningBOT = 15;
     let runningScore = 0;
     
@@ -920,12 +925,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
     
     // Update all state values
+    console.log("Undo: Final state - currentActivePlayer:", currentActivePlayer);
+    console.log("Undo: Final state - actions length:", previousActions.length);
+    
     setPlayerData(updatedPlayerData);
     setActivePlayerIndex(currentActivePlayer);
     setCurrentInning(currentInningCount);
     setBallsOnTable(runningBOT);
     setCurrentRun(runningScore);
     setActions(previousActions);
+    
+    // If we're back to the initial state (no actions), make sure we reset to the breaking player
+    if (previousActions.length === 0) {
+      console.log("Undo: Resetting to initial state with breakingPlayerId:", breakingPlayerId);
+      setActivePlayerIndex(breakingPlayerId);
+    }
     
     // Check if the last action was a three-foul that requires re-break
     const finalAction = previousActions.length > 0 ? previousActions[previousActions.length - 1] : null;
