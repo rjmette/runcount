@@ -12,10 +12,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
   setGameId,
   finishGame,
   supabase,
-  user
+  user,
+  breakingPlayerId = 0 // Default to player 1 breaking if not specified
 }) => {
   const { saveGameState, getGameState, clearGameState } = useGamePersist();
-  const [activePlayerIndex, setActivePlayerIndex] = useState(0);
+  const [activePlayerIndex, setActivePlayerIndex] = useState(breakingPlayerId); // Use breaking player as initial active player
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
@@ -166,7 +167,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         id: index,
         name,
         score: 0,
-        innings: index === 0 ? 1 : 0, // Set first player's innings to 1 directly
+        innings: index === breakingPlayerId ? 1 : 0, // Set breaking player's innings to 1
         highRun: 0,
         fouls: 0,
         consecutiveFouls: 0,

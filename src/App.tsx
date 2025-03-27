@@ -40,6 +40,7 @@ function AppContent() {
   const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
   
   // Store last used game settings for quick restart with persistence
   const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
@@ -50,6 +51,11 @@ function AppContent() {
   const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>(() => {
     const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
     return savedTargetScores ? JSON.parse(savedTargetScores) : {};
+  });
+  
+  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() => {
+    const savedBreakingPlayerId = localStorage.getItem('runcount_lastBreakingPlayerId');
+    return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
   });
 
   // Check for saved game on initial load
@@ -98,6 +104,10 @@ function AppContent() {
       localStorage.setItem('runcount_lastPlayerTargetScores', JSON.stringify(lastPlayerTargetScores));
     }
   }, [lastPlayerTargetScores]);
+  
+  useEffect(() => {
+    localStorage.setItem('runcount_lastBreakingPlayerId', JSON.stringify(lastBreakingPlayerId));
+  }, [lastBreakingPlayerId]);
 
   // Handle user sign out
   const handleSignOut = async () => {
@@ -111,16 +121,19 @@ function AppContent() {
       case 'setup':
         return (
           <GameSetup 
-            startGame={(players, playerTargetScores) => {
+            startGame={(players, playerTargetScores, breakingPlayerId) => {
               setPlayers(players);
               setPlayerTargetScores(playerTargetScores);
+              setBreakingPlayerId(breakingPlayerId);
               // Save settings for future use
               setLastPlayers(players);
               setLastPlayerTargetScores(playerTargetScores);
+              setLastBreakingPlayerId(breakingPlayerId);
               setGameState('scoring');
             }}
             lastPlayers={lastPlayers}
             lastPlayerTargetScores={lastPlayerTargetScores}
+            lastBreakingPlayerId={lastBreakingPlayerId}
           />
         );
       case 'scoring':
@@ -136,6 +149,7 @@ function AppContent() {
             }}
             supabase={supabase}
             user={user}
+            breakingPlayerId={breakingPlayerId}
           />
         );
       case 'statistics':

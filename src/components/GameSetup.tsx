@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { GameSetupProps } from '../types/game';
 import { useGamePersist } from '../context/GamePersistContext';
 
-const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlayerTargetScores }) => {
+const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlayerTargetScores, lastBreakingPlayerId }) => {
   const { clearGameState } = useGamePersist();
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
   const [player1TargetScore, setPlayer1TargetScore] = useState(75);
   const [player2TargetScore, setPlayer2TargetScore] = useState(60);
+  const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0); // Default to player 1
   const [error, setError] = useState('');
   
   // Set up form using last game settings if available
@@ -28,7 +29,12 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
         }
       }
     }
-  }, [lastPlayers, lastPlayerTargetScores]);
+
+    // Set the breaking player if available from last game
+    if (lastBreakingPlayerId !== undefined) {
+      setBreakingPlayerId(lastBreakingPlayerId);
+    }
+  }, [lastPlayers, lastPlayerTargetScores, lastBreakingPlayerId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +62,8 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
     // Clear any existing game state when starting a new game
     clearGameState();
     
-    // Start new game
-    startGame([player1, player2], playerTargetScores);
+    // Start new game with breaking player ID
+    startGame([player1, player2], playerTargetScores, breakingPlayerId);
   };
 
   return (
@@ -161,6 +167,36 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
               className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-r-md"
             >
               +
+            </button>
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+            Who is Breaking?
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setBreakingPlayerId(0)}
+              className={`px-3 py-3 rounded-md font-medium ${
+                breakingPlayerId === 0 
+                  ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                  : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+              }`}
+            >
+              {player1 || "Player 1"} Breaks
+            </button>
+            <button
+              type="button"
+              onClick={() => setBreakingPlayerId(1)}
+              className={`px-3 py-3 rounded-md font-medium ${
+                breakingPlayerId === 1 
+                  ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                  : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+              }`}
+            >
+              {player2 || "Player 2"} Breaks
             </button>
           </div>
         </div>

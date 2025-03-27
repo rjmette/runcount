@@ -25,6 +25,7 @@ export interface GameAction {
 export interface GameSettings {
   players: string[];
   playerTargetScores: Record<string, number>;
+  breakingPlayerId?: number; // ID of the player who is breaking
 }
 
 export interface GameData {
@@ -39,9 +40,10 @@ export interface GameData {
 }
 
 export interface GameSetupProps {
-  startGame: (players: string[], playerTargetScores: Record<string, number>) => void;
+  startGame: (players: string[], playerTargetScores: Record<string, number>, breakingPlayerId: number) => void;
   lastPlayers?: string[];
   lastPlayerTargetScores?: Record<string, number>;
+  lastBreakingPlayerId?: number;
 }
 
 export interface GameScoringProps {
@@ -52,6 +54,7 @@ export interface GameScoringProps {
   finishGame: () => void;
   supabase: SupabaseClient;
   user?: User | null;
+  breakingPlayerId?: number;
 }
 
 export interface GameStatisticsProps {
