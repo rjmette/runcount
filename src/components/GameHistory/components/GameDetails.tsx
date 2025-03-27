@@ -11,11 +11,24 @@ interface GameDetailsProps {
 
 export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
   const inningActions = calculateInningActions(game.actions, game.players);
+  const gameDate = new Date(game.date);
+  const dayOfWeek = gameDate.toLocaleDateString('en-US', {
+    weekday: 'short',
+  });
+  const formattedDate = gameDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const formattedTime = gameDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 dark:text-white">
       <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
-        Game Details - {new Date(game.date).toLocaleDateString()}
+        Game Details - {dayOfWeek}, {formattedDate} {formattedTime}
       </h3>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -38,6 +51,28 @@ export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
           </span>
           <span className="text-lg font-semibold dark:text-white">
             {game.completed ? 'Completed' : 'In Progress'}
+          </span>
+        </div>
+
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+          <span className="block text-sm text-gray-500 dark:text-gray-400">
+            Score
+          </span>
+          <span className="text-lg font-semibold dark:text-white">
+            {game.players.length > 0
+              ? game.players.map((p) => `${p.name}: ${p.score}`).join(', ')
+              : 'N/A'}
+          </span>
+        </div>
+
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+          <span className="block text-sm text-gray-500 dark:text-gray-400">
+            Date Completed
+          </span>
+          <span className="text-lg font-semibold dark:text-white">
+            {game.completed
+              ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
+              : 'Not completed'}
           </span>
         </div>
 
