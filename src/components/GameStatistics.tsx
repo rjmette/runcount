@@ -194,6 +194,14 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       hour12: true,
     });
 
+    // Calculate match length
+    const startTime = new Date(gameData.date);
+    const endTime = gameData.completed ? new Date(gameData.date) : new Date();
+    const diffMs = endTime.getTime() - startTime.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.ceil((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const matchLength = `${hours}h ${minutes}m`;
+
     // Sort players to show winner first
     const sortedPlayers = [...gameData.players].sort((a, b) => {
       if (a.id === gameData.winner_id) return -1;
@@ -201,7 +209,8 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       return 0;
     });
 
-    let emailText = `${formattedDate} at ${formattedTime}\n\n`;
+    let emailText = `${formattedDate} at ${formattedTime}\n`;
+    emailText += `Length: ${matchLength}\n\n`;
 
     // Add player results
     sortedPlayers.forEach((player) => {
@@ -277,22 +286,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
         <div className="flex space-x-4">
           <button
-            onClick={copyMatchResults}
-            className={`px-4 py-2 ${
-              copySuccess
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800'
-            } rounded-md transition-colors duration-200`}
-          >
-            {copySuccess ? 'Copied!' : 'Copy Match Results'}
-          </button>
-          <button
-            onClick={() => setShowInningsModal(true)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
-          >
-            View Innings
-          </button>
-          <button
             onClick={viewHistory}
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
           >
@@ -310,7 +303,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
       {/* Combined Status and Player Panel */}
       <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg shadow-md mb-6 border-2 border-blue-500 dark:border-blue-600">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-start mb-6">
           <div className="flex items-center space-x-4">
             <div
               className={`px-4 py-2 rounded-full text-sm font-medium ${
@@ -325,26 +318,61 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
               Total Innings:{' '}
               {Math.max(...gameData.players.map((p) => p.innings))}
             </div>
+            <div className="text-blue-800 dark:text-blue-200">
+              Match Length:{' '}
+              {(() => {
+                const startTime = new Date(gameData.date);
+                const endTime = gameData.completed
+                  ? new Date(gameData.date)
+                  : new Date();
+                const diffMs = endTime.getTime() - startTime.getTime();
+                const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                const minutes = Math.ceil(
+                  (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+                );
+                return `${hours}h ${minutes}m`;
+              })()}
+            </div>
           </div>
-          <div className="text-blue-800 dark:text-blue-200">
-            {(() => {
-              const gameDate = new Date(gameData.date);
-              const dayOfWeek = gameDate.toLocaleDateString('en-US', {
-                weekday: 'short',
-              });
-              const formattedDate = gameDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              });
-              const formattedTime = gameDate.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-              });
-              return gameData.completed
-                ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
-                : 'Not completed';
-            })()}
+          <div className="flex flex-col items-end space-y-2">
+            <div className="text-blue-800 dark:text-blue-200">
+              {(() => {
+                const gameDate = new Date(gameData.date);
+                const dayOfWeek = gameDate.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                });
+                const formattedDate = gameDate.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                });
+                const formattedTime = gameDate.toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true,
+                });
+                return gameData.completed
+                  ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
+                  : 'Not completed';
+              })()}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={copyMatchResults}
+                className={`px-3 py-1 text-sm ${
+                  copySuccess
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800'
+                } rounded-md transition-colors duration-200`}
+              >
+                {copySuccess ? 'Copied!' : 'Copy Match Results'}
+              </button>
+              <button
+                onClick={() => setShowInningsModal(true)}
+                className="px-3 py-1 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
+              >
+                View Innings
+              </button>
+            </div>
           </div>
         </div>
 
