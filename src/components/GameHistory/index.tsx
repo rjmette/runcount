@@ -79,8 +79,8 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[calc(100vh-15rem)]">
+        <div className="md:col-span-1 h-full">
           <GameList
             games={games}
             selectedGameId={selectedGameId}
@@ -89,7 +89,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
           />
         </div>
 
-        <div className="md:col-span-3">
+        <div className="md:col-span-3 h-full">
           {selectedGame ? (
             <GameDetails game={selectedGame} />
           ) : (

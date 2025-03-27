@@ -25,12 +25,9 @@ export const GameList: React.FC<GameListProps> = ({
   }
 
   return (
-    <div className="rounded-lg shadow-md dark:text-white">
-      <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
-        Recent Games ({games.length})
-      </h3>
-      <div className="h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-        <div className="space-y-3">
+    <div className="rounded-lg shadow-md dark:text-white h-full">
+      <div className="h-[calc(100vh-10rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+        <div className="space-y-3 p-3">
           {games.map((game) => {
             // Safely parse the date
             let gameDate;
