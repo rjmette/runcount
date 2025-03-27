@@ -90,15 +90,51 @@ const GameHistory: React.FC<GameHistoryProps> = ({
           {selectedGame ? (
             <GameDetails game={selectedGame} />
           ) : (
-            <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-md flex flex-col items-center justify-center h-full">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Select a game to view details
-              </p>
-              <img
-                src="https://placehold.co/300x200/e2e8f0/475569?text=Game+Details"
-                alt="Select a game"
-                className="rounded-md shadow-sm"
-              />
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 flex flex-col items-center justify-center h-full">
+              <div className="text-center">
+                <div className="mb-4">
+                  <svg
+                    className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Select a Game
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">
+                  Choose a game from the list on the left to view its details
+                </p>
+                {games.length === 0 && (
+                  <button
+                    onClick={startNewGame}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                  >
+                    <svg
+                      className="mr-2 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Start Your First Game
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
