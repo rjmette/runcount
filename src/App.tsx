@@ -122,6 +122,7 @@ function AppContent() {
         return (
           <GameSetup 
             startGame={(players, playerTargetScores, breakingPlayerId) => {
+              console.log("App: Setting breaking player ID to:", breakingPlayerId);
               setPlayers(players);
               setPlayerTargetScores(playerTargetScores);
               setBreakingPlayerId(breakingPlayerId);

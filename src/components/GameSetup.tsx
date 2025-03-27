@@ -62,6 +62,9 @@ const GameSetup: React.FC<GameSetupProps> = ({ startGame, lastPlayers, lastPlaye
     // Clear any existing game state when starting a new game
     clearGameState();
     
+    // Log selected breaking player
+    console.log("GameSetup: Selected breaking player ID:", breakingPlayerId);
+    
     // Start new game with breaking player ID
     startGame([player1, player2], playerTargetScores, breakingPlayerId);
   };

@@ -27,6 +27,9 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   onRegularShot,
   needsReBreak
 }) => {
+  // Debug log for active state
+  console.log(`PlayerScoreCard: ${player.name} (ID: ${player.id}) isActive=${isActive}`);
+  
   // Calculate average balls per inning
   const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
   

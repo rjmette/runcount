@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameScoringProps, Player, GameAction, GameData } from '../types/game';
 import PlayerScoreCard from './PlayerScoreCard';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,8 +15,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
   user,
   breakingPlayerId = 0 // Default to player 1 breaking if not specified
 }) => {
+  console.log("GameScoring: Received breaking player ID:", breakingPlayerId);
   const { saveGameState, getGameState, clearGameState } = useGamePersist();
-  const [activePlayerIndex, setActivePlayerIndex] = useState(breakingPlayerId); // Use breaking player as initial active player
+  // Note: Using a function for initial state to ensure it's only evaluated once
+  const [activePlayerIndex, setActivePlayerIndex] = useState(() => {
+    console.log("GameScoring: Setting initial activePlayerIndex to breakingPlayerId:", breakingPlayerId);
+    return breakingPlayerId;
+  });
+  console.log("GameScoring: Initial activePlayerIndex set to:", activePlayerIndex);
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
@@ -28,6 +34,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       currentRunElement.textContent = String(currentRun);
     }
   }, [currentRun]);
+  
+  // Debug: Monitor activePlayerIndex changes
+  useEffect(() => {
+    console.log("GameScoring: activePlayerIndex changed to:", activePlayerIndex);
+  }, [activePlayerIndex]);
   const [ballsOnTable, setBallsOnTable] = useState(15);
   const [showEndGameModal, setShowEndGameModal] = useState(false);
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
@@ -92,8 +103,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
     };
   };
 
-  // Initialize game data
+  // Initialize game data - we'll use a ref to ensure this only runs once
+  const initializedRef = useRef(false);
   useEffect(() => {
+    // Skip if already initialized to prevent re-setting active player
+    if (initializedRef.current) {
+      console.log("GameScoring: Already initialized, skipping setup");
+      return;
+    }
+    initializedRef.current = true;
+    
+    console.log("GameScoring useEffect: breakingPlayerId=", breakingPlayerId, "activePlayerIndex=", activePlayerIndex);
     // Check if there's a saved game state to restore
     const savedGameState = getGameState();
     
@@ -185,8 +205,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Initialize first inning
       setCurrentInning(1);
       
-      // Initialize with the breaking player's turn
-      setActivePlayerIndex(breakingPlayerId);
+      // Only set active player if it's not already the breaking player
+      if (activePlayerIndex !== breakingPlayerId) {
+        console.log("GameScoring: Setting active player to breaking player:", breakingPlayerId);
+        setActivePlayerIndex(breakingPlayerId);
+      } else {
+        console.log("GameScoring: Active player is already set to breaking player:", breakingPlayerId);
+      }
       
       // Reset re-break flag
       setPlayerNeedsReBreak(null);
@@ -194,7 +219,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
       // Save initial game state to Supabase and localStorage
       saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
     }
-  }, [players, gameId, setGameId, playerTargetScores, supabase, getGameState]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Save game data to Supabase and localStorage
   const saveGameToSupabase = async (
@@ -1016,6 +1042,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Debug log for active player index */}
+        {(() => {
+          console.log("GameScoring: Rendering player cards with activePlayerIndex:", activePlayerIndex);
+          return null;
+        })()}
         {playerData.map((player, index) => (
           <PlayerScoreCard
             key={player.id}
