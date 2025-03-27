@@ -227,37 +227,46 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         </div>
       </div>
 
-      {/* Winner display */}
-      {winner && (
-        <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg shadow-md mb-6 border-2 border-blue-500 dark:border-blue-600">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-blue-800 dark:text-blue-300">
-              Game Winner
-            </h3>
-            <span className="bg-blue-500 dark:bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
-              Final Score: {winner.score}
-            </span>
+      {/* Combined Status and Player Panel */}
+      <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg shadow-md mb-6 border-2 border-blue-500 dark:border-blue-600">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-4">
+            <div
+              className={`px-4 py-2 rounded-full text-sm font-medium ${
+                gameData.completed
+                  ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                  : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+              }`}
+            >
+              {gameData.completed ? 'Completed' : 'In Progress'}
+            </div>
+            <div className="text-blue-800 dark:text-blue-200">
+              Total Innings:{' '}
+              {Math.max(...gameData.players.map((p) => p.innings))}
+            </div>
           </div>
-
-          <div className="flex items-center">
-            <div className="bg-blue-600 dark:bg-blue-700 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold">
-              {winner.name.charAt(0)}
-            </div>
-            <div className="ml-4">
-              <h4 className="text-lg font-semibold dark:text-white">
-                {winner.name}
-              </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                High Run: {winner.highRun} | Innings: {winner.innings}
-              </p>
-            </div>
+          <div className="text-blue-800 dark:text-blue-200">
+            {(() => {
+              const gameDate = new Date(gameData.date);
+              const dayOfWeek = gameDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+              });
+              const formattedDate = gameDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              });
+              const formattedTime = gameDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              });
+              return gameData.completed
+                ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
+                : 'Not completed';
+            })()}
           </div>
         </div>
-      )}
 
-      {/* Player Panel */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">Players</h3>
         <div className="flex space-x-4">
           {gameData.players.map((player) => {
             const stats = calculateStats([player], gameData.actions)[0];
@@ -266,7 +275,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                 key={player.id}
                 className={`p-3 rounded-md ${
                   player.id === gameData.winner_id
-                    ? 'bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-700'
+                    ? 'bg-blue-200 dark:bg-blue-800 border border-blue-300 dark:border-blue-700'
                     : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
                 }`}
               >
@@ -285,75 +294,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
               </div>
             );
           })}
-        </div>
-      </div>
-
-      {/* Game summary */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">
-          Game Summary
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Target Score
-            </span>
-            <span className="text-lg font-semibold dark:text-white">
-              {gameData.players.length > 0
-                ? gameData.players
-                    .map((p) => `${p.name}: ${p.targetScore}`)
-                    .join(', ')
-                : 'N/A'}
-            </span>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Status
-            </span>
-            <span className="text-lg font-semibold dark:text-white">
-              {gameData.completed ? 'Completed' : 'In Progress'}
-            </span>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Score
-            </span>
-            <span className="text-lg font-semibold dark:text-white">
-              {gameData.players.length > 0
-                ? gameData.players
-                    .map((p) => `${p.name}: ${p.score}`)
-                    .join(', ')
-                : 'N/A'}
-            </span>
-          </div>
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Date Completed
-            </span>
-            <span className="text-lg font-semibold dark:text-white">
-              {(() => {
-                const gameDate = new Date(gameData.date);
-                const dayOfWeek = gameDate.toLocaleDateString('en-US', {
-                  weekday: 'short',
-                });
-                const formattedDate = gameDate.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                });
-                const formattedTime = gameDate.toLocaleTimeString('en-US', {
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true,
-                });
-                return gameData.completed
-                  ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
-                  : 'Not completed';
-              })()}
-            </span>
-          </div>
         </div>
       </div>
 
