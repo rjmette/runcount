@@ -8,7 +8,6 @@ import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from '../../shared/GameStatusPanel';
 import { PerformanceMetricsPanel } from '../../shared/PerformanceMetricsPanel';
-import { GameInningsPanel } from '../../shared/GameInningsPanel';
 
 interface GameDetailsProps {
   game: GameData;
@@ -124,9 +123,6 @@ export const GameDetails: React.FC<GameDetailsProps> = ({ game }) => {
         tooltipContent={tooltipContent}
         onShowDescriptions={() => setShowDescriptionsModal(true)}
       />
-
-      {/* Game Innings Panel */}
-      <GameInningsPanel inningActions={inningActions} players={game.players} />
 
       {/* Stat Descriptions Modal */}
       <StatDescriptionsModal

@@ -42,15 +42,16 @@ export const GameList: React.FC<GameListProps> = ({
   // );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 dark:text-white">
+    <div className="rounded-lg shadow-md dark:text-white">
       <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
         Recent Games
       </h3>
       <div className="h-[calc(100vh-12rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-        <div className="space-y-2">
+        <div className="space-y-3">
           {games.map((game) => {
             const gameDate = new Date(game.date);
             const winner = game.players.find((p) => p.id === game.winner_id);
+            const loser = game.players.find((p) => p.id !== game.winner_id);
             const dayOfWeek = gameDate.toLocaleDateString('en-US', {
               weekday: 'short',
             });
@@ -77,32 +78,35 @@ export const GameList: React.FC<GameListProps> = ({
                   className="flex-grow"
                   onClick={() => onGameSelect(game.id)}
                 >
-                  <div className="flex justify-between items-start mb-1">
+                  {/* Vertical layout for game information */}
+                  <div className="flex flex-col space-y-1">
+                    {/* Date */}
                     <div className="text-sm font-medium">
                       {dayOfWeek}, {formattedDate}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+
+                    {/* Time */}
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
                       {formattedTime}
                     </div>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <div className="flex space-x-2">
-                      {game.players.map((player) => (
-                        <span
-                          key={player.id}
-                          className={`${
-                            player.id === game.winner_id
-                              ? 'text-blue-600 dark:text-blue-400 font-bold'
-                              : 'text-gray-600 dark:text-gray-400'
-                          }`}
-                        >
-                          {player.id === game.winner_id && game.completed && (
-                            <span className="mr-1">🏆</span>
-                          )}
-                          {player.name} ({player.score})
+
+                    {/* Winner */}
+                    {winner && (
+                      <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                        <span>
+                          {winner.name} ({winner.score})
                         </span>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Loser */}
+                    {loser && (
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        <span>
+                          {loser.name} ({loser.score})
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex justify-end items-center mt-2">

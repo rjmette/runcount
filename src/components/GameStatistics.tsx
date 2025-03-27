@@ -4,8 +4,6 @@ import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from './shared/GameStatusPanel';
 import { PerformanceMetricsPanel } from './shared/PerformanceMetricsPanel';
-import { GameInningsPanel } from './shared/GameInningsPanel';
-import { InningAction } from './shared/types';
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
@@ -20,7 +18,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const [inningActions, setInningActions] = useState<InningAction[]>([]);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -81,9 +78,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   // Calculate additional statistics
   const calculateStats = (players: Player[], actions: any[]) => {
-    // First, let's analyze actions to determine safety effectiveness and shot counts
-    // This requires looking at the sequence of actions
-
     // Create a map to track results
     const playerStats: Record<
       number,
@@ -102,21 +96,22 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     // Initialize stats for each player
     players.forEach((player) => {
       playerStats[player.id] = {
-        totalBallsPocketed: player.score, // Base score is balls pocketed
-        totalInnings: player.innings,
+        totalBallsPocketed: player.score || 0,
+        totalInnings: player.innings || 0,
         safetyInnings: 0,
         successfulSafeties: 0,
         failedSafeties: 0,
-        totalSafeties: player.safeties,
-        ballsMade: player.score,
+        totalSafeties: player.safeties || 0,
+        ballsMade: player.score || 0,
         shotsTaken:
-          player.score + player.missedShots + player.safeties + player.fouls,
+          (player.score || 0) +
+          (player.missedShots || 0) +
+          (player.safeties || 0) +
+          (player.fouls || 0),
       };
     });
 
     // Analyze action sequence to determine safety effectiveness
-    // A safety is successful if the next action by opponent is a foul or miss
-    // A safety is failed if the opponent gets to continue their turn
     for (let i = 0; i < actions.length - 1; i++) {
       const currentAction = actions[i];
       const nextAction = actions[i + 1];
@@ -243,45 +238,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     }
   };
 
-  // Calculate innings actions for GameInningsPanel
-  useEffect(() => {
-    if (gameData) {
-      // Simple implementation to transform actions to inning actions
-      const actions: InningAction[] = [];
-      let currentInningNumber = 1;
-      let currentPlayerId = gameData.players[0]?.id;
-      let currentScore = 0;
-
-      gameData.actions.forEach((action, index) => {
-        if (['miss', 'safety', 'foul'].includes(action.type)) {
-          // End of inning - add inning action
-          actions.push({
-            inningNumber: currentInningNumber,
-            playerId: action.playerId,
-            endAction: action,
-            pointsInInning: action.type === 'foul' ? -1 : 0, // simplified
-            endTime: new Date(action.timestamp),
-            currentScore: currentScore,
-          });
-
-          // Update for next inning
-          const nextPlayerId = gameData.players.find(
-            (p) => p.id !== currentPlayerId
-          )?.id;
-          if (nextPlayerId) {
-            currentPlayerId = nextPlayerId;
-            if (currentPlayerId === gameData.players[0]?.id) {
-              // If we're back to first player, increment inning number
-              currentInningNumber++;
-            }
-          }
-        }
-      });
-
-      setInningActions(actions);
-    }
-  }, [gameData]);
-
   const tooltipContent = {
     'High Run': 'Longest consecutive run of balls pocketed',
     BPI: 'Balls Pocketed per Inning (Total)',
@@ -386,14 +342,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         tooltipContent={tooltipContent}
         onShowDescriptions={() => setShowDescriptionsModal(true)}
       />
-
-      {/* Game Innings Panel - only show if we have actions data */}
-      {inningActions.length > 0 && (
-        <GameInningsPanel
-          inningActions={inningActions}
-          players={gameData.players}
-        />
-      )}
 
       {/* Stat Descriptions Modal */}
       <StatDescriptionsModal
