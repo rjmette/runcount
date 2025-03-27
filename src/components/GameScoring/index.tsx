@@ -78,7 +78,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           actions,
           completed,
           winner_id: winner_id,
-          winnerIdType: typeof winner_id,
         });
         saveGameState({
           id: gameId,
@@ -99,7 +98,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           actions,
           completed,
           winner_id: winner_id,
-          winnerIdType: typeof winner_id,
         });
         localStorage.setItem(
           `runcount_game_${gameId}`,
@@ -130,7 +128,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           actions,
           completed,
           winner_id: winner_id,
-          winnerIdType: typeof winner_id,
           owner_id: user.id,
         };
         console.log('Saving game to Supabase:', payload);

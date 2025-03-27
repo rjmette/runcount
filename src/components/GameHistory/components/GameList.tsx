@@ -24,23 +24,6 @@ export const GameList: React.FC<GameListProps> = ({
     );
   }
 
-  // Debug log to check game data
-  // console.log(
-  //   'Games:',
-  //   games.map((g) => ({
-  //     id: g.id,
-  //     completed: g.completed,
-  //     winner_id: g.winner_id,
-  //     winnerIdType: typeof g.winner_id,
-  //     players: g.players.map((p) => ({
-  //       name: p.name,
-  //       score: p.score,
-  //       id: p.id,
-  //       idType: typeof p.id,
-  //     })),
-  //   }))
-  // );
-
   return (
     <div className="rounded-lg shadow-md dark:text-white">
       <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
