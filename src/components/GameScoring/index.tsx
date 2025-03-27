@@ -5,6 +5,7 @@ import { EndGameModal } from './components/EndGameModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { AlertModal } from './components/AlertModal';
 import { BreakFoulModal } from './components/BreakFoulModal';
+import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameHistory } from './hooks/useGameHistory';
@@ -27,6 +28,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
+  const [showInningsModal, setShowInningsModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
@@ -498,6 +500,27 @@ const GameScoring: React.FC<GameScoringProps> = ({
         </div>
         <div className="flex space-x-2">
           <button
+            onClick={() => setShowInningsModal(true)}
+            className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            title="View game innings"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </button>
+
+          <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
             className={`p-2 rounded-md ${
@@ -509,7 +532,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -518,7 +541,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
               />
             </svg>
           </button>
@@ -585,6 +608,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
         isOpen={showAlertModal}
         onClose={() => setShowAlertModal(false)}
         message={alertMessage}
+      />
+
+      <InningsModal
+        isOpen={showInningsModal}
+        onClose={() => setShowInningsModal(false)}
+        actions={actions}
+        players={playerData}
       />
     </div>
   );
