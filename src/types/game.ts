@@ -76,7 +76,7 @@ export interface GameHistoryProps {
 }
 
 export interface ScoreButtonProps {
-  label: string;
+  label: string | React.ReactNode;
   value: number;
   onClick: (value: number) => void;
   className?: string;
