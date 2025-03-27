@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { createClient } from '@supabase/supabase-js';
 import GameSetup from './components/GameSetup';
-import GameScoring from './components/GameScoring';
+import GameScoring from './components/GameScoring/index';
 import GameStatistics from './components/GameStatistics';
 import GameHistory from './components/GameHistory';
 import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { GamePersistProvider, useGamePersist } from './context/GamePersistContext';
+import {
+  GamePersistProvider,
+  useGamePersist,
+} from './context/GamePersistContext';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
 const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co';
@@ -33,30 +36,40 @@ function App() {
 function AppContent() {
   const { user, loading, signOut } = useAuth();
   const { getGameState, getGameSettings, hasActiveGame } = useGamePersist();
-  
+
   // Game state management
   const [gameState, setGameState] = useState<GameState>('setup');
   const [players, setPlayers] = useState<string[]>([]);
-  const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>({});
+  const [playerTargetScores, setPlayerTargetScores] = useState<
+    Record<string, number>
+  >({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
-  
+
   // Store last used game settings for quick restart with persistence
   const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
     const savedPlayers = localStorage.getItem('runcount_lastPlayers');
     return savedPlayers ? JSON.parse(savedPlayers) : [];
   });
-  
-  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<Record<string, number>>(() => {
-    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
+
+  const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<
+    Record<string, number>
+  >(() => {
+    const savedTargetScores = localStorage.getItem(
+      'runcount_lastPlayerTargetScores'
+    );
     return savedTargetScores ? JSON.parse(savedTargetScores) : {};
   });
-  
-  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() => {
-    const savedBreakingPlayerId = localStorage.getItem('runcount_lastBreakingPlayerId');
-    return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
-  });
+
+  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(
+    () => {
+      const savedBreakingPlayerId = localStorage.getItem(
+        'runcount_lastBreakingPlayerId'
+      );
+      return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
+    }
+  );
 
   // Check for saved game on initial load
   useEffect(() => {
@@ -64,12 +77,12 @@ function AppContent() {
       const savedGame = getGameState();
       if (savedGame) {
         // Set player names from the saved game
-        const playerNames = savedGame.players.map(player => player.name);
+        const playerNames = savedGame.players.map((player) => player.name);
         setPlayers(playerNames);
 
         // Set target scores from the saved game
         const targetScores: Record<string, number> = {};
-        savedGame.players.forEach(player => {
+        savedGame.players.forEach((player) => {
           targetScores[player.name] = player.targetScore;
         });
         setPlayerTargetScores(targetScores);
@@ -91,22 +104,28 @@ function AppContent() {
       setShowAuthModal(false);
     }
   }, [user]);
-  
+
   // Persist game settings to localStorage
   useEffect(() => {
     if (lastPlayers.length > 0) {
       localStorage.setItem('runcount_lastPlayers', JSON.stringify(lastPlayers));
     }
   }, [lastPlayers]);
-  
+
   useEffect(() => {
     if (Object.keys(lastPlayerTargetScores).length > 0) {
-      localStorage.setItem('runcount_lastPlayerTargetScores', JSON.stringify(lastPlayerTargetScores));
+      localStorage.setItem(
+        'runcount_lastPlayerTargetScores',
+        JSON.stringify(lastPlayerTargetScores)
+      );
     }
   }, [lastPlayerTargetScores]);
-  
+
   useEffect(() => {
-    localStorage.setItem('runcount_lastBreakingPlayerId', JSON.stringify(lastBreakingPlayerId));
+    localStorage.setItem(
+      'runcount_lastBreakingPlayerId',
+      JSON.stringify(lastBreakingPlayerId)
+    );
   }, [lastBreakingPlayerId]);
 
   // Handle user sign out
@@ -120,9 +139,12 @@ function AppContent() {
     switch (gameState) {
       case 'setup':
         return (
-          <GameSetup 
+          <GameSetup
             startGame={(players, playerTargetScores, breakingPlayerId) => {
-              console.log("App: Setting breaking player ID to:", breakingPlayerId);
+              console.log(
+                'App: Setting breaking player ID to:',
+                breakingPlayerId
+              );
               setPlayers(players);
               setPlayerTargetScores(playerTargetScores);
               setBreakingPlayerId(breakingPlayerId);
@@ -139,7 +161,7 @@ function AppContent() {
         );
       case 'scoring':
         return (
-          <GameScoring 
+          <GameScoring
             players={players}
             playerTargetScores={playerTargetScores}
             gameId={currentGameId}
@@ -155,7 +177,7 @@ function AppContent() {
         );
       case 'statistics':
         return (
-          <GameStatistics 
+          <GameStatistics
             gameId={currentGameId}
             supabase={supabase}
             startNewGame={() => {
@@ -167,7 +189,7 @@ function AppContent() {
         );
       case 'history':
         return (
-          <GameHistory 
+          <GameHistory
             supabase={supabase}
             startNewGame={() => setGameState('setup')}
             user={user}
@@ -175,7 +197,7 @@ function AppContent() {
         );
       case 'profile':
         return (
-          <UserProfile 
+          <UserProfile
             supabase={supabase}
             user={user!}
             onSignOut={handleSignOut}
@@ -194,8 +216,10 @@ function AppContent() {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
           <div className="p-4 flex justify-between border-b dark:border-gray-700">
-            <h2 className="text-lg font-bold dark:text-white">Authentication</h2>
-            <button 
+            <h2 className="text-lg font-bold dark:text-white">
+              Authentication
+            </h2>
+            <button
               onClick={() => setShowAuthModal(false)}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
             >
@@ -203,9 +227,9 @@ function AppContent() {
             </button>
           </div>
           <div className="p-4">
-            <Auth 
+            <Auth
               supabase={supabase}
-              onAuthSuccess={() => setShowAuthModal(false)} 
+              onAuthSuccess={() => setShowAuthModal(false)}
             />
           </div>
         </div>
@@ -257,14 +281,30 @@ function AppContent() {
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="mr-4 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800"
-              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              aria-label={
+                darkMode ? 'Switch to light mode' : 'Switch to dark mode'
+              }
             >
               {darkMode ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
               )}
@@ -275,78 +315,94 @@ function AppContent() {
                 <div className="relative">
                   {/* Disable profile button during active game */}
                   {gameState === 'scoring' ? (
-                    <div 
+                    <div
                       className="bg-blue-400 dark:bg-blue-500 p-2 rounded-full text-white cursor-not-allowed"
                       title="Profile unavailable during active game"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                   ) : (
-                    <button 
+                    <button
                       className="bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 p-2 rounded-full text-white"
                       onClick={() => setGameState('profile')}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </button>
                   )}
                 </div>
               </div>
+            ) : gameState === 'scoring' ? (
+              <div
+                className="px-4 py-2 bg-blue-400 dark:bg-blue-500 text-white rounded cursor-not-allowed"
+                title="Login unavailable during active game"
+              >
+                Login / Sign Up
+              </div>
             ) : (
-              gameState === 'scoring' ? (
-                <div 
-                  className="px-4 py-2 bg-blue-400 dark:bg-blue-500 text-white rounded cursor-not-allowed"
-                  title="Login unavailable during active game"
-                >
-                  Login / Sign Up
-                </div>
-              ) : (
-                <button 
-                  onClick={() => setShowAuthModal(true)}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
-                >
-                  Login / Sign Up
-                </button>
-              )
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
+              >
+                Login / Sign Up
+              </button>
             )}
           </div>
         </div>
       </header>
-      
+
       {/* Only show navigation tabs when not in an active game */}
       {gameState !== 'scoring' && (
         <nav className="bg-white dark:bg-gray-800 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex space-x-4 overflow-x-auto">
-              <button 
-                onClick={() => setGameState('setup')} 
+              <button
+                onClick={() => setGameState('setup')}
                 className={`py-3 px-3 text-sm font-medium transition-colors ${
-                  gameState === 'setup' 
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  gameState === 'setup'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 New Game
               </button>
-              <button 
-                onClick={() => setGameState('history')} 
+              <button
+                onClick={() => setGameState('history')}
                 className={`py-3 px-3 text-sm font-medium transition-colors ${
-                  gameState === 'history' 
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                  gameState === 'history'
+                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 Game History
               </button>
               {user && (
-                <button 
-                  onClick={() => setGameState('profile')} 
+                <button
+                  onClick={() => setGameState('profile')}
                   className={`py-3 px-3 text-sm font-medium transition-colors ${
-                    gameState === 'profile' 
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                    gameState === 'profile'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }`}
                 >
@@ -357,15 +413,15 @@ function AppContent() {
           </div>
         </nav>
       )}
-      
+
       <main className="flex-grow container mx-auto p-4">
         {renderComponent()}
       </main>
-      
+
       <footer className="bg-gray-200 dark:bg-gray-800 p-2 text-center text-sm text-gray-600 dark:text-gray-400">
         RunCount &copy; {new Date().getFullYear()} - Straight Pool Scoring App
       </footer>
-      
+
       {renderAuthModal()}
     </div>
   );
