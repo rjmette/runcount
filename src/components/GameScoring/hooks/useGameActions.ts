@@ -105,13 +105,17 @@ export const useGameActions = ({
     const isThirdConsecutiveFoul =
       playerData[activePlayerIndex].consecutiveFouls === 2;
 
+    // Check if this is the first action of the game (i.e., the opening break)
+    const isOpeningBreak = actions.length === 0 && currentInning === 1;
+
     const newAction: GameAction = {
       type: 'foul',
       playerId: playerData[activePlayerIndex].id,
-      value: -1,
+      value: isOpeningBreak ? -2 : -1, // -2 for foul on break, -1 for regular foul
       timestamp: new Date(),
       ballsOnTable: botsValue,
       reBreak: isThirdConsecutiveFoul,
+      isBreakFoul: isOpeningBreak,
     };
 
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
@@ -139,7 +143,21 @@ export const useGameActions = ({
     updatedPlayerData[activePlayerIndex].consecutiveFouls += 1;
     updatedPlayerData[activePlayerIndex].fouls += 1;
 
-    if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
+    if (isOpeningBreak) {
+      // Apply a -2 penalty for fouling on the break
+      updatedPlayerData[activePlayerIndex].score -= 2;
+
+      const breakerName = updatedPlayerData[activePlayerIndex].name;
+      const incomingPlayerName = updatedPlayerData[nextPlayerIndex].name;
+
+      setAlertMessage(
+        `${breakerName} fouled on the opening break! 2-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
+      );
+      setShowAlertModal(true);
+
+      // Keep the same player as the active player in case a re-break is chosen
+      // The actual player switch will be handled by the UI after the incoming player makes their choice
+    } else if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
       updatedPlayerData[activePlayerIndex].score -= 16; // 1 for foul + 15 for three consecutive fouls
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
       setBallsOnTable(15);
@@ -164,7 +182,8 @@ export const useGameActions = ({
 
     setCurrentRun(0);
 
-    if (!isThirdConsecutiveFoul) {
+    // Only switch players if it's not a break foul (for break fouls, we'll let the UI handle it)
+    if (!isOpeningBreak && !isThirdConsecutiveFoul) {
       if (nextPlayerIndex === 0) {
         setCurrentInning(currentInning + 1);
       }

@@ -4,6 +4,7 @@ import PlayerScoreCard from '../PlayerScoreCard';
 import { EndGameModal } from './components/EndGameModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { AlertModal } from './components/AlertModal';
+import { BreakFoulModal } from './components/BreakFoulModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameHistory } from './hooks/useGameHistory';
@@ -25,6 +26,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showEndGameModal, setShowEndGameModal] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
@@ -311,6 +313,74 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setIsUndoEnabled,
     });
 
+  // Check if there's a break foul in the last action
+  const lastAction = actions[actions.length - 1];
+  const hasBreakFoul = lastAction?.isBreakFoul && lastAction?.type === 'foul';
+
+  // If there's a break foul and we're not already showing the modal, show it
+  React.useEffect(() => {
+    if (hasBreakFoul && !showBreakFoulModal) {
+      setShowBreakFoulModal(true);
+    }
+  }, [hasBreakFoul, showBreakFoulModal]);
+
+  // Handle accepting the table after a foul on the break
+  const handleAcceptTable = () => {
+    // Switch to the incoming player
+    const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
+    const updatedPlayerData = [...playerData];
+
+    if (nextPlayerIndex === 0) {
+      setCurrentInning(currentInning + 1);
+    }
+    updatedPlayerData[nextPlayerIndex].innings += 1;
+    setActivePlayerIndex(nextPlayerIndex);
+    setPlayerData(updatedPlayerData);
+
+    // Close the modal
+    setShowBreakFoulModal(false);
+
+    // Save the game state
+    const currentGameId = gameId || '';
+    saveGameState({
+      id: currentGameId,
+      date: new Date(),
+      players: updatedPlayerData,
+      actions,
+      completed: false,
+      winnerId: null,
+    });
+  };
+
+  // Handle requiring a re-break after a foul on the break
+  const handleRequireReBreak = () => {
+    // Re-rack the balls
+    setBallsOnTable(15);
+
+    // Keep the same player (they need to break again)
+    const updatedPlayerData = [...playerData];
+
+    // Close the modal
+    setShowBreakFoulModal(false);
+
+    // Show an alert to explain what's happening
+    setAlertMessage(
+      `${updatedPlayerData[activePlayerIndex].name} must break again. The same foul penalties apply.`
+    );
+    setShowAlertModal(true);
+
+    // Save the game state
+    const currentGameId = gameId || '';
+    saveGameState({
+      id: currentGameId,
+      date: new Date(),
+      players: updatedPlayerData,
+      actions,
+      completed: false,
+      winnerId: null,
+    });
+  };
+
   const handleEndGame = () => {
     if (!gameWinner && gameId) {
       // Mark the current game as completed when leaving without a winner
@@ -422,6 +492,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
           />
         ))}
       </div>
+
+      {playerData.length > 0 && (
+        <BreakFoulModal
+          show={showBreakFoulModal}
+          onClose={() => setShowBreakFoulModal(false)}
+          onAcceptTable={handleAcceptTable}
+          onRequireReBreak={handleRequireReBreak}
+          breaker={playerData[activePlayerIndex]}
+          incomingPlayer={
+            playerData[(activePlayerIndex + 1) % playerData.length]
+          }
+        />
+      )}
 
       <EndGameModal
         isOpen={showEndGameModal}
