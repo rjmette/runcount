@@ -341,46 +341,53 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
         {/* Player Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {gameData.players.map((player) => {
-            const stats = calculateStats([player], gameData.actions)[0];
-            return (
-              <div
-                key={player.id}
-                className={`p-4 rounded-lg ${
-                  player.id === gameData.winner_id
-                    ? 'bg-blue-200 dark:bg-blue-800 border-2 border-blue-300 dark:border-blue-700'
-                    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium dark:text-white text-lg">
-                    {player.name}
-                  </div>
-                  {player.id === gameData.winner_id && (
-                    <div className="text-blue-600 dark:text-blue-400 font-medium">
-                      Winner
+          {[...gameData.players]
+            .sort((a, b) => {
+              if (a.id === gameData.winner_id) return -1;
+              if (b.id === gameData.winner_id) return 1;
+              return 0;
+            })
+            .map((player) => {
+              const stats = calculateStats([player], gameData.actions)[0];
+              return (
+                <div
+                  key={player.id}
+                  className={`p-4 rounded-lg ${
+                    player.id === gameData.winner_id
+                      ? 'bg-blue-200 dark:bg-blue-800 border-2 border-blue-300 dark:border-blue-700'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-medium dark:text-white text-lg">
+                      {player.name}
                     </div>
-                  )}
+                    {player.id === gameData.winner_id && (
+                      <div className="text-blue-600 dark:text-blue-400 font-medium flex items-center space-x-1">
+                        <span className="text-yellow-500">🏆</span>
+                        <span>Winner</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm dark:text-gray-300">
+                    <div>
+                      <span className="font-medium">Score:</span> {player.score}
+                    </div>
+                    <div>
+                      <span className="font-medium">Target:</span>{' '}
+                      {player.targetScore}
+                    </div>
+                    <div>
+                      <span className="font-medium">High Run:</span>{' '}
+                      {player.highRun}
+                    </div>
+                    <div>
+                      <span className="font-medium">BPI:</span> {stats.bpi}
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm dark:text-gray-300">
-                  <div>
-                    <span className="font-medium">Score:</span> {player.score}
-                  </div>
-                  <div>
-                    <span className="font-medium">Target:</span>{' '}
-                    {player.targetScore}
-                  </div>
-                  <div>
-                    <span className="font-medium">High Run:</span>{' '}
-                    {player.highRun}
-                  </div>
-                  <div>
-                    <span className="font-medium">BPI:</span> {stats.bpi}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
 
         {/* Bottom Row: Stats and Action Buttons */}
@@ -468,15 +475,30 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         />
       )}
 
-      {/* Combined Performance Metrics and Statistics */}
+      {/* Performance Metrics Panel */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4 dark:text-white">
-          Performance Metrics
-        </h3>
+        <div className="flex items-center space-x-3 mb-6">
+          <svg
+            className="w-6 h-6 text-blue-500 dark:text-blue-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+          <h3 className="text-lg font-semibold dark:text-white">
+            Performance Metrics
+          </h3>
+        </div>
 
         <div className="overflow-x-auto">
           <div className="min-w-full inline-block align-middle">
-            <div className="overflow-hidden">
+            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -487,15 +509,15 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                       ([statName, description]) => (
                         <th
                           key={statName}
-                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider relative"
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider relative group"
                         >
                           <button
                             onClick={() => toggleTooltip(statName)}
-                            className="group flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+                            className="flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                           >
                             <span>{statName}</span>
                             <svg
-                              className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                              className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-200"
                               viewBox="0 0 20 20"
                               fill="currentColor"
                             >
@@ -518,64 +540,70 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {playersWithStats.map((player: any) => (
-                    <tr key={player.id}>
-                      <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {player.id === gameData.winner_id && '🏆 '}
-                          {player.name}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.highRun}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.bpi}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.offensiveBPI}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.shootingPercentage}%
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.safetyEfficiency}%
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.safeties}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-gray-300">
-                          {player.fouls}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {[...playersWithStats]
+                    .sort((a, b) => {
+                      if (a.id === gameData.winner_id) return -1;
+                      if (b.id === gameData.winner_id) return 1;
+                      return 0;
+                    })
+                    .map((player: any) => (
+                      <tr
+                        key={player.id}
+                        className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 ${
+                          player.id === gameData.winner_id
+                            ? 'bg-blue-50 dark:bg-blue-900/30'
+                            : ''
+                        }`}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white flex items-center space-x-2">
+                            {player.id === gameData.winner_id && (
+                              <span className="text-yellow-500">🏆</span>
+                            )}
+                            <span>{player.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.highRun}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.bpi}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.offensiveBPI}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.shootingPercentage}%
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.safetyEfficiency}%
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.safeties}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 dark:text-gray-300">
+                            {player.fouls}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={startNewGame}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-          >
-            Start New Game
-          </button>
         </div>
       </div>
     </div>
