@@ -27,6 +27,7 @@ interface UseGameActionsProps {
   setPlayerNeedsReBreak: (playerId: number | null) => void;
   setShowAlertModal: (show: boolean) => void;
   setAlertMessage: (message: string) => void;
+  setIsUndoEnabled: (enabled: boolean) => void;
   playerNeedsReBreak: number | null;
 }
 
@@ -50,6 +51,7 @@ export const useGameActions = ({
   setPlayerNeedsReBreak,
   setShowAlertModal,
   setAlertMessage,
+  setIsUndoEnabled,
   playerNeedsReBreak,
 }: UseGameActionsProps) => {
   const handleAddScore = (score: number, botsValue?: number) => {
@@ -74,6 +76,7 @@ export const useGameActions = ({
 
     setBallsOnTable(15);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const updatedPlayerData = [...playerData];
     updatedPlayerData[activePlayerIndex].score += pointsScored;
@@ -124,6 +127,7 @@ export const useGameActions = ({
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
@@ -264,6 +268,7 @@ export const useGameActions = ({
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
@@ -341,6 +346,7 @@ export const useGameActions = ({
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(botsValue);
     setActions([...actions, newAction]);
+    setIsUndoEnabled(true);
 
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];

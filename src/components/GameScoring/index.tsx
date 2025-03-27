@@ -222,6 +222,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setPlayerNeedsReBreak,
       setShowAlertModal,
       setAlertMessage,
+      setIsUndoEnabled,
       playerNeedsReBreak,
     });
 
