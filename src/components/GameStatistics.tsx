@@ -302,79 +302,93 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         <h3 className="text-lg font-semibold mb-4 dark:text-white">
           Performance Metrics
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {playersWithStats.map((player: any) => (
-            <React.Fragment key={player.id}>
-              <div className="bg-blue-50 dark:bg-blue-900 p-3 rounded col-span-4 mt-2 mb-2">
-                <div className="font-medium text-blue-800 dark:text-blue-200">
-                  {player.name}'s Key Metrics
-                </div>
-              </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  High Run
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.highRun}
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  BPI
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.bpi}
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Offensive BPI
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.offensiveBPI}
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Shooting %
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.shootingPercentage}%
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Safety Efficiency
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.safetyEfficiency}%
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Total Safeties
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.safeties}
-                </span>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                <span className="block text-sm text-gray-500 dark:text-gray-400">
-                  Total Fouls
-                </span>
-                <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                  {player.fouls}
-                </span>
-              </div>
-            </React.Fragment>
-          ))}
+        <div className="overflow-x-auto">
+          <div className="min-w-full inline-block align-middle">
+            <div className="overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700">
+                      Player
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      High Run
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      BPI
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Offensive BPI
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Shooting %
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Safety Eff.
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Safeties
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      Fouls
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {playersWithStats.map((player: any) => (
+                    <tr key={player.id}>
+                      <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {player.name}
+                          {player.id === gameData.winner_id && (
+                            <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
+                              (Winner)
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.highRun}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.bpi}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.offensiveBPI}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.shootingPercentage}%
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.safetyEfficiency}%
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.safeties}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.fouls}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         {/* Stats explanation section */}
