@@ -489,8 +489,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-bold">Game Scoring</h2>
+      <div className="flex justify-between items-center mb-2">
+        <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2">
+          <span className="text-sm text-gray-500 dark:text-gray-400">BOT:</span>
+          <span className="text-xl font-semibold text-blue-700 dark:text-blue-300">
+            {ballsOnTable}
+          </span>
+        </div>
         <div className="flex space-x-2">
           <button
             onClick={handleUndoLastAction}
@@ -510,33 +515,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             New Game
           </button>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-3">
-        <div className="grid grid-cols-3 gap-4">
-          {playerData.map((player, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 dark:bg-gray-700 p-3 rounded"
-            >
-              <span className="block text-sm text-gray-500 dark:text-gray-400">
-                {player.name}'s Target
-              </span>
-              <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                {player.targetScore}
-              </span>
-            </div>
-          ))}
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Balls on Table
-            </span>
-            <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-              {ballsOnTable}
-            </span>
-          </div>
         </div>
       </div>
 
