@@ -12,6 +12,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showInningsModal, setShowInningsModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -177,6 +178,54 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     });
   };
 
+  const formatGameResultsForEmail = () => {
+    if (!gameData) return '';
+
+    const gameDate = new Date(gameData.date);
+    const formattedDate = gameDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+    const formattedTime = gameDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    // Sort players to show winner first
+    const sortedPlayers = [...gameData.players].sort((a, b) => {
+      if (a.id === gameData.winner_id) return -1;
+      if (b.id === gameData.winner_id) return 1;
+      return 0;
+    });
+
+    let emailText = `${formattedDate} at ${formattedTime}\n\n`;
+
+    // Add player results
+    sortedPlayers.forEach((player) => {
+      emailText += `${player.name}${
+        player.id === gameData.winner_id ? ' (Winner)' : ''
+      }\n`;
+      emailText += `Score: ${player.score}\n`;
+      emailText += `Target: ${player.targetScore}\n`;
+      emailText += `High Run: ${player.highRun}\n\n`;
+    });
+
+    return emailText;
+  };
+
+  const copyMatchResults = async () => {
+    const formattedText = formatGameResultsForEmail();
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -205,7 +254,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     );
   }
 
-  const winner = gameData.players.find((p) => p.id === gameData.winner_id);
   const playersWithStats = calculateStats(gameData.players, gameData.actions);
 
   return (
@@ -213,6 +261,16 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
         <div className="flex space-x-4">
+          <button
+            onClick={copyMatchResults}
+            className={`px-4 py-2 ${
+              copySuccess
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-600 text-white hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800'
+            } rounded-md transition-colors duration-200`}
+          >
+            {copySuccess ? 'Copied!' : 'Copy Match Results'}
+          </button>
           <button
             onClick={() => setShowInningsModal(true)}
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
