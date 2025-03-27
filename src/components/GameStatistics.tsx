@@ -13,6 +13,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [error, setError] = useState('');
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -226,6 +227,20 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     }
   };
 
+  const toggleTooltip = (statName: string) => {
+    setActiveTooltip(activeTooltip === statName ? null : statName);
+  };
+
+  const tooltipContent = {
+    'High Run': 'Longest consecutive run of balls pocketed',
+    BPI: 'Balls Pocketed per Inning (Total)',
+    'Offensive BPI': 'BPI excluding safety innings',
+    'Shooting %': '(Balls Made ÷ Shots Taken) × 100',
+    'Safety Eff.': '% of safeties resulting in opponent foul/miss',
+    Safeties: 'Number of safety shots attempted',
+    Fouls: 'Number of fouls committed',
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -388,27 +403,38 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider sticky left-0 bg-gray-50 dark:bg-gray-700">
                       Player
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      High Run
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      BPI
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Offensive BPI
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Shooting %
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Safety Eff.
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Safeties
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                      Fouls
-                    </th>
+                    {Object.entries(tooltipContent).map(
+                      ([statName, description]) => (
+                        <th
+                          key={statName}
+                          className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider relative"
+                        >
+                          <button
+                            onClick={() => toggleTooltip(statName)}
+                            className="group flex items-center space-x-1 cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
+                          >
+                            <span>{statName}</span>
+                            <svg
+                              className="w-3.5 h-3.5 text-gray-400 flex-shrink-0"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                          {activeTooltip === statName && (
+                            <div className="absolute z-20 bg-gray-900 text-white text-xs rounded py-2 px-3 w-48 mt-2 left-1/2 transform -translate-x-1/2 shadow-lg">
+                              {description.toUpperCase()}
+                              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-900"></div>
+                            </div>
+                          )}
+                        </th>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -416,12 +442,8 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                     <tr key={player.id}>
                       <td className="px-4 py-3 whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {player.id === gameData.winner_id && '🏆 '}
                           {player.name}
-                          {player.id === gameData.winner_id && (
-                            <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
-                              (Winner)
-                            </span>
-                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -463,53 +485,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats explanation section */}
-        <div className="mt-8 border-t dark:border-gray-700 pt-4">
-          <h4 className="text-md font-semibold mb-3 dark:text-white">
-            Understanding the Statistics
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-              <span className="font-medium dark:text-white">
-                Traditional BPI
-              </span>
-              <p className="dark:text-gray-300">
-                Total Balls Pocketed ÷ Total Innings. The classic measure of
-                scoring pace.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-              <span className="font-medium dark:text-white">Offensive BPI</span>
-              <p className="dark:text-gray-300">
-                Balls Pocketed ÷ (Total Innings - Safety Innings). Shows scoring
-                rate when playing offensively.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-              <span className="font-medium dark:text-white">
-                Safety Efficiency
-              </span>
-              <p className="dark:text-gray-300">
-                Percentage of safeties that resulted in the opponent fouling or
-                missing. Higher is better.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-              <span className="font-medium dark:text-white">
-                Shooting Percentage
-              </span>
-              <p className="dark:text-gray-300">
-                (Balls Made ÷ Shots Taken) × 100. Indicates overall shooting
-                accuracy.
-              </p>
             </div>
           </div>
         </div>
