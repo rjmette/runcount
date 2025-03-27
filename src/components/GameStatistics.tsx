@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GameStatisticsProps, GameData, Player } from '../types/game';
+import { InningsModal } from './GameStatistics/components/InningsModal';
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
@@ -10,6 +11,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showInningsModal, setShowInningsModal] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -212,6 +214,12 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
         <div className="flex space-x-4">
           <button
+            onClick={() => setShowInningsModal(true)}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
+          >
+            View Innings
+          </button>
+          <button
             onClick={viewHistory}
             className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
           >
@@ -296,6 +304,16 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
           })}
         </div>
       </div>
+
+      {/* Innings Modal */}
+      {gameData && (
+        <InningsModal
+          isOpen={showInningsModal}
+          onClose={() => setShowInningsModal(false)}
+          actions={gameData.actions}
+          players={gameData.players}
+        />
+      )}
 
       {/* Combined Performance Metrics and Statistics */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
