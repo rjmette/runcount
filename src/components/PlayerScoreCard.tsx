@@ -121,7 +121,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </div>
       </div>
 
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4 mb-1">
         <div
           className={`${
             player.score >= targetScore
@@ -133,7 +133,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       </div>
 
       {isActive && (
-        <div className="mt-6 space-y-3">
+        <div className="mt-3 space-y-3">
           <ScoreButton
             label="Miss"
             value={0}
