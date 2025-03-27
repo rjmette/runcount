@@ -24,6 +24,17 @@ export const GameList: React.FC<GameListProps> = ({
     );
   }
 
+  // Debug log to check game data
+  console.log(
+    'Games:',
+    games.map((g) => ({
+      id: g.id,
+      completed: g.completed,
+      winnerId: g.winnerId,
+      players: g.players.map((p) => ({ name: p.name, score: p.score })),
+    }))
+  );
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 dark:text-white">
       <h3 className="font-medium text-lg mb-4 border-b dark:border-gray-700 pb-2">
@@ -34,6 +45,18 @@ export const GameList: React.FC<GameListProps> = ({
           {games.map((game) => {
             const gameDate = new Date(game.date);
             const winner = game.players.find((p) => p.id === game.winnerId);
+            const dayOfWeek = gameDate.toLocaleDateString('en-US', {
+              weekday: 'short',
+            });
+            const formattedDate = gameDate.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            });
+            const formattedTime = gameDate.toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true,
+            });
 
             return (
               <div
@@ -48,19 +71,33 @@ export const GameList: React.FC<GameListProps> = ({
                   className="flex-grow"
                   onClick={() => onGameSelect(game.id)}
                 >
-                  <div className="text-sm font-medium">
-                    {gameDate.toLocaleDateString()}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {game.players.map((p) => p.name).join(' vs ')}
-                  </div>
-                  {winner && (
-                    <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                      Winner: {winner.name} ({winner.score} pts)
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="text-sm font-medium">
+                      {dayOfWeek}, {formattedDate}
                     </div>
-                  )}
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {formattedTime}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <div className="flex items-center space-x-2">
+                      {game.players.map((player) => (
+                        <span
+                          key={player.id}
+                          className={`${
+                            player.id === game.winnerId
+                              ? 'text-blue-600 dark:text-blue-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`}
+                        >
+                          {player.name} ({player.score})
+                        </span>
+                      ))}
+                      {game.completed && <span className="ml-1">🏆</span>}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center mt-2">
+                <div className="flex justify-end items-center mt-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
