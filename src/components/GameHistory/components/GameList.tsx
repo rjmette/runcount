@@ -31,7 +31,13 @@ export const GameList: React.FC<GameListProps> = ({
       id: g.id,
       completed: g.completed,
       winnerId: g.winnerId,
-      players: g.players.map((p) => ({ name: p.name, score: p.score })),
+      winnerIdType: typeof g.winnerId,
+      players: g.players.map((p) => ({
+        name: p.name,
+        score: p.score,
+        id: p.id,
+        idType: typeof p.id,
+      })),
     }))
   );
 
@@ -80,20 +86,22 @@ export const GameList: React.FC<GameListProps> = ({
                     </div>
                   </div>
                   <div className="flex justify-between items-center text-xs">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex space-x-2">
                       {game.players.map((player) => (
                         <span
                           key={player.id}
                           className={`${
                             player.id === game.winnerId
-                              ? 'text-blue-600 dark:text-blue-400 font-medium'
+                              ? 'text-blue-600 dark:text-blue-400 font-bold'
                               : 'text-gray-600 dark:text-gray-400'
                           }`}
                         >
+                          {player.id === game.winnerId && game.completed && (
+                            <span className="mr-1">🏆</span>
+                          )}
                           {player.name} ({player.score})
                         </span>
                       ))}
-                      {game.completed && <span className="ml-1">🏆</span>}
                     </div>
                   </div>
                 </div>
