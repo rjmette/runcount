@@ -135,7 +135,8 @@ export const useGameState = ({
       }));
 
       setPlayerData(initialPlayerData);
-      const newGameId = gameId || uuidv4();
+      // Always generate a new UUID for a new game to prevent overwriting existing games
+      const newGameId = uuidv4();
       setGameId(newGameId);
       setCurrentInning(1);
       if (activePlayerIndex !== breakingPlayerId) {
