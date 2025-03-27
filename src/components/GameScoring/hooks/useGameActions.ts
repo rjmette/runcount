@@ -14,7 +14,7 @@ interface UseGameActionsProps {
     players: Player[],
     actions: GameAction[],
     completed: boolean,
-    winnerId: number | null
+    winner_id: number | null
   ) => void;
   setPlayerData: (data: Player[]) => void;
   setActions: (actions: GameAction[]) => void;

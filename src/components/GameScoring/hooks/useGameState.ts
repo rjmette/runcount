@@ -14,7 +14,7 @@ interface UseGameStateProps {
     players: Player[],
     actions: GameAction[],
     completed: boolean,
-    winnerId: number | null
+    winner_id: number | null
   ) => void;
 }
 
