@@ -106,7 +106,10 @@ export const useGameActions = ({
       playerData[activePlayerIndex].consecutiveFouls === 2;
 
     // Check if this is the first action of the game (i.e., the opening break)
-    const isOpeningBreak = actions.length === 0 && currentInning === 1;
+    // or if the player needs to re-break
+    const isOpeningBreak =
+      (actions.length === 0 && currentInning === 1) ||
+      playerNeedsReBreak === playerData[activePlayerIndex].id;
 
     const newAction: GameAction = {
       type: 'foul',
@@ -151,7 +154,7 @@ export const useGameActions = ({
       const incomingPlayerName = updatedPlayerData[nextPlayerIndex].name;
 
       setAlertMessage(
-        `${breakerName} fouled on the opening break! 2-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
+        `${breakerName} fouled on the break! 2-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
       );
       setShowAlertModal(true);
 
@@ -182,7 +185,8 @@ export const useGameActions = ({
 
     setCurrentRun(0);
 
-    // Only switch players if it's not a break foul (for break fouls, we'll let the UI handle it)
+    // Only switch players if it's not a break foul or a three-foul situation
+    // For break fouls, we'll let the UI handle it after the incoming player makes their choice
     if (!isOpeningBreak && !isThirdConsecutiveFoul) {
       if (nextPlayerIndex === 0) {
         setCurrentInning(currentInning + 1);

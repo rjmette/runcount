@@ -27,7 +27,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
-  const [hasHandledBreakFoul, setHasHandledBreakFoul] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
@@ -318,12 +317,23 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const lastAction = actions[actions.length - 1];
   const hasBreakFoul = lastAction?.isBreakFoul && lastAction?.type === 'foul';
 
+  // Store the ID of the last action with a break foul to prevent showing the modal multiple times for the same action
+  const [lastBreakFoulActionId, setLastBreakFoulActionId] = useState<
+    number | null
+  >(null);
+
   // If there's a break foul and we haven't handled it yet, show the modal
   React.useEffect(() => {
-    if (hasBreakFoul && !hasHandledBreakFoul && !showBreakFoulModal) {
+    // Only show the modal if there's a new break foul (not one we've already seen)
+    if (
+      hasBreakFoul &&
+      lastAction &&
+      lastBreakFoulActionId !== actions.length - 1
+    ) {
       setShowBreakFoulModal(true);
+      setLastBreakFoulActionId(actions.length - 1);
     }
-  }, [hasBreakFoul, hasHandledBreakFoul, showBreakFoulModal]);
+  }, [hasBreakFoul, actions, lastBreakFoulActionId]);
 
   // Handle accepting the table after a foul on the break
   const handleAcceptTable = () => {
@@ -338,9 +348,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setActivePlayerIndex(nextPlayerIndex);
     setPlayerData(updatedPlayerData);
 
-    // Close the modal and mark the break foul as handled
+    // Clear the re-break flag since we're accepting the table
+    setPlayerNeedsReBreak(null);
+
+    // Close the modal
     setShowBreakFoulModal(false);
-    setHasHandledBreakFoul(true);
 
     // Save the game state
     const currentGameId = gameId || '';
@@ -362,9 +374,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Keep the same player (they need to break again)
     const updatedPlayerData = [...playerData];
 
-    // Close the modal and mark the break foul as handled
+    // Set the current player as needing to re-break
+    setPlayerNeedsReBreak(playerData[activePlayerIndex].id);
+
+    // Close the modal
     setShowBreakFoulModal(false);
-    setHasHandledBreakFoul(true);
 
     // Show an alert to explain what's happening
     setAlertMessage(
