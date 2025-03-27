@@ -25,6 +25,9 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
           query.eq('owner_id', user.id);
         }
 
+        // Filter out deleted games
+        query.eq('deleted', false);
+
         // Order by date descending
         query.order('date', { ascending: false });
 
@@ -36,31 +39,8 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
           throw error;
         }
 
-        // IMPORTANT FIX: Update all games to set deleted=false to fix the data issue
-        if (data && data.length > 0) {
-          for (const game of data) {
-            if (game.deleted === true) {
-              // Update the game to set deleted=false
-              const { error: updateError } = await supabase
-                .from('games')
-                .update({ deleted: false })
-                .eq('id', game.id);
-
-              if (updateError) {
-                console.error(`Error fixing game ${game.id}:`, updateError);
-              } else {
-                // Update the game in our local data
-                game.deleted = false;
-              }
-            }
-          }
-        }
-
-        // Treat all games as non-deleted for now (one-time fix)
-        const nonDeletedGames = data || [];
-
         // Type cast and filter out any potentially invalid data
-        const validGames = nonDeletedGames
+        const validGames = (data || [])
           .filter((game) => {
             if (!game || typeof game !== 'object') {
               console.error('Invalid game object:', game);
