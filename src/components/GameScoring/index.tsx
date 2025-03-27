@@ -329,6 +329,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
     finishGame();
   };
 
+  // Handle action button clicks
+  const handleActionClick = (
+    action: 'newrack' | 'foul' | 'safety' | 'miss'
+  ) => {
+    setBotAction(action);
+    setShowBOTModal(true);
+  };
+
   const handleBOTSubmit = (botsValue: number) => {
     setShowBOTModal(false);
 
@@ -404,10 +412,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
             key={player.id}
             player={player}
             isActive={index === activePlayerIndex}
-            onAddScore={handleAddScore}
-            onAddFoul={handleAddFoul}
-            onAddSafety={handleAddSafety}
-            onAddMiss={handleAddMiss}
+            onAddScore={() => handleActionClick('newrack')}
+            onAddFoul={() => handleActionClick('foul')}
+            onAddSafety={() => handleActionClick('safety')}
+            onAddMiss={() => handleActionClick('miss')}
             onShowHistory={() => setShowHistoryModal(true)}
             targetScore={player.targetScore}
             needsReBreak={playerNeedsReBreak === player.id}
