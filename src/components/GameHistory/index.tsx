@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameHistoryProps } from '../../types/game';
 import { useGameHistory } from './hooks/useGameHistory';
 import { useGameSelection } from './hooks/useGameSelection';
@@ -11,10 +11,39 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   startNewGame,
   user = null,
 }) => {
+  // Add a state to track which view we're showing
+  const [view, setView] = useState<'list' | 'details'>('list');
+
   const { games, loading, error, deleteGame } = useGameHistory({
     supabase,
     user,
   });
+
+  // Debug the games array
+  useEffect(() => {
+    console.log('Games in GameHistory component:', games);
+    console.log('Number of games:', games.length);
+    if (games.length > 0) {
+      console.log('Sample game data:', games[0]);
+    }
+  }, [games]);
+
+  // Function to check if games are valid
+  const getValidGamesCount = () => {
+    if (!games || !Array.isArray(games)) return 0;
+
+    // Count only games that have valid data
+    return games.filter(
+      (game) =>
+        game &&
+        typeof game === 'object' &&
+        game.id &&
+        Array.isArray(game.players) &&
+        game.players.length > 0
+    ).length;
+  };
+
+  const validGameCount = getValidGamesCount();
 
   const {
     selectedGameId,
@@ -31,6 +60,36 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     const success = await deleteGame(gameId);
     if (success) {
       handleDeleteSuccess();
+      // If we're in details view and deleted the current game, go back to list
+      if (view === 'details' && gameId === selectedGameId) {
+        setView('list');
+      }
+    }
+  };
+
+  // New function to handle game selection, which also changes the view
+  const handleSelectGame = (gameId: string) => {
+    handleGameSelect(gameId);
+    setView('details');
+  };
+
+  // New function to navigate back to list view
+  const handleBackToList = () => {
+    setView('list');
+  };
+
+  // New functions to navigate between games
+  const handlePreviousGame = () => {
+    const currentIndex = games.findIndex((game) => game.id === selectedGameId);
+    if (currentIndex > 0) {
+      handleGameSelect(games[currentIndex - 1].id);
+    }
+  };
+
+  const handleNextGame = () => {
+    const currentIndex = games.findIndex((game) => game.id === selectedGameId);
+    if (currentIndex < games.length - 1) {
+      handleGameSelect(games[currentIndex + 1].id);
     }
   };
 
@@ -69,7 +128,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">
-          Game History {games.length > 0 ? `(${games.length})` : ''}
+          Game History {validGameCount > 0 ? `(${validGameCount})` : ''}
         </h2>
         <button
           onClick={startNewGame}
@@ -79,71 +138,47 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[calc(100vh-15rem)]">
-        <div className="md:col-span-1 h-full">
+      {/* Conditionally render either the list or details view */}
+      {view === 'list' ? (
+        <div className="min-h-[calc(100vh-15rem)]">
           <GameList
             games={games}
-            selectedGameId={selectedGameId}
-            onGameSelect={handleGameSelect}
+            selectedGameId={null} // No game is selected in list view
+            onGameSelect={handleSelectGame}
             onDeleteGame={confirmDelete}
           />
         </div>
-
-        <div className="md:col-span-3 h-full">
+      ) : (
+        <div className="min-h-[calc(100vh-15rem)]">
           {selectedGame ? (
-            <GameDetails game={selectedGame} />
+            <GameDetails
+              game={selectedGame}
+              onBack={handleBackToList}
+              onPrevious={handlePreviousGame}
+              onNext={handleNextGame}
+              canNavigatePrevious={
+                games.findIndex((game) => game.id === selectedGameId) > 0
+              }
+              canNavigateNext={
+                games.findIndex((game) => game.id === selectedGameId) <
+                games.length - 1
+              }
+            />
           ) : (
+            // Fallback in case no game is selected
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 flex flex-col items-center justify-center h-full">
               <div className="text-center">
-                <div className="mb-4">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  {games.length > 0 ? 'Select a Game' : 'No Games Found'}
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  {games.length > 0
-                    ? 'Choose a game from the list on the left to view its details'
-                    : 'No game history was found. Start a new game!'}
-                </p>
-                {games.length === 0 && (
-                  <button
-                    onClick={startNewGame}
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                  >
-                    <svg
-                      className="mr-2 h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    Start Your First Game
-                  </button>
-                )}
+                <button
+                  onClick={handleBackToList}
+                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
+                >
+                  Back to Game List
+                </button>
               </div>
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

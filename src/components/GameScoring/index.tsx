@@ -8,7 +8,7 @@ import { BreakFoulModal } from './components/BreakFoulModal';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
-import { useGameHistory } from './hooks/useGameHistory';
+import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGamePersist } from '../../context/GamePersistContext';
 
 const GameScoring: React.FC<GameScoringProps> = ({
@@ -240,7 +240,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   // Game history management
   const { showHistoryModal, setShowHistoryModal, handleUndoLastAction } =
-    useGameHistory({
+    useGameScoringHistory({
       players,
       playerTargetScores,
       breakingPlayerId,

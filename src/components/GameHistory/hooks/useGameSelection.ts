@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { GameData } from '../../../types/game';
 
 interface UseGameSelectionProps {
@@ -10,15 +10,6 @@ export const useGameSelection = ({ games }: UseGameSelectionProps) => {
   const [selectedGame, setSelectedGame] = useState<GameData | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [gameToDelete, setGameToDelete] = useState<string | null>(null);
-
-  // Auto-select the first game when games are loaded
-  useEffect(() => {
-    if (games.length > 0 && !selectedGameId) {
-      const firstGame = games[0];
-      setSelectedGameId(firstGame.id);
-      setSelectedGame(firstGame);
-    }
-  }, [games, selectedGameId]);
 
   const handleGameSelect = (gameId: string) => {
     setSelectedGameId(gameId);
@@ -37,17 +28,10 @@ export const useGameSelection = ({ games }: UseGameSelectionProps) => {
   };
 
   const handleDeleteSuccess = () => {
-    // If the deleted game was selected, select the first game in the list
+    // If the deleted game was selected, deselect it
     if (gameToDelete === selectedGameId) {
-      const remainingGames = games.filter((g) => g.id !== gameToDelete);
-      if (remainingGames.length > 0) {
-        const firstGame = remainingGames[0];
-        setSelectedGameId(firstGame.id);
-        setSelectedGame(firstGame);
-      } else {
-        setSelectedGameId(null);
-        setSelectedGame(null);
-      }
+      setSelectedGameId(null);
+      setSelectedGame(null);
     }
     setShowDeleteConfirmation(false);
     setGameToDelete(null);
