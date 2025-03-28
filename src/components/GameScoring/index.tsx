@@ -5,6 +5,7 @@ import { EndGameModal } from './components/EndGameModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { AlertModal } from './components/AlertModal';
 import { BreakFoulModal } from './components/BreakFoulModal';
+import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameHistory } from './hooks/useGameHistory';
@@ -27,6 +28,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
+  const [showInningsModal, setShowInningsModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
@@ -489,19 +491,59 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-bold">Game Scoring</h2>
+      <div className="flex justify-between items-center mb-2">
+        <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2">
+          <span className="text-sm text-gray-500 dark:text-gray-400">BOT:</span>
+          <span className="text-xl font-semibold text-blue-700 dark:text-blue-300">
+            {ballsOnTable}
+          </span>
+        </div>
         <div className="flex space-x-2">
+          <button
+            onClick={() => setShowInningsModal(true)}
+            className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            title="View game innings"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+          </button>
+
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`px-4 py-2 rounded-md text-lg font-medium ${
+            className={`p-2 rounded-md ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
+            title="Undo last action"
           >
-            Undo
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
           </button>
 
           <button
@@ -510,33 +552,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             New Game
           </button>
-        </div>
-      </div>
-
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-3">
-        <div className="grid grid-cols-3 gap-4">
-          {playerData.map((player, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 dark:bg-gray-700 p-3 rounded"
-            >
-              <span className="block text-sm text-gray-500 dark:text-gray-400">
-                {player.name}'s Target
-              </span>
-              <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-                {player.targetScore}
-              </span>
-            </div>
-          ))}
-
-          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-            <span className="block text-sm text-gray-500 dark:text-gray-400">
-              Balls on Table
-            </span>
-            <span className="text-lg font-semibold text-blue-700 dark:text-blue-300">
-              {ballsOnTable}
-            </span>
-          </div>
         </div>
       </div>
 
@@ -593,6 +608,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
         isOpen={showAlertModal}
         onClose={() => setShowAlertModal(false)}
         message={alertMessage}
+      />
+
+      <InningsModal
+        isOpen={showInningsModal}
+        onClose={() => setShowInningsModal(false)}
+        actions={actions}
+        players={playerData}
       />
     </div>
   );

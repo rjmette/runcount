@@ -48,16 +48,16 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80'
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
-        <h3 className="text-lg font-bold dark:text-white">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold dark:text-white">
           {player.name}
           {player.score >= targetScore && (
             <span className="ml-1 text-yellow-500">🏆</span>
           )}
         </h3>
-        <div className="flex space-x-2">
+        <div className="flex gap-2">
           {isActive && (
-            <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Active
             </span>
           )}
@@ -67,7 +67,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             </span>
           )}
           {needsReBreak && (
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Re-Break
             </span>
           )}
@@ -79,53 +79,49 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-3">
-        <div className="text-center sm:text-left mb-2 sm:mb-0">
+      <div className="grid grid-cols-4 gap-4 text-center">
+        <div>
           <span
-            className={`block text-3xl font-bold ${
+            className={`block text-6xl font-bold ${
               player.score >= targetScore
                 ? 'text-green-600 dark:text-green-500'
+                : player.score < 0
+                ? 'text-red-600 dark:text-red-500'
                 : 'text-blue-700 dark:text-blue-400'
             }`}
           >
-            {player.score}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            Score
+            {player.score < 0 && '-'}
+            {Math.abs(player.score)}
           </span>
         </div>
 
-        <div className="flex space-x-3">
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {player.innings}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Innings
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {player.innings}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Innings
+          </span>
+        </div>
 
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {player.highRun}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              High Run
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {player.highRun}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            High Run
+          </span>
+        </div>
 
-          <div className="text-center">
-            <span className="block text-base font-semibold dark:text-white">
-              {bpi}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              BPI
-            </span>
-          </div>
+        <div>
+          <span className="block text-lg font-semibold dark:text-white">
+            {bpi}
+          </span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">BPI</span>
         </div>
       </div>
 
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4 mb-1">
         <div
           className={`${
             player.score >= targetScore
@@ -137,27 +133,15 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       </div>
 
       {isActive && (
-        <>
-          {/* Current run is still tracked in the DOM but hidden from display */}
-          <div className="hidden">
-            <span id="current-run">0</span>
-          </div>
+        <div className="mt-3 space-y-3">
+          <ScoreButton
+            label="Miss"
+            value={0}
+            onClick={() => onAddMiss()}
+            className="bg-gray-600 hover:bg-gray-700 w-full"
+          />
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <ScoreButton
-              label="Miss"
-              value={0}
-              onClick={() => onAddMiss()}
-              className="bg-gray-600 hover:bg-gray-700 col-span-2"
-            />
-
-            <ScoreButton
-              label="Foul (-1)"
-              value={-1}
-              onClick={() => onAddFoul()}
-              className="bg-red-600 hover:bg-red-700"
-            />
-
+          <div className="grid grid-cols-3 gap-3">
             <ScoreButton
               label="Safety"
               value={0}
@@ -166,20 +150,36 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             />
 
             <ScoreButton
-              label="New Rack"
-              value={1}
-              onClick={() => onAddScore(1)}
-              className="bg-green-600 hover:bg-green-700"
+              label="Foul"
+              value={-1}
+              onClick={() => onAddFoul()}
+              className="bg-red-600 hover:bg-red-700"
             />
 
             <ScoreButton
-              label="History"
-              value={0}
-              onClick={() => onShowHistory && onShowHistory()}
-              className="bg-blue-600 hover:bg-blue-700"
+              label={
+                <div className="flex items-center justify-center space-x-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Rack</span>
+                </div>
+              }
+              value={1}
+              onClick={() => onAddScore(1)}
+              className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
             />
           </div>
-        </>
+        </div>
       )}
 
       <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500 dark:text-gray-400">

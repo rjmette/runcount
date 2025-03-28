@@ -275,7 +275,6 @@ function AppContent() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-xl font-bold">RunCount</h1>
-            <p className="text-xs">Straight Pool (14.1) Scoring App</p>
           </div>
           <div className="flex items-center">
             <button
@@ -358,14 +357,14 @@ function AppContent() {
                 className="px-4 py-2 bg-blue-400 dark:bg-blue-500 text-white rounded cursor-not-allowed"
                 title="Login unavailable during active game"
               >
-                Login / Sign Up
+                Log In
               </div>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
               >
-                Login / Sign Up
+                Log In
               </button>
             )}
           </div>
@@ -386,16 +385,6 @@ function AppContent() {
                 }`}
               >
                 New Game
-              </button>
-              <button
-                onClick={() => setGameState('history')}
-                className={`py-3 px-3 text-sm font-medium transition-colors ${
-                  gameState === 'history'
-                    ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-              >
-                Game History
               </button>
               {user && (
                 <button
@@ -419,7 +408,7 @@ function AppContent() {
       </main>
 
       <footer className="bg-gray-200 dark:bg-gray-800 p-2 text-center text-sm text-gray-600 dark:text-gray-400">
-        RunCount &copy; {new Date().getFullYear()} - Straight Pool Scoring App
+        Straight Pool 14.1 Scoring App
       </footer>
 
       {renderAuthModal()}
