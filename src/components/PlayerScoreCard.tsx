@@ -184,14 +184,14 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
 
       <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500 dark:text-gray-400">
         <div>
-          <span className="font-medium dark:text-gray-300">{player.fouls}</span>{' '}
-          Fouls
-        </div>
-        <div>
           <span className="font-medium dark:text-gray-300">
             {player.safeties}
           </span>{' '}
           Safeties
+        </div>
+        <div>
+          <span className="font-medium dark:text-gray-300">{player.fouls}</span>{' '}
+          Fouls
         </div>
         <div>
           <span className="font-medium dark:text-gray-300">
