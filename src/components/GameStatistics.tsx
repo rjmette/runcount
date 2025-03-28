@@ -244,8 +244,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     'Offensive BPI': 'BPI excluding safety innings',
     'Shooting %': '(Balls Made ÷ Shots Taken) × 100',
     'Safety Eff.': '% of safeties resulting in opponent foul/miss',
-    Safeties: 'Number of safety shots attempted',
-    Fouls: 'Number of fouls committed',
   };
 
   if (loading) {
