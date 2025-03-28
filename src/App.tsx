@@ -185,6 +185,7 @@ function AppContent() {
               setGameState('setup');
             }}
             viewHistory={() => setGameState('history')}
+            user={user}
           />
         );
       case 'history':
