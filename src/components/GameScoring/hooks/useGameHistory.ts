@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Player, GameAction } from '../../../types/game';
 
-interface UseGameHistoryProps {
+interface UseGameScoringHistoryProps {
   players: string[];
   playerTargetScores: Record<string, number>;
   breakingPlayerId: number;
@@ -24,7 +24,7 @@ interface UseGameHistoryProps {
   setIsUndoEnabled: (enabled: boolean) => void;
 }
 
-export const useGameHistory = ({
+export const useGameScoringHistory = ({
   players,
   playerTargetScores,
   breakingPlayerId,
@@ -39,7 +39,7 @@ export const useGameHistory = ({
   setCurrentRun,
   setPlayerNeedsReBreak,
   setIsUndoEnabled,
-}: UseGameHistoryProps) => {
+}: UseGameScoringHistoryProps) => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   const handleUndoLastAction = () => {

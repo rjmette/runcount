@@ -90,10 +90,7 @@ export const PerformanceMetricsPanel: React.FC<
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {Object.entries(tooltipContent).map(([statName]) => (
-                  <tr
-                    key={statName}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                  >
+                  <tr key={statName} className="transition-colors duration-200">
                     <td className="w-32 px-4 py-3 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {statName}
@@ -122,6 +119,7 @@ export const PerformanceMetricsPanel: React.FC<
                               {statName === 'Safety Eff.' &&
                                 `${stats.safetyEfficiency}%`}
                               {statName === 'Safeties' && player.safeties}
+                              {statName === 'Misses' && player.missedShots}
                               {statName === 'Fouls' && player.fouls}
                             </div>
                           </td>
@@ -129,6 +127,76 @@ export const PerformanceMetricsPanel: React.FC<
                       })}
                   </tr>
                 ))}
+                {/* Add rows for stats not in tooltipContent */}
+                <tr className="transition-colors duration-200">
+                  <td className="w-32 px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Safeties
+                    </div>
+                  </td>
+                  {[...players]
+                    .sort((a, b) => {
+                      if (a.id === winnerId) return -1;
+                      if (b.id === winnerId) return 1;
+                      return 0;
+                    })
+                    .map((player) => (
+                      <td
+                        key={player.id}
+                        className="w-32 px-4 py-3 whitespace-nowrap"
+                      >
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.safeties}
+                        </div>
+                      </td>
+                    ))}
+                </tr>
+                <tr className="transition-colors duration-200">
+                  <td className="w-32 px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Misses
+                    </div>
+                  </td>
+                  {[...players]
+                    .sort((a, b) => {
+                      if (a.id === winnerId) return -1;
+                      if (b.id === winnerId) return 1;
+                      return 0;
+                    })
+                    .map((player) => (
+                      <td
+                        key={player.id}
+                        className="w-32 px-4 py-3 whitespace-nowrap"
+                      >
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.missedShots}
+                        </div>
+                      </td>
+                    ))}
+                </tr>
+                <tr className="transition-colors duration-200">
+                  <td className="w-32 px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      Fouls
+                    </div>
+                  </td>
+                  {[...players]
+                    .sort((a, b) => {
+                      if (a.id === winnerId) return -1;
+                      if (b.id === winnerId) return 1;
+                      return 0;
+                    })
+                    .map((player) => (
+                      <td
+                        key={player.id}
+                        className="w-32 px-4 py-3 whitespace-nowrap"
+                      >
+                        <div className="text-sm text-gray-900 dark:text-gray-300">
+                          {player.fouls}
+                        </div>
+                      </td>
+                    ))}
+                </tr>
               </tbody>
             </table>
           </div>

@@ -185,6 +185,7 @@ function AppContent() {
               setGameState('setup');
             }}
             viewHistory={() => setGameState('history')}
+            user={user}
           />
         );
       case 'history':
@@ -387,16 +388,28 @@ function AppContent() {
                 New Game
               </button>
               {user && (
-                <button
-                  onClick={() => setGameState('profile')}
-                  className={`py-3 px-3 text-sm font-medium transition-colors ${
-                    gameState === 'profile'
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-                >
-                  My Profile
-                </button>
+                <>
+                  <button
+                    onClick={() => setGameState('history')}
+                    className={`py-3 px-3 text-sm font-medium transition-colors ${
+                      gameState === 'history'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    History
+                  </button>
+                  <button
+                    onClick={() => setGameState('profile')}
+                    className={`py-3 px-3 text-sm font-medium transition-colors ${
+                      gameState === 'profile'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    My Profile
+                  </button>
+                </>
               )}
             </div>
           </div>

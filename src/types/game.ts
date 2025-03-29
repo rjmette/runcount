@@ -67,6 +67,7 @@ export interface GameStatisticsProps {
   supabase: SupabaseClient;
   startNewGame: () => void;
   viewHistory: () => void;
+  user?: User | null;
 }
 
 export interface GameHistoryProps {

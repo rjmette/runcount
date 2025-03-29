@@ -10,6 +10,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   supabase,
   startNewGame,
   viewHistory,
+  user,
 }) => {
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -244,8 +245,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     'Offensive BPI': 'BPI excluding safety innings',
     'Shooting %': '(Balls Made ÷ Shots Taken) × 100',
     'Safety Eff.': '% of safeties resulting in opponent foul/miss',
-    Safeties: 'Number of safety shots attempted',
-    Fouls: 'Number of fouls committed',
   };
 
   if (loading) {
@@ -289,13 +288,14 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
         <div className="flex space-x-4">
-          <button
-            onClick={viewHistory}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
-          >
-            View History
-          </button>
-
+          {user && (
+            <button
+              onClick={viewHistory}
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
+            >
+              View History
+            </button>
+          )}
           <button
             onClick={startNewGame}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"

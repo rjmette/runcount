@@ -28,7 +28,7 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full dark:text-white">
-        <h3 className="text-xl font-bold mb-4">
+        <h3 className="text-2xl font-bold mb-6 pb-4 border-b-2 border-gray-200 dark:border-gray-700">
           {gameWinner ? 'Game Over!' : 'End Game?'}
         </h3>
 
