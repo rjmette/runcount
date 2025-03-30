@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { GameData } from '../../../types/game';
-import {
-  calculateInningActions,
-  calculatePlayerStats,
-} from '../utils/calculations';
+import { calculatePlayerStats } from '../utils/calculations';
 import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from '../../shared/GameStatusPanel';
@@ -29,7 +26,6 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
   const [copySuccess, setCopySuccess] = useState(false);
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
-  const inningActions = calculateInningActions(game.actions, game.players);
 
   // Calculate match length
   const startTime = new Date(game.date);

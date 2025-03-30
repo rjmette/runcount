@@ -45,9 +45,6 @@ export const useGameScoringHistory = ({
   const handleUndoLastAction = () => {
     if (actions.length === 0) return;
 
-    // Get the last action
-    const lastAction = actions[actions.length - 1];
-
     // Start with initial state
     const initialPlayerData: Player[] = players.map((name, index) => ({
       id: index,

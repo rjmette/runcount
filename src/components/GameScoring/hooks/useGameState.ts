@@ -145,7 +145,8 @@ export const useGameState = ({
       setPlayerNeedsReBreak(null);
       saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array is intentional - we only want this to run once on mount
 
   // Update the current run display in the DOM
   useEffect(() => {
@@ -153,7 +154,17 @@ export const useGameState = ({
     if (currentRunElement) {
       currentRunElement.textContent = String(currentRun);
     }
-  }, [currentRun]);
+  }, [
+    currentRun,
+    activePlayerIndex,
+    breakingPlayerId,
+    gameId,
+    getGameState,
+    playerTargetScores,
+    players,
+    saveGameToSupabase,
+    setGameId,
+  ]);
 
   return {
     activePlayerIndex,

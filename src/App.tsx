@@ -35,7 +35,7 @@ function App() {
 // The actual app content, using the auth context
 function AppContent() {
   const { user, loading, signOut } = useAuth();
-  const { getGameState, getGameSettings, hasActiveGame } = useGamePersist();
+  const { getGameState, hasActiveGame } = useGamePersist();
 
   // Game state management
   const [gameState, setGameState] = useState<GameState>('setup');
