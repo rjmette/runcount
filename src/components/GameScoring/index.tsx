@@ -239,97 +239,96 @@ const GameScoring: React.FC<GameScoringProps> = ({
     });
 
   // Game history management
-  const { showHistoryModal, setShowHistoryModal, handleUndoLastAction } =
-    useGameScoringHistory({
+  const { setShowHistoryModal, handleUndoLastAction } = useGameScoringHistory({
+    players,
+    playerTargetScores,
+    breakingPlayerId,
+    actions,
+    gameId: gameId || '',
+    saveGameToSupabase: async (
+      gameId,
       players,
-      playerTargetScores,
-      breakingPlayerId,
       actions,
-      gameId: gameId || '',
-      saveGameToSupabase: async (
-        gameId,
-        players,
-        actions,
-        completed,
-        winner_id
-      ) => {
-        // Save game state to our persistent storage context
-        if (completed) {
-          clearGameState();
-        } else {
-          saveGameState({
-            id: gameId,
-            date: new Date().toISOString(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
-        }
+      completed,
+      winner_id
+    ) => {
+      // Save game state to our persistent storage context
+      if (completed) {
+        clearGameState();
+      } else {
+        saveGameState({
+          id: gameId,
+          date: new Date().toISOString(),
+          players,
+          actions,
+          completed,
+          winner_id: winner_id,
+        });
+      }
 
-        // First save to localStorage
-        try {
-          const now = new Date();
-          localStorage.setItem(
-            `runcount_game_${gameId}`,
-            JSON.stringify({
-              id: gameId,
-              date: now.toISOString(),
-              players,
-              actions,
-              completed,
-              winner_id: winner_id,
-            })
-          );
-        } catch (err) {
-          console.error('Error saving game to localStorage history:', err);
-        }
-
-        // Only save to Supabase if user is authenticated
-        if (!user) {
-          return;
-        }
-
-        try {
-          const now = new Date();
-          const payload = {
+      // First save to localStorage
+      try {
+        const now = new Date();
+        localStorage.setItem(
+          `runcount_game_${gameId}`,
+          JSON.stringify({
             id: gameId,
             date: now.toISOString(),
             players,
             actions,
             completed,
             winner_id: winner_id,
-            owner_id: user.id,
-            deleted: false,
-          };
+          })
+        );
+      } catch (err) {
+        console.error('Error saving game to localStorage history:', err);
+      }
 
-          const { error } = await supabase.from('games').upsert(payload);
+      // Only save to Supabase if user is authenticated
+      if (!user) {
+        return;
+      }
 
-          if (error) {
-            console.error('Error saving game to Supabase:', error);
-            if (error.code === '42804') {
-              console.error(
-                'Type mismatch error: Check that owner_id is UUID type in the database'
-              );
-            } else if (error.code === '42501') {
-              console.error(
-                'RLS policy violation: Make sure you have the correct policies set up'
-              );
-            }
+      try {
+        const now = new Date();
+        const payload = {
+          id: gameId,
+          date: now.toISOString(),
+          players,
+          actions,
+          completed,
+          winner_id: winner_id,
+          owner_id: user.id,
+          deleted: false,
+        };
+
+        const { error } = await supabase.from('games').upsert(payload);
+
+        if (error) {
+          console.error('Error saving game to Supabase:', error);
+          if (error.code === '42804') {
+            console.error(
+              'Type mismatch error: Check that owner_id is UUID type in the database'
+            );
+          } else if (error.code === '42501') {
+            console.error(
+              'RLS policy violation: Make sure you have the correct policies set up'
+            );
           }
-        } catch (err) {
-          console.error('Error saving game to Supabase:', err);
         }
-      },
-      setPlayerData,
-      setActions,
-      setActivePlayerIndex,
-      setCurrentInning,
-      setBallsOnTable,
-      setCurrentRun,
-      setPlayerNeedsReBreak,
-      setIsUndoEnabled,
-    });
+      } catch (err) {
+        console.error('Error saving game to Supabase:', err);
+      }
+    },
+    setPlayerData,
+    setActions,
+    setActivePlayerIndex,
+    setCurrentInning,
+    setBallsOnTable,
+    setCurrentRun,
+    setPlayerNeedsReBreak,
+    setIsUndoEnabled,
+  });
 
   // Check if there's a break foul in the last action
   const lastAction = actions[actions.length - 1];
@@ -351,7 +350,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setShowBreakFoulModal(true);
       setLastBreakFoulActionId(actions.length - 1);
     }
-  }, [hasBreakFoul, actions, lastBreakFoulActionId]);
+  }, [hasBreakFoul, actions, lastBreakFoulActionId, lastAction]);
 
   // Handle accepting the table after a foul on the break
   const handleAcceptTable = () => {

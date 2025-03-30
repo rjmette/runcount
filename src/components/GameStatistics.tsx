@@ -18,7 +18,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchGameData = async () => {

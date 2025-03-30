@@ -1,11 +1,6 @@
 import { Player, GameAction } from '../../../types/game';
 
 export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
-  // Filter actions for this player
-  const playerActions = actions.filter(
-    (action) => action.playerId === player.id
-  );
-
   // Calculate safety efficiency
   let successfulSafeties = 0;
   let totalSafeties = player.safeties;
