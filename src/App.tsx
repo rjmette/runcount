@@ -45,6 +45,7 @@ function AppContent() {
   >({});
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
 
   // Store last used game settings for quick restart with persistence
@@ -134,6 +135,7 @@ function AppContent() {
   // Handle user sign out
   const handleSignOut = async () => {
     await signOut();
+    setShowProfileModal(false);
     // Only redirect to setup if not in the middle of a game
     if (gameState !== 'scoring' && gameState !== 'statistics') {
       setGameState('setup');
@@ -252,6 +254,34 @@ function AppContent() {
     );
   };
 
+  // Render profile modal
+  const renderProfileModal = () => {
+    if (!showProfileModal || !user) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
+          <div className="p-4 flex justify-between border-b dark:border-gray-700">
+            <h2 className="text-lg font-bold dark:text-white">Profile</h2>
+            <button
+              onClick={() => setShowProfileModal(false)}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="p-4">
+            <UserProfile
+              supabase={supabase}
+              user={user}
+              onSignOut={handleSignOut}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Theme toggle function
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('runcount_theme');
@@ -329,7 +359,16 @@ function AppContent() {
                 <div className="relative">
                   <button
                     className="bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 p-2 rounded-full text-white"
-                    onClick={() => setGameState('profile')}
+                    onClick={() => {
+                      if (
+                        gameState === 'scoring' ||
+                        gameState === 'statistics'
+                      ) {
+                        setShowProfileModal(true);
+                      } else {
+                        setGameState('profile');
+                      }
+                    }}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -418,6 +457,7 @@ function AppContent() {
       </footer>
 
       {renderAuthModal()}
+      {renderProfileModal()}
     </div>
   );
 }
