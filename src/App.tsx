@@ -102,6 +102,9 @@ function AppContent() {
   useEffect(() => {
     if (user) {
       setShowAuthModal(false);
+
+      // If user just logged in and there's an active game or game result being shown,
+      // the game components will handle saving to Supabase via their own useEffect hooks
     }
   }, [user]);
 
@@ -131,7 +134,10 @@ function AppContent() {
   // Handle user sign out
   const handleSignOut = async () => {
     await signOut();
-    setGameState('setup');
+    // Only redirect to setup if not in the middle of a game
+    if (gameState !== 'scoring' && gameState !== 'statistics') {
+      setGameState('setup');
+    }
   };
 
   // Switch between different components based on game state
@@ -228,6 +234,14 @@ function AppContent() {
             </button>
           </div>
           <div className="p-4">
+            {(gameState === 'scoring' || gameState === 'statistics') && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-md text-sm">
+                <p>
+                  <strong>Note:</strong> Logging in will save your current game
+                  to your account, allowing you to access it from any device.
+                </p>
+              </div>
+            )}
             <Auth
               supabase={supabase}
               onAuthSuccess={() => setShowAuthModal(false)}
@@ -313,53 +327,32 @@ function AppContent() {
               <div className="flex items-center space-x-3">
                 <span className="hidden md:inline text-sm">{user.email}</span>
                 <div className="relative">
-                  {/* Disable profile button during active game */}
-                  {gameState === 'scoring' ? (
-                    <div
-                      className="bg-blue-400 dark:bg-blue-500 p-2 rounded-full text-white cursor-not-allowed"
-                      title="Profile unavailable during active game"
+                  <button
+                    className="bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 p-2 rounded-full text-white"
+                    onClick={() => setGameState('profile')}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  ) : (
-                    <button
-                      className="bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 p-2 rounded-full text-white"
-                      onClick={() => setGameState('profile')}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  )}
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
             ) : gameState === 'scoring' ? (
-              <div
-                className="px-4 py-2 bg-blue-400 dark:bg-blue-500 text-white rounded cursor-not-allowed"
-                title="Login unavailable during active game"
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
               >
                 Log In
-              </div>
+              </button>
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
