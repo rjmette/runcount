@@ -62,7 +62,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             </span>
           )}
           {isActive === true && !needsReBreak && currentInning === 1 && (
-            <span className="bg-green-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Break
             </span>
           )}
@@ -72,7 +72,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             </span>
           )}
           {player.fouls === 2 && (
-            <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               2 Fouls
             </span>
           )}
