@@ -39,9 +39,6 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
           throw error;
         }
 
-        console.log('Raw games data from db:', data);
-        console.log('Number of games received:', data?.length || 0);
-
         // Type cast and filter out any potentially invalid data
         const validGames = (data || [])
           .filter((game) => {
@@ -68,12 +65,6 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
             return true;
           })
           .map((game) => game as unknown as GameData);
-
-        console.log('Valid games after filtering:', validGames.length);
-        console.log(
-          'First valid game sample:',
-          validGames.length > 0 ? validGames[0] : 'No valid games'
-        );
 
         setGames(validGames);
       } catch (err) {
