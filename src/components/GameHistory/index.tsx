@@ -19,15 +19,6 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     user,
   });
 
-  // Debug the games array
-  useEffect(() => {
-    console.log('Games in GameHistory component:', games);
-    console.log('Number of games:', games.length);
-    if (games.length > 0) {
-      console.log('Sample game data:', games[0]);
-    }
-  }, [games]);
-
   // Function to check if games are valid
   const getValidGamesCount = () => {
     if (!games || !Array.isArray(games)) return 0;

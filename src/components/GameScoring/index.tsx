@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameScoringProps } from '../../types/game';
 import PlayerScoreCard from '../PlayerScoreCard';
 import { EndGameModal } from './components/EndGameModal';
@@ -33,6 +33,43 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
   >(null);
+
+  // Add effect to detect user login and save game to SupaBase
+  useEffect(() => {
+    // If user just logged in and we have a game in progress, save it to SupaBase
+    if (user && gameId) {
+      const saveCurrentGameToSupabase = async () => {
+        try {
+          const gameState = getGameState();
+          if (!gameState) return;
+
+          const now = new Date();
+          const payload = {
+            id: gameId,
+            date: now.toISOString(),
+            players: gameState.players,
+            actions: gameState.actions,
+            completed: gameState.completed,
+            winner_id: gameState.winner_id,
+            owner_id: user.id,
+            deleted: false,
+          };
+
+          const { error } = await supabase.from('games').upsert(payload);
+
+          if (error) {
+            console.error('Error saving game to Supabase after login:', error);
+          } else {
+            console.log('Successfully saved game to Supabase after login');
+          }
+        } catch (err) {
+          console.error('Error saving game to Supabase after login:', err);
+        }
+      };
+
+      saveCurrentGameToSupabase();
+    }
+  }, [user, gameId, supabase, getGameState]);
 
   // Game state management
   const {

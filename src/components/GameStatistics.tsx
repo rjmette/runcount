@@ -18,6 +18,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [savedToSupabase, setSavedToSupabase] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -75,6 +76,37 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
     fetchGameData();
   }, [gameId, supabase]);
+
+  // Effect to save game to Supabase when user logs in
+  useEffect(() => {
+    if (user && gameData && !savedToSupabase) {
+      const saveGameToSupabase = async () => {
+        try {
+          console.log('Saving game to Supabase after login on results screen');
+
+          // Create payload from the gameData
+          const payload = {
+            ...gameData,
+            owner_id: user.id,
+            deleted: false,
+          };
+
+          const { error } = await supabase.from('games').upsert(payload);
+
+          if (error) {
+            console.error('Error saving game to Supabase after login:', error);
+          } else {
+            console.log('Successfully saved game to Supabase after login');
+            setSavedToSupabase(true);
+          }
+        } catch (err) {
+          console.error('Error saving game to Supabase after login:', err);
+        }
+      };
+
+      saveGameToSupabase();
+    }
+  }, [user, gameData, supabase, savedToSupabase]);
 
   // Calculate additional statistics
   const calculateStats = (players: Player[], actions: any[]) => {
