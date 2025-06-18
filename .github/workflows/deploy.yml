@@ -28,6 +28,9 @@ jobs:
       run: npm ci
       
     - name: Run tests
+      env:
+        REACT_APP_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
+        REACT_APP_SUPABASE_URL: "https://test.supabase.co"
       run: npm test -- --coverage --watchAll=false
       
     - name: Build project
