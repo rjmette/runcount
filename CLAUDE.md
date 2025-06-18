@@ -6,7 +6,7 @@
 - `npm test -- --testPathPattern=src/App.test.tsx` - Run single test file
 - `npm test -- -t "specific test name"` - Run specific test by name
 - `npm run build` - Build for production
-- `npm run deploy` - Run deployment script (requires AWS credentials)
+- **Deployment**: Automated via GitHub Actions on push to main branch
 
 ## Code Style
 - **TypeScript**: Strict mode enabled. Use proper typing for all variables, params, returns

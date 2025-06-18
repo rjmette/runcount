@@ -1,0 +1,132 @@
+name: Deploy RunCount to S3
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: runcountapp
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test -- --coverage --watchAll=false
+      
+    - name: Build project
+      run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+        
+    - name: Deploy to S3 (excluding index.html)
+      run: |
+        echo "📤 Syncing build files to S3 (excluding index.html)..."
+        aws s3 sync build/ s3://${{ env.S3_BUCKET }} --size-only --exclude "index.html"
+        echo "✅ Build files synced to S3"
+        
+    - name: Deploy index.html with cache-busting
+      run: |
+        echo "🔄 Forcing cache refresh for index.html..."
+        aws s3 cp build/index.html s3://${{ env.S3_BUCKET }}/index.html \
+          --metadata-directive REPLACE \
+          --cache-control max-age=0
+        echo "✅ Index.html deployed with cache-busting"
+        
+    - name: Configure S3 bucket for static website hosting
+      run: |
+        echo "🔓 Setting public access permissions..."
+        aws s3api put-public-access-block \
+          --bucket ${{ env.S3_BUCKET }} \
+          --public-access-block-configuration BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false
+        
+        echo "📜 Applying bucket policy..."
+        aws s3api put-bucket-policy \
+          --bucket ${{ env.S3_BUCKET }} \
+          --policy '{
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "PublicReadGetObject",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::${{ env.S3_BUCKET }}/*"
+              }
+            ]
+          }'
+        
+        echo "🌐 Configuring static website hosting..."
+        aws s3api put-bucket-website \
+          --bucket ${{ env.S3_BUCKET }} \
+          --website-configuration '{
+            "IndexDocument": {"Suffix": "index.html"},
+            "ErrorDocument": {"Key": "index.html"}
+          }'
+        echo "✅ S3 bucket configured for static website hosting"
+
+  notify:
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Deployment Summary
+      run: |
+        echo "🚀 RunCount Deployment Summary"
+        echo "============================="
+        echo "Application: http://${{ env.S3_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+        echo "S3 Bucket: ${{ env.S3_BUCKET }}"
+        echo "Region: ${{ env.AWS_REGION }}"
+        echo "Status: ${{ needs.deploy.result }}"
+        
+        if [ "${{ needs.deploy.result }}" = "success" ]; then
+          echo "✅ Deployment completed successfully!"
+          echo "🎉 Your RunCount app is now live!"
+        else
+          echo "❌ Deployment failed"
+          echo "🔍 Check the deployment logs for details"
+        fi
+
