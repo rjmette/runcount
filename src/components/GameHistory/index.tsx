@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GameHistoryProps } from '../../types/game';
 import { useGameHistory } from './hooks/useGameHistory';
 import { useGameSelection } from './hooks/useGameSelection';
