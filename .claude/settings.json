@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["Bash(ls:*)"],
+    "allow": ["Bash(ls:*)", "mcp__todoist-mcp:*", "mcp__memory:*"],
     "deny": []
   }
 }
