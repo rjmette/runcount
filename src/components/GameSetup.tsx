@@ -85,128 +85,102 @@ const GameSetup: React.FC<GameSetupProps> = ({
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label
-            htmlFor="player1"
-            className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
-          >
-            Player 1
-          </label>
-          <input
-            type="text"
-            id="player1"
-            value={player1}
-            onChange={(e) => setPlayer1(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter player 1 name"
-            required
-          />
-        </div>
+        <div className="space-y-6">
+          <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="player1"
+                  className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                >
+                  Player 1 Name
+                </label>
+                <input
+                  type="text"
+                  id="player1"
+                  value={player1}
+                  onChange={(e) => setPlayer1(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter player 1 name"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="player1TargetScore"
+                  className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                >
+                  Target Score
+                </label>
+                <input
+                  type="number"
+                  id="player1TargetScore"
+                  value={player1TargetScore}
+                  onChange={(e) => setPlayer1TargetScore(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  min="1"
+                  step="1"
+                  placeholder="75"
+                  required
+                />
+              </div>
+            </div>
+          </div>
 
-        <div className="mb-4">
-          <label
-            htmlFor="player2"
-            className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
-          >
-            Player 2
-          </label>
-          <input
-            type="text"
-            id="player2"
-            value={player2}
-            onChange={(e) => setPlayer2(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter player 2 name"
-            required
-          />
-        </div>
-
-        <div className="mb-6">
-          <label
-            htmlFor="player1TargetScore"
-            className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
-          >
-            {player1 || 'Player 1'}'s Target Score
-          </label>
-          <div className="flex items-center">
-            <button
-              type="button"
-              onClick={() =>
-                setPlayer1TargetScore((prev) => Math.max(5, prev - 5))
-              }
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-l-md"
-            >
-              -
-            </button>
-            <input
-              type="number"
-              id="player1TargetScore"
-              value={player1TargetScore}
-              onChange={(e) => setPlayer1TargetScore(Number(e.target.value))}
-              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="5"
-              step="5"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setPlayer1TargetScore((prev) => prev + 5)}
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-r-md"
-            >
-              +
-            </button>
+          <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="player2"
+                  className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                >
+                  Player 2 Name
+                </label>
+                <input
+                  type="text"
+                  id="player2"
+                  value={player2}
+                  onChange={(e) => setPlayer2(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter player 2 name"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="player2TargetScore"
+                  className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
+                >
+                  Target Score
+                </label>
+                <input
+                  type="number"
+                  id="player2TargetScore"
+                  value={player2TargetScore}
+                  onChange={(e) => setPlayer2TargetScore(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  min="1"
+                  step="1"
+                  placeholder="60"
+                  required
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mb-6">
-          <label
-            htmlFor="player2TargetScore"
-            className="block text-gray-700 dark:text-gray-300 font-medium mb-2"
-          >
-            {player2 || 'Player 2'}'s Target Score
-          </label>
-          <div className="flex items-center">
-            <button
-              type="button"
-              onClick={() =>
-                setPlayer2TargetScore((prev) => Math.max(5, prev - 5))
-              }
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-l-md"
-            >
-              -
-            </button>
-            <input
-              type="number"
-              id="player2TargetScore"
-              value={player2TargetScore}
-              onChange={(e) => setPlayer2TargetScore(Number(e.target.value))}
-              className="w-full text-center py-2 border-t border-b border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              min="5"
-              step="5"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setPlayer2TargetScore((prev) => prev + 5)}
-              className="px-3 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-white rounded-r-md"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
+        <div className="mb-6 mt-8">
+          <label className="block text-gray-700 dark:text-gray-300 font-medium mb-3">
             Who is Breaking?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setBreakingPlayerId(0)}
-              className={`px-3 py-3 rounded-md font-medium ${
+              className={`px-3 py-2 rounded text-sm ${
                 breakingPlayerId === 0
-                  ? 'bg-blue-600 dark:bg-blue-700 text-white'
-                  : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
               }`}
             >
               {player1 || 'Player 1'} Breaks
@@ -214,10 +188,10 @@ const GameSetup: React.FC<GameSetupProps> = ({
             <button
               type="button"
               onClick={() => setBreakingPlayerId(1)}
-              className={`px-3 py-3 rounded-md font-medium ${
+              className={`px-3 py-2 rounded text-sm ${
                 breakingPlayerId === 1
-                  ? 'bg-blue-600 dark:bg-blue-700 text-white'
-                  : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200'
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
               }`}
             >
               {player2 || 'Player 2'} Breaks
@@ -225,10 +199,10 @@ const GameSetup: React.FC<GameSetupProps> = ({
           </div>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-8">
           <button
             type="submit"
-            className="px-6 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-8 py-3 bg-blue-600 dark:bg-blue-700 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-lg"
           >
             Start Game
           </button>

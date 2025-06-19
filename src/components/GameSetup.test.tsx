@@ -23,8 +23,8 @@ describe('GameSetup Component', () => {
     expect(screen.getByText('New Game Setup')).toBeInTheDocument();
     
     // Use more specific selectors for form elements
-    expect(screen.getByLabelText('Player 1')).toBeInTheDocument(); // Use exact text
-    expect(screen.getByLabelText('Player 2')).toBeInTheDocument(); // Use exact text
+    expect(screen.getByLabelText('Player 1 Name')).toBeInTheDocument(); // Use exact text
+    expect(screen.getByLabelText('Player 2 Name')).toBeInTheDocument(); // Use exact text
     
     // Use test IDs instead of text content for numeric fields
     expect(screen.getByRole('button', { name: /Start Game/i })).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
     
     // Check breaking player selection (Player 1 should be default)
-    expect(screen.getByText('Player 1 Breaks')).toHaveClass('bg-blue-600');
+    expect(screen.getByText('Player 1 Breaks')).toHaveClass('bg-blue-100');
   });
   
   test('displays error when submitting with empty player names', async () => {
@@ -83,8 +83,8 @@ describe('GameSetup Component', () => {
     );
     
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
     
     // Set invalid target score - use ID selector instead of label
     const player1TargetScore = screen.getByDisplayValue(75);
@@ -107,8 +107,8 @@ describe('GameSetup Component', () => {
     );
     
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
     
     // Change target scores
     const player1TargetScore = screen.getByDisplayValue(75);
@@ -140,8 +140,8 @@ describe('GameSetup Component', () => {
     );
     
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
     
     // Select Player 2 as the breaking player
     fireEvent.click(screen.getByText('Player Two Breaks'));
@@ -174,8 +174,8 @@ describe('GameSetup Component', () => {
     );
     
     // Check that the fields are prefilled with last game settings
-    expect(screen.getByLabelText('Player 1')).toHaveValue('John');
-    expect(screen.getByLabelText('Player 2')).toHaveValue('Mike');
+    expect(screen.getByLabelText('Player 1 Name')).toHaveValue('John');
+    expect(screen.getByLabelText('Player 2 Name')).toHaveValue('Mike');
     
     // Check target scores
     expect(screen.getByDisplayValue(125)).toBeInTheDocument(); // John's target score
@@ -184,46 +184,37 @@ describe('GameSetup Component', () => {
     // Check that Mike (Player 2) is selected as breaking
     // Use a partial text match since player name is rendered separately from "Breaks"
     const player2BreakBtn = screen.getByRole('button', { name: /Mike.*Breaks/i });
-    expect(player2BreakBtn).toHaveClass('bg-blue-600');
+    expect(player2BreakBtn).toHaveClass('bg-blue-100');
   });
   
-  test('target score adjustment buttons work correctly', async () => {
+  test('target score inputs work correctly', async () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
       </GamePersistProvider>
     );
     
-    // Fill in player names to make labels readable
-    await userEvent.type(screen.getByLabelText('Player 1'), 'Player One');
+    // Find the score inputs by their placeholders
+    const player1ScoreInput = screen.getByDisplayValue(75);
+    const player2ScoreInput = screen.getByDisplayValue(60);
     
-    // Find the score adjustment buttons for player 1
-    const decreaseButton = screen.getAllByText('-')[0];
-    const increaseButton = screen.getAllByText('+')[0];
-    const scoreInput = screen.getByDisplayValue(75);
+    // Initial values should be 75 and 60
+    expect(player1ScoreInput).toHaveValue(75);
+    expect(player2ScoreInput).toHaveValue(60);
     
-    // Initial value should be 75
-    expect(scoreInput).toHaveValue(75);
+    // Test direct input for player 1
+    await userEvent.clear(player1ScoreInput);
+    await userEvent.type(player1ScoreInput, '83');
+    expect(player1ScoreInput).toHaveValue(83);
     
-    // Test increase button
-    fireEvent.click(increaseButton);
-    expect(scoreInput).toHaveValue(80);
+    // Test direct input for player 2
+    await userEvent.clear(player2ScoreInput);
+    await userEvent.type(player2ScoreInput, '47');
+    expect(player2ScoreInput).toHaveValue(47);
     
-    // Test decrease button
-    fireEvent.click(decreaseButton);
-    expect(scoreInput).toHaveValue(75);
-    
-    // Test minimum value limit (5)
-    // Set to low value first
-    await userEvent.clear(scoreInput);
-    await userEvent.type(scoreInput, '10');
-    expect(scoreInput).toHaveValue(10);
-    
-    // Try to decrease below minimum
-    fireEvent.click(decreaseButton);
-    expect(scoreInput).toHaveValue(5);
-    
-    fireEvent.click(decreaseButton);
-    expect(scoreInput).toHaveValue(5); // Should not go below 5
+    // Test minimum value validation (should accept any positive number)
+    await userEvent.clear(player1ScoreInput);
+    await userEvent.type(player1ScoreInput, '1');
+    expect(player1ScoreInput).toHaveValue(1);
   });
 });
