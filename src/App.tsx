@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import { createClient } from '@supabase/supabase-js';
 import GameSetup from './components/GameSetup';
@@ -7,6 +7,7 @@ import GameStatistics from './components/GameStatistics';
 import GameHistory from './components/GameHistory/index';
 import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
+import { MatchTimer } from './components/MatchTimer';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import {
   GamePersistProvider,
@@ -47,6 +48,11 @@ function AppContent() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
+
+  // Timer state for header display during scoring
+  const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
+  const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
+  const [ballsOnTable, setBallsOnTable] = useState<number>(15);
 
   // Store last used game settings for quick restart with persistence
   const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
@@ -199,6 +205,12 @@ function AppContent() {
             supabase={supabase}
             user={user}
             breakingPlayerId={breakingPlayerId}
+            matchStartTime={matchStartTime}
+            matchEndTime={matchEndTime}
+            setMatchStartTime={setMatchStartTime}
+            setMatchEndTime={setMatchEndTime}
+            ballsOnTable={ballsOnTable}
+            setBallsOnTable={setBallsOnTable}
           />
         );
       case 'statistics':
@@ -337,7 +349,16 @@ function AppContent() {
       <header className="bg-blue-800 dark:bg-blue-900 text-white py-2 px-3 shadow-md">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-xl font-bold">RunCount</h1>
+            {gameState === 'scoring' ? (
+              <MatchTimer 
+                startTime={matchStartTime} 
+                endTime={matchEndTime}
+                isRunning={!matchEndTime}
+                ballsOnTable={ballsOnTable}
+              />
+            ) : (
+              <h1 className="text-xl font-bold">RunCount</h1>
+            )}
           </div>
           <div className="flex items-center">
             <button

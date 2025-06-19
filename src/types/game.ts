@@ -62,6 +62,12 @@ export interface GameScoringProps {
   supabase: SupabaseClient;
   user?: User | null;
   breakingPlayerId?: number;
+  matchStartTime: Date | null;
+  matchEndTime: Date | null;
+  setMatchStartTime: (time: Date | null) => void;
+  setMatchEndTime: (time: Date | null) => void;
+  ballsOnTable: number;
+  setBallsOnTable: (count: number) => void;
 }
 
 export interface GameStatisticsProps {

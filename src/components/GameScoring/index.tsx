@@ -10,7 +10,6 @@ import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGamePersist } from '../../context/GamePersistContext';
-import { MatchTimer } from '../MatchTimer';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -21,6 +20,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
   supabase,
   user,
   breakingPlayerId = 0,
+  matchStartTime: parentMatchStartTime,
+  matchEndTime: parentMatchEndTime,
+  setMatchStartTime: parentSetMatchStartTime,
+  setMatchEndTime: parentSetMatchEndTime,
+  ballsOnTable: parentBallsOnTable,
+  setBallsOnTable: parentSetBallsOnTable,
 }) => {
   const { saveGameState, getGameState, clearGameState } = useGamePersist();
 
@@ -404,6 +409,25 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
   }, [hasBreakFoul, actions, lastBreakFoulActionId, lastAction]);
 
+  // Sync timer and balls state with parent component
+  useEffect(() => {
+    if (matchStartTime !== parentMatchStartTime) {
+      parentSetMatchStartTime(matchStartTime);
+    }
+  }, [matchStartTime, parentMatchStartTime, parentSetMatchStartTime]);
+
+  useEffect(() => {
+    if (matchEndTime !== parentMatchEndTime) {
+      parentSetMatchEndTime(matchEndTime);
+    }
+  }, [matchEndTime, parentMatchEndTime, parentSetMatchEndTime]);
+
+  useEffect(() => {
+    if (ballsOnTable !== parentBallsOnTable) {
+      parentSetBallsOnTable(ballsOnTable);
+    }
+  }, [ballsOnTable, parentBallsOnTable, parentSetBallsOnTable]);
+
   // Handle accepting the table after a foul on the break
   const handleAcceptTable = () => {
     // Switch to the incoming player
@@ -535,27 +559,16 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-2">
-        <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 rounded-lg flex items-center space-x-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">BOT:</span>
-          <span className="text-xl font-semibold text-blue-700 dark:text-blue-300">
-            {ballsOnTable}
-          </span>
-        </div>
-        <MatchTimer 
-          startTime={matchStartTime} 
-          endTime={matchEndTime}
-          isRunning={!gameWinner}
-        />
+      <div className="flex justify-end items-center mb-2">
         <div className="flex space-x-2">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2 text-sm font-medium"
             title="View game innings"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -567,12 +580,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
+            Innings
           </button>
 
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`p-2 rounded-md ${
+            className={`px-4 py-2 rounded-md flex items-center gap-2 text-sm font-medium ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -581,7 +595,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -593,6 +607,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
               />
             </svg>
+            Undo
           </button>
 
           <button
