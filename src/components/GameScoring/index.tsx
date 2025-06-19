@@ -93,7 +93,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
     playerNeedsReBreak,
     setPlayerNeedsReBreak,
     matchStartTime,
-    setMatchStartTime,
     matchEndTime,
     setMatchEndTime,
   } = useGameState({
