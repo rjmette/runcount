@@ -90,49 +90,34 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <div className="bg-blue-600 dark:bg-blue-700 text-white p-6">
-        <div className="flex items-center space-x-4">
-          <div className="bg-white dark:bg-gray-800 rounded-full p-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-blue-600 dark:text-blue-400"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">User Profile</h2>
-            <p className="text-sm opacity-90">{user.email}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6 dark:text-gray-100">
+    <div className="w-[300px] mx-auto bg-white dark:bg-gray-800 rounded shadow-md">
+      <div className="p-3 dark:text-gray-100">
         {error && (
-          <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6 animate-fade-in">
+          <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-3 py-2 rounded mb-4 animate-fade-in text-sm">
             {error}
           </div>
         )}
 
         {message && (
-          <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg mb-6 animate-fade-in">
+          <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-3 py-2 rounded mb-4 animate-fade-in text-sm">
             {message}
           </div>
         )}
 
         {/* Update Email Form */}
-        <div className="mb-8">
-          <h3 className="text-lg font-medium mb-4 border-b dark:border-gray-700 pb-2">
+        <div className="mb-4">
+          <h3 className="text-base font-medium mb-2 border-b dark:border-gray-700 pb-1">
             Update Email
           </h3>
-          <form onSubmit={handleUpdateEmail} className="space-y-4">
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Current Email
+            </label>
+            <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 px-2 py-1.5 rounded border">
+              {user.email}
+            </p>
+          </div>
+          <form onSubmit={handleUpdateEmail} className="space-y-2">
             <div>
               <label
                 htmlFor="new-email"
@@ -146,7 +131,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-sm"
                 placeholder="Enter new email"
                 disabled={loading}
               />
@@ -154,7 +139,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="w-full bg-blue-600 text-white py-1.5 px-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center text-sm"
               disabled={loading}
             >
               {loading ? (
@@ -189,11 +174,11 @@ const UserProfile: React.FC<UserProfileProps> = ({
         </div>
 
         {/* Update Password Form */}
-        <div className="mb-8">
-          <h3 className="text-lg font-medium mb-4 border-b dark:border-gray-700 pb-2">
+        <div className="mb-4">
+          <h3 className="text-base font-medium mb-2 border-b dark:border-gray-700 pb-1">
             Update Password
           </h3>
-          <form onSubmit={handleUpdatePassword} className="space-y-4">
+          <form onSubmit={handleUpdatePassword} className="space-y-2">
             <div>
               <label
                 htmlFor="new-password"
@@ -208,13 +193,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-sm"
                 placeholder="Enter new password"
                 disabled={loading}
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Password must be at least 6 characters long
-              </p>
             </div>
 
             <div>
@@ -230,7 +212,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-sm"
                 placeholder="Confirm new password"
                 disabled={loading}
               />
@@ -238,7 +220,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="w-full bg-blue-600 text-white py-1.5 px-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center text-sm"
               disabled={loading}
             >
               {loading ? (
@@ -275,7 +257,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
         {/* Sign Out Button */}
         <button
           onClick={() => setShowSignOutConfirm(true)}
-          className="w-full bg-red-600 text-white py-2.5 px-4 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+          className="w-full bg-red-600 text-white py-1.5 px-2 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors text-sm"
         >
           Sign Out
         </button>
@@ -284,23 +266,23 @@ const UserProfile: React.FC<UserProfileProps> = ({
       {/* Sign Out Confirmation Modal */}
       {showSignOutConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full mx-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded p-4 w-[320px] mx-4">
+            <h3 className="text-base font-medium text-gray-900 dark:text-white mb-3">
               Confirm Sign Out
             </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
+            <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
               Are you sure you want to sign out?
             </p>
-            <div className="flex justify-end space-x-3">
+            <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowSignOutConfirm(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                className="px-3 py-1.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSignOut}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-sm"
               >
                 Sign Out
               </button>

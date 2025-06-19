@@ -579,7 +579,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
       {/* Action buttons moved below player cards */}
       <div className="flex justify-center items-center mt-4">
-        <div className="flex space-x-3">
+        <div className="flex flex-col space-y-3 min-[400px]:flex-row min-[400px]:space-y-0 min-[400px]:space-x-3">
           <button
             onClick={() => setShowInningsModal(true)}
             className="w-32 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1.5 text-sm font-medium"
