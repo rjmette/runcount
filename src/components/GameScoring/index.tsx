@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameScoringProps } from '../../types/game';
 import PlayerScoreCard from '../PlayerScoreCard';
+import BreakDialog from '../BreakDialog';
 import { EndGameModal } from './components/EndGameModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { AlertModal } from './components/AlertModal';
@@ -35,10 +36,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
   const [showInningsModal, setShowInningsModal] = useState(false);
+  const [showBreakDialog, setShowBreakDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
   >(null);
+  const [currentBreakingPlayerId, setCurrentBreakingPlayerId] = useState<number>(breakingPlayerId);
 
   // Add effect to detect user login and save game to SupaBase
   useEffect(() => {
@@ -557,6 +560,48 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setBotAction(null);
   };
 
+  // Handle changing the breaking player
+  const handleChangeBreaker = (newBreakingPlayerId: number) => {
+    setCurrentBreakingPlayerId(newBreakingPlayerId);
+    
+    // Update the active player to match the new breaking player
+    setActivePlayerIndex(newBreakingPlayerId);
+    
+    // Update player data to ensure the new breaking player has correct innings count
+    const updatedPlayerData = [...playerData];
+    updatedPlayerData.forEach((player, index) => {
+      if (index === newBreakingPlayerId) {
+        // New breaking player should have 1 inning if currently 0
+        if (player.innings === 0) {
+          player.innings = 1;
+        }
+      } else {
+        // Other players should have 0 innings if we're in the first inning
+        if (currentInning === 1) {
+          player.innings = 0;
+        }
+      }
+    });
+    setPlayerData(updatedPlayerData);
+    
+    // Update localStorage to persist the breaking player preference
+    localStorage.setItem('runcount_lastBreakingPlayerId', JSON.stringify(newBreakingPlayerId));
+    
+    // Save the updated game state
+    if (gameId) {
+      saveGameState({
+        id: gameId,
+        date: new Date().toISOString(),
+        players: updatedPlayerData,
+        actions,
+        completed: false,
+        winner_id: null,
+      });
+    }
+    
+    // No need for alert - the UI immediately shows the change
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -573,6 +618,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             targetScore={player.targetScore}
             needsReBreak={playerNeedsReBreak === player.id}
             currentInning={currentInning}
+            onBreakClick={() => setShowBreakDialog(true)}
           />
         ))}
       </div>
@@ -687,6 +733,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
         isOpen={showAlertModal}
         onClose={() => setShowAlertModal(false)}
         message={alertMessage}
+      />
+
+      <BreakDialog
+        isOpen={showBreakDialog}
+        onClose={() => setShowBreakDialog(false)}
+        onChangeBreaker={handleChangeBreaker}
+        players={players}
+        currentBreakingPlayerId={currentBreakingPlayerId}
       />
 
       <InningsModal
