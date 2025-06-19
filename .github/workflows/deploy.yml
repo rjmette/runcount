@@ -10,6 +10,7 @@ on:
 env:
   AWS_REGION: us-east-1
   S3_BUCKET: runcountapp
+  CLOUDFRONT_DISTRIBUTION_ID: E3FN1GEXG15HYW
 
 jobs:
   test:
@@ -110,6 +111,16 @@ jobs:
             "ErrorDocument": {"Key": "index.html"}
           }'
         echo "✅ S3 bucket configured for static website hosting"
+        
+    - name: Invalidate CloudFront
+      run: |
+        echo "🔄 Invalidating CloudFront distribution: ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}..."
+        INVALIDATION_ID=$(aws cloudfront create-invalidation \
+          --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*" \
+          --query 'Invalidation.Id' \
+          --output text)
+        echo "✅ CloudFront invalidation created: $INVALIDATION_ID"
 
   notify:
     needs: [test, deploy]
@@ -121,10 +132,11 @@ jobs:
       run: |
         echo "🚀 RunCount Deployment Summary"
         echo "============================="
-        echo "Application: http://${{ env.S3_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
-        echo "S3 Bucket: ${{ env.S3_BUCKET }}"
-        echo "Region: ${{ env.AWS_REGION }}"
-        echo "Status: ${{ needs.deploy.result }}"
+        echo "🌐 Primary URL: https://runcount.rbios.net"
+        echo "🔄 CloudFront Distribution: ${{ env.CLOUDFRONT_DISTRIBUTION_ID }}"
+        echo "📦 S3 Bucket: ${{ env.S3_BUCKET }}"
+        echo "🌍 Region: ${{ env.AWS_REGION }}"
+        echo "📊 Status: ${{ needs.deploy.result }}"
         
         if [ "${{ needs.deploy.result }}" = "success" ]; then
           echo "✅ Deployment completed successfully!"
