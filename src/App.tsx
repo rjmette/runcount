@@ -48,6 +48,7 @@ function AppContent() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Timer state for header display during scoring
   const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
@@ -155,6 +156,31 @@ function AppContent() {
       window.removeEventListener('switchToHistory', handleSwitchToHistory);
     };
   }, []);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Toggle fullscreen
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.warn('Fullscreen toggle failed:', error);
+    }
+  };
 
   // Handle user sign out
   const handleSignOut = async () => {
@@ -363,7 +389,7 @@ function AppContent() {
           <div className="flex items-center">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="mr-4 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800"
+              className="mr-2 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800"
               aria-label={
                 darkMode ? 'Switch to light mode' : 'Switch to dark mode'
               }
@@ -392,8 +418,41 @@ function AppContent() {
                 </svg>
               )}
             </button>
+            <button
+              onClick={toggleFullscreen}
+              className="mr-2 p-2 hover:bg-blue-700 dark:hover:bg-blue-800"
+              aria-label={isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            >
+              {isFullScreen ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 3a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V5a1 1 0 100-2H4zm2 2h8v10H6V5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 11-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 11-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 112 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 110 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 110-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+            </button>
             {user ? (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <span className="hidden md:inline text-sm">{user.email}</span>
                 <div className="relative">
                   <button
