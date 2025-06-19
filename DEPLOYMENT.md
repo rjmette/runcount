@@ -69,6 +69,8 @@ gh run view [RUN_ID]
 ### Required GitHub Secrets
 - `AWS_ACCESS_KEY_ID`: AWS access key for deployment
 - `AWS_SECRET_ACCESS_KEY`: AWS secret key for deployment
+- `REACT_APP_SUPABASE_KEY`: Supabase anon key for production build
+- `REACT_APP_SUPABASE_URL`: Supabase project URL for production build
 
 ### CloudFront Configuration
 - **Config File**: `scripts/cloudfront-distribution-config.json`
