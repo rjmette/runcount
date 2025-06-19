@@ -87,7 +87,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
       <form onSubmit={handleSubmit}>
         <div className="space-y-6">
           <div>
-            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="player1"
@@ -128,7 +128,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
           </div>
 
           <div>
-            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="player2"
