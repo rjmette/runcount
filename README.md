@@ -14,11 +14,15 @@ A modern, mobile-responsive scoring application for the billiards game Straight 
 - **User Accounts**: Secure authentication for saving and accessing personal game history
 - **Responsive Design**: Fully optimized for tablets and smartphones with touch-friendly controls
 
+## Live Application
+
+🌐 **RunCount is live at: https://runcount.rbios.net**
+
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
 - Supabase account (for database and authentication)
 
@@ -121,7 +125,73 @@ Requires proper AWS credentials and configuration.
 
 - **Deployment**:
   - AWS S3 static website hosting
-  - Automated deployment via scripts
+  - CloudFront CDN for global distribution
+  - SSL certificate via AWS Certificate Manager
+  - Custom domain: runcount.rbios.net
+  - Automated GitHub Actions CI/CD pipeline
+
+## Deployment Architecture
+
+### Infrastructure Overview
+
+- **S3 Bucket**: `runcountapp` (us-east-1)
+- **CloudFront Distribution**: `E3FN1GEXG15HYW`
+- **Custom Domain**: `runcount.rbios.net`
+- **SSL Certificate**: AWS Certificate Manager (ACM)
+- **DNS**: Route53 hosted zone for rbios.net
+
+### GitHub Actions CI/CD Pipeline
+
+The application uses automated deployment via GitHub Actions with the following workflow:
+
+1. **Test Phase**:
+   - Install dependencies
+   - Run test suite with coverage
+   - Build production bundle
+
+2. **Deploy Phase** (main branch only):
+   - Deploy build files to S3
+   - Configure S3 bucket for static website hosting
+   - Invalidate CloudFront cache for immediate updates
+
+3. **Notification Phase**:
+   - Display deployment summary with URLs and status
+
+### Manual Deployment
+
+You can trigger deployment manually:
+
+```bash
+# Via GitHub CLI
+gh workflow run deploy.yml
+
+# Or via legacy script (if AWS CLI configured locally)
+./scripts/deploy.sh
+```
+
+### Infrastructure Setup
+
+For setting up your own deployment:
+
+1. **S3 Bucket**:
+   ```bash
+   aws s3 mb s3://your-bucket-name
+   aws s3 website s3://your-bucket-name --index-document index.html --error-document index.html
+   ```
+
+2. **CloudFront Distribution**:
+   - Use provided `scripts/cloudfront-distribution-config.json` as template
+   - Update domain names and certificate ARN
+   - Create distribution: `aws cloudfront create-distribution --distribution-config file://config.json`
+
+3. **SSL Certificate**:
+   ```bash
+   aws acm request-certificate --domain-name your-domain.com --validation-method DNS --region us-east-1
+   ```
+
+4. **GitHub Secrets**:
+   - Add `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` to repository secrets
+   - Update `CLOUDFRONT_DISTRIBUTION_ID` in `.github/workflows/deploy.yml`
 
 ## Contributing
 
