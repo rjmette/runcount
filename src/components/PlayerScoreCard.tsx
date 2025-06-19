@@ -44,14 +44,14 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   return (
     <div
       data-testid="player-card"
-      className={`rounded-lg shadow-md p-3 mb-2 transition-all ${
+      className={`rounded-lg p-3 mb-2 transition-all duration-300 ${
         isActive
-          ? 'bg-blue-50 dark:bg-blue-900 border-2 border-blue-500'
-          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80'
+          ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 border-2 border-blue-500 shadow-lg shadow-blue-200 dark:shadow-blue-900/50 scale-[1.02]'
+          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80 shadow-md'
       }`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold dark:text-white">
+        <h3 className="text-2xl font-extrabold dark:text-white">
           {player.name}
           {player.score >= targetScore && (
             <span className="ml-1 text-yellow-500">🏆</span>
@@ -102,28 +102,28 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </div>
 
         <div>
-          <span className="block text-lg font-semibold dark:text-white">
+          <span className="block text-xl font-bold dark:text-white">
             {player.innings}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
             Innings
           </span>
         </div>
 
         <div>
-          <span className="block text-lg font-semibold dark:text-white">
+          <span className="block text-xl font-bold dark:text-white">
             {player.highRun}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
             High Run
           </span>
         </div>
 
         <div>
-          <span className="block text-lg font-semibold dark:text-white">
+          <span className="block text-xl font-bold dark:text-white">
             {bpi}
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">BPI</span>
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">BPI</span>
         </div>
       </div>
 
@@ -144,7 +144,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             label="Miss"
             value={0}
             onClick={() => onAddMiss()}
-            className="bg-gray-600 hover:bg-gray-700 w-full"
+            className="bg-gray-500 hover:bg-gray-600 hover:shadow-lg hover:scale-105 transition-all duration-150 border border-gray-400 dark:border-gray-500 w-full"
           />
 
           <div className="grid grid-cols-3 gap-3">
@@ -152,14 +152,14 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
               label="Safety"
               value={0}
               onClick={() => onAddSafety()}
-              className="bg-yellow-600 hover:bg-yellow-700"
+              className="bg-yellow-600 hover:bg-yellow-700 hover:shadow-lg hover:scale-105 transition-all duration-150"
             />
 
             <ScoreButton
               label="Foul"
               value={-1}
               onClick={() => onAddFoul()}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 hover:shadow-lg hover:scale-105 transition-all duration-150"
             />
 
             <ScoreButton
@@ -182,28 +182,28 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
               }
               value={1}
               onClick={() => onAddScore(1)}
-              className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+              className="bg-green-600 hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-150 whitespace-nowrap"
             />
           </div>
         </div>
       )}
 
-      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
-          <span className="font-medium dark:text-gray-300">
+          <span className="font-bold dark:text-gray-300">
             {player.safeties}
           </span>{' '}
-          Safeties
+          <span className="font-medium">Safeties</span>
         </div>
         <div>
-          <span className="font-medium dark:text-gray-300">{player.fouls}</span>{' '}
-          Fouls
+          <span className="font-bold dark:text-gray-300">{player.fouls}</span>{' '}
+          <span className="font-medium">Fouls</span>
         </div>
         <div>
-          <span className="font-medium dark:text-gray-300">
+          <span className="font-bold dark:text-gray-300">
             {player.missedShots}
           </span>{' '}
-          Misses
+          <span className="font-medium">Misses</span>
         </div>
       </div>
     </div>
