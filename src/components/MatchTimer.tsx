@@ -47,14 +47,10 @@ export const MatchTimer: React.FC<MatchTimerProps> = ({
     updateTimer();
 
     // Set up interval only if timer is running and no end time
-    let interval: NodeJS.Timeout | null = null;
     if (isRunning && !endTime) {
-      interval = setInterval(updateTimer, 1000);
+      const interval = setInterval(updateTimer, 1000);
+      return () => clearInterval(interval);
     }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
   }, [startTime, endTime, isRunning]);
 
   return (
