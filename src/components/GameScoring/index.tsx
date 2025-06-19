@@ -10,6 +10,7 @@ import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGamePersist } from '../../context/GamePersistContext';
+import { MatchTimer } from '../MatchTimer';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -91,6 +92,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled,
     playerNeedsReBreak,
     setPlayerNeedsReBreak,
+    matchStartTime,
+    setMatchStartTime,
+    matchEndTime,
+    setMatchEndTime,
   } = useGameState({
     players,
     playerTargetScores,
@@ -116,6 +121,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
           actions,
           completed,
           winner_id: winner_id,
+          startTime: matchStartTime || undefined,
+          endTime: matchEndTime || undefined,
         });
       }
 
@@ -131,6 +138,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
             actions,
             completed,
             winner_id: winner_id,
+            startTime: matchStartTime,
+            endTime: matchEndTime,
           })
         );
       } catch (err) {
@@ -153,6 +162,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
           winner_id: winner_id,
           owner_id: user.id,
           deleted: false,
+          startTime: matchStartTime || undefined,
+          endTime: matchEndTime || undefined,
         };
 
         const { error } = await supabase.from('games').upsert(payload);
@@ -273,6 +284,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setAlertMessage,
       setIsUndoEnabled,
       playerNeedsReBreak,
+      setMatchEndTime,
     });
 
   // Game history management
@@ -315,6 +327,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
             actions,
             completed,
             winner_id: winner_id,
+            startTime: matchStartTime,
+            endTime: matchEndTime,
           })
         );
       } catch (err) {
@@ -337,6 +351,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
           winner_id: winner_id,
           owner_id: user.id,
           deleted: false,
+          startTime: matchStartTime || undefined,
+          endTime: matchEndTime || undefined,
         };
 
         const { error } = await supabase.from('games').upsert(payload);
@@ -534,6 +550,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
             {ballsOnTable}
           </span>
         </div>
+        <MatchTimer 
+          startTime={matchStartTime} 
+          endTime={matchEndTime}
+          isRunning={!gameWinner}
+        />
         <div className="flex space-x-2">
           <button
             onClick={() => setShowInningsModal(true)}

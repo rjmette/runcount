@@ -28,6 +28,7 @@ interface UseGameActionsProps {
   setAlertMessage: (message: string) => void;
   setIsUndoEnabled: (enabled: boolean) => void;
   playerNeedsReBreak: number | null;
+  setMatchEndTime: (endTime: Date | null) => void;
 }
 
 export const useGameActions = ({
@@ -52,6 +53,7 @@ export const useGameActions = ({
   setAlertMessage,
   setIsUndoEnabled,
   playerNeedsReBreak,
+  setMatchEndTime,
 }: UseGameActionsProps) => {
   const handleAddScore = (score: number, botsValue?: number) => {
     if (botsValue === undefined) {
@@ -226,6 +228,7 @@ export const useGameActions = ({
     if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
       const winner = { ...updatedPlayerData[activePlayerIndex] };
       setGameWinner(winner);
+      setMatchEndTime(new Date());
       setShowEndGameModal(true);
       saveGameToSupabase(
         gameId,
@@ -304,6 +307,7 @@ export const useGameActions = ({
     if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
       const winner = { ...updatedPlayerData[activePlayerIndex] };
       setGameWinner(winner);
+      setMatchEndTime(new Date());
       setShowEndGameModal(true);
       saveGameToSupabase(
         gameId,
@@ -382,6 +386,7 @@ export const useGameActions = ({
     if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
       const winner = { ...updatedPlayerData[activePlayerIndex] };
       setGameWinner(winner);
+      setMatchEndTime(new Date());
       setShowEndGameModal(true);
       saveGameToSupabase(
         gameId,
