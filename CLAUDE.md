@@ -16,7 +16,6 @@
 
 # Workflow
 
-- Be sure to typecheck when you’re done making a series of code changes
 - Prefer running single tests, and not the whole test suite, for performance
 - Dont run a dev server, though you can build to validate
 - Use todoist and the #todoist project to manage the project todo list

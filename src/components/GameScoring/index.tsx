@@ -563,7 +563,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         <div className="flex space-x-2">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2 text-sm font-medium"
+            className="w-28 px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1 text-xs font-medium"
             title="View game innings"
           >
             <svg
@@ -586,7 +586,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`px-4 py-2 rounded-md flex items-center gap-2 text-sm font-medium ${
+            className={`w-28 px-2 py-1 rounded flex items-center justify-center gap-1 text-xs font-medium ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -612,8 +612,22 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-lg font-medium"
+            className="w-28 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1 text-xs font-medium"
           >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8.002 8.002 0 0115.356 2M20 20v-5h-.581m-15.356-2A8.001 8.001 0 0019.419 15m0 0V15a8.002 8.002 0 00-15.356-2"
+              />
+            </svg>
             New Game
           </button>
         </div>
