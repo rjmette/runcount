@@ -40,6 +40,8 @@ export const useGameState = ({
   const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(
     null
   );
+  const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
+  const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
 
   // Initialize game data
   const initializedRef = useRef(false);
@@ -52,6 +54,14 @@ export const useGameState = ({
       // Restore from saved game state
       setPlayerData(savedGameState.players);
       setActions(savedGameState.actions);
+      
+      // Restore match timing
+      if (savedGameState.startTime) {
+        setMatchStartTime(new Date(savedGameState.startTime));
+      }
+      if (savedGameState.endTime) {
+        setMatchEndTime(new Date(savedGameState.endTime));
+      }
 
       // Calculate current state based on actions
       let activePlayer = 0;
@@ -143,6 +153,12 @@ export const useGameState = ({
         setActivePlayerIndex(breakingPlayerId);
       }
       setPlayerNeedsReBreak(null);
+      
+      // Start match timer for new game
+      const startTime = new Date();
+      setMatchStartTime(startTime);
+      setMatchEndTime(null);
+      
       saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,5 +201,9 @@ export const useGameState = ({
     setIsUndoEnabled,
     playerNeedsReBreak,
     setPlayerNeedsReBreak,
+    matchStartTime,
+    setMatchStartTime,
+    matchEndTime,
+    setMatchEndTime,
   };
 };

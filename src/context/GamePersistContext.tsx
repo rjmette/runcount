@@ -46,6 +46,14 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
         ...action,
         timestamp: new Date(action.timestamp)
       }));
+      
+      // Convert timing fields back to Date objects
+      if (parsedData.startTime) {
+        parsedData.startTime = new Date(parsedData.startTime);
+      }
+      if (parsedData.endTime) {
+        parsedData.endTime = new Date(parsedData.endTime);
+      }
 
       return parsedData;
     } catch (error) {

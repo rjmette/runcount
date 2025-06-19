@@ -38,6 +38,8 @@ export interface GameData {
   actions: GameAction[];
   owner_id?: string; // UUID string from auth.users.id
   deleted?: boolean; // Flag for soft deletion
+  startTime?: Date | string; // When the match timer started
+  endTime?: Date | string; // When the match ended
 }
 
 export interface GameSetupProps {
