@@ -559,16 +559,35 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex justify-end items-center mb-2">
-        <div className="flex space-x-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {playerData.map((player, index) => (
+          <PlayerScoreCard
+            key={player.id}
+            player={player}
+            isActive={index === activePlayerIndex}
+            onAddScore={() => handleActionClick('newrack')}
+            onAddFoul={() => handleActionClick('foul')}
+            onAddSafety={() => handleActionClick('safety')}
+            onAddMiss={() => handleActionClick('miss')}
+            onShowHistory={() => setShowHistoryModal(true)}
+            targetScore={player.targetScore}
+            needsReBreak={playerNeedsReBreak === player.id}
+            currentInning={currentInning}
+          />
+        ))}
+      </div>
+
+      {/* Action buttons moved below player cards */}
+      <div className="flex justify-center items-center mt-4">
+        <div className="flex space-x-3">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="w-28 px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1 text-xs font-medium"
+            className="w-32 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1.5 text-sm font-medium"
             title="View game innings"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -586,7 +605,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`w-28 px-2 py-1 rounded flex items-center justify-center gap-1 text-xs font-medium ${
+            className={`w-32 px-3 py-2 rounded flex items-center justify-center gap-1.5 text-sm font-medium ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -595,7 +614,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -612,11 +631,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="w-28 px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1 text-xs font-medium"
+            className="w-32 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1.5 text-sm font-medium"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -631,24 +650,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
             New Game
           </button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {playerData.map((player, index) => (
-          <PlayerScoreCard
-            key={player.id}
-            player={player}
-            isActive={index === activePlayerIndex}
-            onAddScore={() => handleActionClick('newrack')}
-            onAddFoul={() => handleActionClick('foul')}
-            onAddSafety={() => handleActionClick('safety')}
-            onAddMiss={() => handleActionClick('miss')}
-            onShowHistory={() => setShowHistoryModal(true)}
-            targetScore={player.targetScore}
-            needsReBreak={playerNeedsReBreak === player.id}
-            currentInning={currentInning}
-          />
-        ))}
       </div>
 
       {playerData.length > 0 && (

@@ -491,10 +491,6 @@ function AppContent() {
         {renderComponent()}
       </main>
 
-      <footer className="bg-gray-200 dark:bg-gray-800 p-2 text-center text-sm text-gray-600 dark:text-gray-400">
-        Straight Pool 14.1 Scoring App
-      </footer>
-
       {renderAuthModal()}
       {renderProfileModal()}
     </div>
