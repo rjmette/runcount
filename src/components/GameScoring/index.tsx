@@ -470,15 +470,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   const handleEndGame = () => {
     if (!gameWinner && gameId) {
-      // Mark the current game as completed when leaving without a winner
-      saveGameState({
-        id: gameId,
-        date: new Date().toISOString(),
-        players: playerData,
-        actions,
-        completed: true,
-        winner_id: null,
-      });
+      // Clear the active game state since we're ending the game
+      clearGameState();
 
       // Make sure to also update Supabase directly
       if (user) {

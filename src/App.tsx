@@ -35,7 +35,7 @@ function App() {
 // The actual app content, using the auth context
 function AppContent() {
   const { user, loading, signOut } = useAuth();
-  const { getGameState, hasActiveGame } = useGamePersist();
+  const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
   // Game state management
   const [gameState, setGameState] = useState<GameState>('setup');
@@ -76,7 +76,8 @@ function AppContent() {
   useEffect(() => {
     if (hasActiveGame) {
       const savedGame = getGameState();
-      if (savedGame) {
+      if (savedGame && !savedGame.completed) {
+        // Only load games that are actually in progress
         // Set player names from the saved game
         const playerNames = savedGame.players.map((player) => player.name);
         setPlayers(playerNames);
@@ -91,13 +92,18 @@ function AppContent() {
         // Set the game ID
         setCurrentGameId(savedGame.id);
 
-        // Redirect to scoring screen if game was in progress
-        if (!savedGame.completed) {
-          setGameState('scoring');
+        // Redirect to scoring screen since game is in progress
+        setGameState('scoring');
+      } else {
+        // If the saved game is completed or corrupted, clear it and stay on setup
+        if (savedGame?.completed) {
+          // Clear completed games from active storage
+          clearGameState();
         }
+        setGameState('setup');
       }
     }
-  }, [hasActiveGame, getGameState]);
+  }, [hasActiveGame, getGameState, clearGameState]);
 
   // Close auth modal when user is authenticated
   useEffect(() => {
@@ -131,6 +137,18 @@ function AppContent() {
       JSON.stringify(lastBreakingPlayerId)
     );
   }, [lastBreakingPlayerId]);
+
+  // Listen for navigation to history from end game modal
+  useEffect(() => {
+    const handleSwitchToHistory = () => {
+      setGameState('history');
+    };
+
+    window.addEventListener('switchToHistory', handleSwitchToHistory);
+    return () => {
+      window.removeEventListener('switchToHistory', handleSwitchToHistory);
+    };
+  }, []);
 
   // Handle user sign out
   const handleSignOut = async () => {

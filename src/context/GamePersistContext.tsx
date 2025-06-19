@@ -21,7 +21,24 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Check if there's an active game on init
   useEffect(() => {
     const storedGame = localStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
-    setHasActiveGame(!!storedGame);
+    if (storedGame) {
+      try {
+        const parsedData = JSON.parse(storedGame) as GameData;
+        // Only consider it an active game if it's not completed
+        setHasActiveGame(!parsedData.completed);
+        
+        // If it's completed, clean it up
+        if (parsedData.completed) {
+          localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+        }
+      } catch (error) {
+        // If parsing fails, clear the corrupted data
+        localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+        setHasActiveGame(false);
+      }
+    } else {
+      setHasActiveGame(false);
+    }
   }, []);
 
   const saveGameState = (gameData: GameData) => {
