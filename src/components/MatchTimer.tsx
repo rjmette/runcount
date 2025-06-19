@@ -57,12 +57,9 @@ export const MatchTimer: React.FC<MatchTimerProps> = ({
 
   return (
     <div className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-lg">
-      <div className="flex items-center gap-1">
-        <div className={`w-2 h-2 rounded-full ${
-          isRunning && !endTime ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-        }`} />
-        <span className="text-sm font-medium text-gray-600">Match Time:</span>
-      </div>
+      <div className={`w-2 h-2 rounded-full ${
+        isRunning && !endTime ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+      }`} />
       <span className="text-lg font-mono font-bold text-gray-800">
         {elapsedTime}
       </span>
