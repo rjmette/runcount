@@ -60,7 +60,7 @@ const Auth: React.FC<AuthProps> = ({ supabase, onAuthSuccess }) => {
       </div>
 
       {/* Content */}
-      <div className="p-8 dark:text-white">
+      <div className="p-4 dark:text-white">
         <div className="transform transition-all duration-300 ease-in-out">
           {activeTab === 'login' && (
             <Login supabase={supabase} onSuccess={onAuthSuccess} />

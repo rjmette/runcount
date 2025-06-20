@@ -85,18 +85,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {isResetting ? 'Set New Password' : 'Reset Password'}
-        </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {isResetting
-            ? 'Please enter your new password below'
-            : 'Enter your email to receive password reset instructions'}
-        </p>
-      </div>
-
+    <div className="space-y-5">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in">
           {error}
@@ -129,9 +118,6 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({
               placeholder="Enter your new password"
               disabled={loading}
             />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Password must be at least 6 characters
-            </p>
           </div>
 
           <div>

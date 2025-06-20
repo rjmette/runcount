@@ -327,26 +327,36 @@ function AppContent() {
     if (!showAuthModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
-          <div className="p-4 flex justify-between border-b dark:border-gray-700">
-            <h2 className="text-lg font-bold dark:text-white">
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm sm:max-w-lg w-full relative max-h-[90vh] overflow-y-auto">
+          <button
+            onClick={() => setShowAuthModal(false)}
+            className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black bg-opacity-20 hover:bg-opacity-30 text-white transition-colors"
+          >
+            ✕
+          </button>
+          <div className="p-4 sm:p-6 text-center bg-gray-100 dark:bg-gray-700 rounded-t-2xl">
+            <h2 className="text-lg sm:text-xl font-bold dark:text-white">
               Authentication
             </h2>
-            <button
-              onClick={() => setShowAuthModal(false)}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-100"
-            >
-              ✕
-            </button>
           </div>
-          <div className="p-4">
-            {(gameState === 'scoring' || gameState === 'statistics') && (
-              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-md text-sm">
+          <div className="p-3 sm:p-4">
+            {(gameState === 'scoring' || gameState === 'statistics') ? (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-lg text-sm">
                 <p>
                   <strong>Note:</strong> Logging in will save your current game
                   to your account, allowing you to access it from any device.
                 </p>
+              </div>
+            ) : (
+              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-lg text-sm">
+                <p className="font-semibold mb-2">Benefits of logging in:</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Save your game history across devices</li>
+                  <li>Track your statistics and progress</li>
+                  <li>Never lose your game data</li>
+                  <li>Access your games from anywhere</li>
+                </ul>
               </div>
             )}
             <Auth
@@ -532,20 +542,28 @@ function AppContent() {
                   </button>
                 </div>
               </div>
-            ) : gameState === 'scoring' ? (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
-              >
-                Log In
-              </button>
             ) : (
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-800 shadow-sm"
-              >
-                Log In
-              </button>
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <button
+                    className="bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 p-2 rounded-full text-gray-300 dark:text-gray-400 hover:text-gray-200 transition-colors"
+                    onClick={() => setShowAuthModal(true)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>

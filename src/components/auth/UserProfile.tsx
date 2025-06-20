@@ -56,10 +56,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
 
     try {
       setLoading(true);
@@ -192,7 +188,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
-                minLength={6}
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-sm"
                 placeholder="Enter new password"
                 disabled={loading}

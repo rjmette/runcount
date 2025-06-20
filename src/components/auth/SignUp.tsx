@@ -70,16 +70,7 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Create Account
-        </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Join us to start tracking your games
-        </p>
-      </div>
-
+    <div className="space-y-5">
       {error && (
         <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in">
           {error}
@@ -130,9 +121,6 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
             placeholder="Create a password"
             disabled={loading}
           />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Password must be at least 6 characters
-          </p>
         </div>
 
         <div>
