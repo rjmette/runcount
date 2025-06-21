@@ -81,6 +81,23 @@ aws cloudfront list-distributions --output table
 aws cloudfront create-invalidation --distribution-id E3FN1GEXG15HYW --paths "/*"
 ```
 
+### Memory Management
+
+- Store user preferences and project context in memory
+- Use memory to track recurring patterns and decisions
+- Start with "Remembering..." and read what you stored in memory before working on a task
+- Reference knowledge as "memory"
+- Only store information that would be valuable to remember across conversations
+- Focus on persistent facts, important context, and significant project details
+- Avoid storing routine actions, temporary status updates, or easily discoverable information
+
+### Task Management
+
+- Use Todoist for project task management
+- **RunCount Project ID**: `2351045927` (under Projects > RunCount)
+- Create todos for multi-step tasks
+- Mark tasks complete once verified after finishing
+
 ### URLs
 
 - **Production**: https://runcount.rbios.net

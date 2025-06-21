@@ -1,16 +1,3 @@
 {
-  "mcpServers": {
-    "todoist-mcp": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["/Users/zeroadmin/src/mcp/todoist-mcp/build/index.js"],
-      "env": {
-        "TODOIST_API_KEY": "630b5d66b5924f1e42aa4dd622ac89a5b6ee96fd"
-      }
-    },
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
-    }
-  }
+  "mcpServers": {}
 }

@@ -625,15 +625,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
       {/* Action buttons moved below player cards */}
       <div className="flex justify-center items-center mt-4">
-        <div className="flex flex-col space-y-3 min-[400px]:flex-row min-[400px]:space-y-0 min-[400px]:space-x-3">
+        <div className="flex flex-col space-y-3 min-[360px]:flex-row min-[360px]:space-y-0 min-[360px]:space-x-2">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="w-32 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1.5 text-sm font-medium"
+            className="w-28 px-2 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
             title="View game innings"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -651,7 +651,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`w-32 px-3 py-2 rounded flex items-center justify-center gap-1.5 text-sm font-medium ${
+            className={`w-28 px-2 py-2 rounded flex items-center justify-center gap-1 text-sm font-medium ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -660,7 +660,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -677,11 +677,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="w-32 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1.5 text-sm font-medium"
+            className="w-28 px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

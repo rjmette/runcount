@@ -261,13 +261,18 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   const copyMatchResults = async () => {
     const formattedText = formatGameResultsForEmail();
-    try {
-      await navigator.clipboard.writeText(formattedText);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
+    const { copyWithFeedback } = await import('../utils/copyToClipboard');
+    
+    await copyWithFeedback(
+      formattedText,
+      () => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      },
+      (error) => {
+        console.error('Failed to copy text:', error);
+      }
+    );
   };
 
   const tooltipContent = {
