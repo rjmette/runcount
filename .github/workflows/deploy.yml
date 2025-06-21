@@ -31,8 +31,8 @@ jobs:
       
     - name: Run tests
       env:
-        REACT_APP_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
-        REACT_APP_SUPABASE_URL: "https://test.supabase.co"
+        VITE_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
+        VITE_SUPABASE_URL: "https://test.supabase.co"
       run: npm test -- --coverage --watchAll=false
       
     - name: Build project
@@ -58,8 +58,8 @@ jobs:
       
     - name: Build project
       env:
-        REACT_APP_SUPABASE_KEY: ${{ secrets.REACT_APP_SUPABASE_KEY }}
-        REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+        VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       run: npm run build
       
     - name: Configure AWS credentials
