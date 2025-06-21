@@ -17,7 +17,7 @@ describe('ScoreButton Component', () => {
   });
   
   test('calls onClick handler with correct value when clicked', () => {
-    const mockOnClick = jest.fn();
+    const mockOnClick = vi.fn();
     const testValue = 10;
     
     render(

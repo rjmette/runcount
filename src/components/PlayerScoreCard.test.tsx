@@ -9,8 +9,8 @@ const getByClassName = (container: HTMLElement, className: string): HTMLElement 
 };
 
 // Mock the ScoreButton component to simplify testing
-jest.mock('./ScoreButton', () => {
-  return function MockScoreButton(props: any) {
+vi.mock('./ScoreButton', () => ({
+  default: function MockScoreButton(props: any) {
     // Handle both string and non-string labels safely
     const labelStr = typeof props.label === 'string' ? props.label : String(props.label);
     const testId = `score-button-${labelStr.toLowerCase().replace(/\s+/g, '-')}`;
@@ -23,8 +23,8 @@ jest.mock('./ScoreButton', () => {
         {props.label}
       </button>
     );
-  };
-});
+  },
+}));
 
 describe('PlayerScoreCard Component', () => {
   // Sample player data for testing
@@ -42,16 +42,16 @@ describe('PlayerScoreCard Component', () => {
   };
   
   const mockHandlers = {
-    onAddScore: jest.fn(),
-    onAddFoul: jest.fn(),
-    onAddSafety: jest.fn(),
-    onAddMiss: jest.fn(),
-    onShowHistory: jest.fn(),
-    onRegularShot: jest.fn()
+    onAddScore: vi.fn(),
+    onAddFoul: vi.fn(),
+    onAddSafety: vi.fn(),
+    onAddMiss: vi.fn(),
+    onShowHistory: vi.fn(),
+    onRegularShot: vi.fn()
   };
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   
   test('renders player information correctly', () => {

@@ -4,8 +4,8 @@ import { AuthProvider, useAuth } from './AuthContext';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 // Mock Supabase client
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(),
 }));
 
 // Create a test component that uses the auth context
@@ -23,10 +23,10 @@ const TestComponent = () => {
 
 describe('AuthContext', () => {
   // Create mock implementation of Supabase client
-  const mockSignOut = jest.fn(() => Promise.resolve({ error: null }));
-  const mockGetSession = jest.fn();
-  const mockRefreshSession = jest.fn();
-  const mockOnAuthStateChange = jest.fn();
+  const mockSignOut = vi.fn(() => Promise.resolve({ error: null }));
+  const mockGetSession = vi.fn();
+  const mockRefreshSession = vi.fn();
+  const mockOnAuthStateChange = vi.fn();
   
   const mockSupabase = {
     auth: {
@@ -37,10 +37,10 @@ describe('AuthContext', () => {
     },
   } as unknown as SupabaseClient;
   
-  const mockUnsubscribe = jest.fn();
+  const mockUnsubscribe = vi.fn();
   
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Default mocked responses
     mockGetSession.mockResolvedValue({

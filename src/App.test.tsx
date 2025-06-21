@@ -3,45 +3,55 @@ import { render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 
 // Mock context to bypass Supabase auth
-jest.mock('./context/AuthContext', () => ({
+vi.mock('./context/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => ({
     user: null,
     loading: false,
-    signOut: jest.fn(),
+    signOut: vi.fn(),
   }),
 }));
 
 // Mock components to simplify tests
-jest.mock('./components/GameSetup', () => () => (
-  <div data-testid="game-setup">Game Setup Component</div>
-));
+vi.mock('./components/GameSetup', () => ({
+  default: () => (
+    <div data-testid="game-setup">Game Setup Component</div>
+  ),
+}));
 
-jest.mock('./components/GameScoring', () => () => (
-  <div data-testid="game-scoring">Game Scoring Component</div>
-));
+vi.mock('./components/GameScoring', () => ({
+  default: () => (
+    <div data-testid="game-scoring">Game Scoring Component</div>
+  ),
+}));
 
-jest.mock('./components/GameStatistics', () => () => (
-  <div data-testid="game-statistics">Game Statistics Component</div>
-));
+vi.mock('./components/GameStatistics', () => ({
+  default: () => (
+    <div data-testid="game-statistics">Game Statistics Component</div>
+  ),
+}));
 
-jest.mock('./components/GameHistory', () => () => (
-  <div data-testid="game-history">Game History Component</div>
-));
+vi.mock('./components/GameHistory', () => ({
+  default: () => (
+    <div data-testid="game-history">Game History Component</div>
+  ),
+}));
 
-jest.mock('./components/auth/UserProfile', () => () => (
-  <div data-testid="user-profile">User Profile Component</div>
-));
+vi.mock('./components/auth/UserProfile', () => ({
+  default: () => (
+    <div data-testid="user-profile">User Profile Component</div>
+  ),
+}));
 
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
       store[key] = value.toString();
     }),
-    clear: jest.fn(() => {
+    clear: vi.fn(() => {
       store = {};
     }),
   };
@@ -53,7 +63,7 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('App Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorage.clear();
   });
 

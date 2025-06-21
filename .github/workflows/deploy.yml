@@ -33,7 +33,7 @@ jobs:
       env:
         VITE_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
         VITE_SUPABASE_URL: "https://test.supabase.co"
-      run: npm test -- --coverage --watchAll=false
+      run: npm test
       
     - name: Build project
       run: npm run build
