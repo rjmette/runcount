@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GameScoringProps } from '../../types/game';
 import PlayerScoreCard from '../PlayerScoreCard';
 import BreakDialog from '../BreakDialog';
@@ -431,8 +431,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
   }, [ballsOnTable, parentBallsOnTable, parentSetBallsOnTable]);
 
-  // Handle accepting the table after a foul on the break
-  const handleAcceptTable = () => {
+  // Memoize table acceptance handler
+  const handleAcceptTable = useCallback(() => {
     // Switch to the incoming player
     const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
     const updatedPlayerData = [...playerData];
@@ -460,10 +460,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed: false,
       winner_id: null,
     });
-  };
+  }, [activePlayerIndex, playerData, currentInning, setCurrentInning, setActivePlayerIndex, setPlayerData, setPlayerNeedsReBreak, setShowBreakFoulModal, actions, gameId, saveGameState]);
 
-  // Handle requiring a re-break after a foul on the break
-  const handleRequireReBreak = () => {
+  // Memoize require re-break handler
+  const handleRequireReBreak = useCallback(() => {
     // Re-rack the balls
     setBallsOnTable(15);
 
@@ -492,7 +492,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed: false,
       winner_id: null,
     });
-  };
+  }, [setBallsOnTable, playerData, activePlayerIndex, setPlayerNeedsReBreak, setShowBreakFoulModal, setAlertMessage, setShowAlertModal, actions, gameId, saveGameState]);
 
   const handleEndGame = () => {
     if (!gameWinner && gameId) {

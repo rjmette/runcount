@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GameStatisticsProps, GameData, Player } from '../types/game';
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
@@ -108,8 +108,8 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     }
   }, [user, gameData, supabase, savedToSupabase]);
 
-  // Calculate additional statistics
-  const calculateStats = (players: Player[], actions: any[]) => {
+  // Memoize expensive statistics calculations
+  const calculateStats = useMemo(() => (players: Player[], actions: any[]) => {
     // Create a map to track results
     const playerStats: Record<
       number,
@@ -211,9 +211,9 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         shootingPercentage,
       };
     });
-  };
+  }, [gameData?.players, gameData?.actions]);
 
-  const formatGameResultsForEmail = () => {
+  const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';
 
     const gameDate = new Date(gameData.date);
@@ -257,10 +257,10 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     });
 
     return emailText;
-  };
+  }, [gameData]);
 
   const copyMatchResults = async () => {
-    const formattedText = formatGameResultsForEmail();
+    const formattedText = formatGameResultsForEmail;
     const { copyWithFeedback } = await import('../utils/copyToClipboard');
     
     await copyWithFeedback(

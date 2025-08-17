@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ScoreButtonProps } from '../types/game';
 
 const ScoreButton: React.FC<ScoreButtonProps> = ({
@@ -17,4 +17,4 @@ const ScoreButton: React.FC<ScoreButtonProps> = ({
   );
 };
 
-export default ScoreButton;
+export default memo(ScoreButton);

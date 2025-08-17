@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import './App.css';
 import { createClient } from '@supabase/supabase-js';
 import GameSetup from './components/GameSetup';
@@ -183,8 +183,8 @@ function AppContent() {
     };
   }, []);
 
-  // Toggle fullscreen with vendor prefix support
-  const toggleFullscreen = async () => {
+  // Memoize toggle fullscreen function to prevent re-renders
+  const toggleFullscreen = useCallback(async () => {
     try {
       const doc = document as any;
       const docEl = document.documentElement as any;
@@ -229,17 +229,30 @@ function AppContent() {
         alert('Fullscreen not supported on this device. Try using "Add to Home Screen" for a fullscreen-like experience.');
       }
     }
-  };
+  }, []);
 
-  // Handle user sign out
-  const handleSignOut = async () => {
+  // Memoize sign out handler
+  const handleSignOut = useCallback(async () => {
     await signOut();
     setShowProfileModal(false);
     // Only redirect to setup if not in the middle of a game
     if (gameState !== 'scoring' && gameState !== 'statistics') {
       setGameState('setup');
     }
-  };
+  }, [signOut, gameState]);
+
+  // Memoize the game start callback
+  const handleStartGame = useCallback((players: string[], playerTargetScores: Record<string, number>, breakingPlayerId: number) => {
+    console.log('App: Setting breaking player ID to:', breakingPlayerId);
+    setPlayers(players);
+    setPlayerTargetScores(playerTargetScores);
+    setBreakingPlayerId(breakingPlayerId);
+    // Save settings for future use
+    setLastPlayers(players);
+    setLastPlayerTargetScores(playerTargetScores);
+    setLastBreakingPlayerId(breakingPlayerId);
+    setGameState('scoring');
+  }, []);
 
   // Switch between different components based on game state
   const renderComponent = () => {
@@ -247,20 +260,7 @@ function AppContent() {
       case 'setup':
         return (
           <GameSetup
-            startGame={(players, playerTargetScores, breakingPlayerId) => {
-              console.log(
-                'App: Setting breaking player ID to:',
-                breakingPlayerId
-              );
-              setPlayers(players);
-              setPlayerTargetScores(playerTargetScores);
-              setBreakingPlayerId(breakingPlayerId);
-              // Save settings for future use
-              setLastPlayers(players);
-              setLastPlayerTargetScores(playerTargetScores);
-              setLastBreakingPlayerId(breakingPlayerId);
-              setGameState('scoring');
-            }}
+            startGame={handleStartGame}
             lastPlayers={lastPlayers}
             lastPlayerTargetScores={lastPlayerTargetScores}
             lastBreakingPlayerId={lastBreakingPlayerId}
@@ -273,10 +273,10 @@ function AppContent() {
             playerTargetScores={playerTargetScores}
             gameId={currentGameId}
             setGameId={setCurrentGameId}
-            finishGame={() => {
+            finishGame={useCallback(() => {
               // Don't reset gameId here, as we need it for statistics
               setGameState('statistics');
-            }}
+            }, [])}
             supabase={supabase}
             user={user}
             breakingPlayerId={breakingPlayerId}
@@ -293,11 +293,11 @@ function AppContent() {
           <GameStatistics
             gameId={currentGameId}
             supabase={supabase}
-            startNewGame={() => {
+            startNewGame={useCallback(() => {
               setCurrentGameId(null);
               setGameState('setup');
-            }}
-            viewHistory={() => setGameState('history')}
+            }, [])}
+            viewHistory={useCallback(() => setGameState('history'), [])}
             user={user}
           />
         );
@@ -305,7 +305,7 @@ function AppContent() {
         return (
           <GameHistory
             supabase={supabase}
-            startNewGame={() => setGameState('setup')}
+            startNewGame={useCallback(() => setGameState('setup'), [])}
             user={user}
           />
         );
@@ -403,6 +403,9 @@ function AppContent() {
     return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no theme is saved
   });
 
+  // Memoize theme toggle handler
+  const toggleDarkMode = useCallback(() => setDarkMode(!darkMode), [darkMode]);
+
   // Update theme when darkMode changes
   useEffect(() => {
     if (darkMode) {
@@ -447,7 +450,7 @@ function AppContent() {
           </div>
           <div className="flex items-center">
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={toggleDarkMode}
               className="mr-2 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800"
               aria-label={
                 darkMode ? 'Switch to light mode' : 'Switch to dark mode'
