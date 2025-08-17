@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import './App.css';
 import { createClient } from '@supabase/supabase-js';
+
 import GameSetup from './components/GameSetup';
 import GameScoring from './components/GameScoring/index';
 import GameStatistics from './components/GameStatistics';
@@ -13,6 +13,8 @@ import {
   GamePersistProvider,
   useGamePersist,
 } from './context/GamePersistContext';
+
+import './App.css';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
 const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co';
