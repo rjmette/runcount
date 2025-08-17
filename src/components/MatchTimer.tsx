@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 
 interface MatchTimerProps {
   startTime: Date | string | null;
@@ -7,7 +7,7 @@ interface MatchTimerProps {
   ballsOnTable?: number;
 }
 
-export const MatchTimer: React.FC<MatchTimerProps> = ({ 
+export const MatchTimer: React.FC<MatchTimerProps> = memo(({ 
   startTime, 
   endTime, 
   isRunning = true,
@@ -71,7 +71,7 @@ export const MatchTimer: React.FC<MatchTimerProps> = ({
       )}
     </div>
   );
-};
+});
 
 export const formatElapsedTime = (startTime: Date | string, endTime?: Date | string): string => {
   const start = new Date(startTime);

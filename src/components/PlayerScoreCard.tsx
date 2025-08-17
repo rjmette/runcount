@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { Player } from '../types/game';
 import ScoreButton from './ScoreButton';
 
@@ -31,15 +31,12 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   currentInning,
   onBreakClick,
 }) => {
-  // Calculate average balls per inning
-  const bpi =
-    player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
-
-  // Calculate percentage to target (capped at 100%)
-  const percentage = Math.min(
-    100,
-    Math.floor((player.score / targetScore) * 100)
-  );
+  // Memoize expensive calculations
+  const { bpi, percentage } = useMemo(() => {
+    const bpiValue = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
+    const percentageValue = Math.min(100, Math.floor((player.score / targetScore) * 100));
+    return { bpi: bpiValue, percentage: percentageValue };
+  }, [player.score, player.innings, targetScore]);
 
   return (
     <div
@@ -210,4 +207,4 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   );
 };
 
-export default PlayerScoreCard;
+export default memo(PlayerScoreCard);

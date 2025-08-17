@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import { Player, GameAction } from '../../../types/game';
 import { calculateGameDuration } from '../utils/calculations';
 
@@ -12,7 +12,7 @@ interface EndGameModalProps {
   onEndGame: () => void;
 }
 
-export const EndGameModal: React.FC<EndGameModalProps> = ({
+export const EndGameModal: React.FC<EndGameModalProps> = memo(({
   isOpen,
   gameWinner,
   playerData,
@@ -21,13 +21,15 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
   onClose,
   onEndGame,
 }) => {
+  // Memoize expensive calculations
+  const { gameDuration, isGameCompleted, highestRun } = useMemo(() => {
+    const duration = calculateGameDuration(actions);
+    const completed = !!gameWinner;
+    const maxRun = Math.max(...playerData.map(p => p.highRun));
+    return { gameDuration: duration, isGameCompleted: completed, highestRun: maxRun };
+  }, [actions, gameWinner, playerData]);
+
   if (!isOpen) return null;
-
-  const gameDuration = calculateGameDuration(actions);
-  const isGameCompleted = !!gameWinner;
-
-  // Find highest run
-  const highestRun = Math.max(...playerData.map(p => p.highRun));
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -125,4 +127,4 @@ export const EndGameModal: React.FC<EndGameModalProps> = ({
       </div>
     </div>
   );
-};
+});
