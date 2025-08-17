@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { FC } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 import GameSetup from './components/GameSetup';
@@ -25,7 +26,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 type GameState = 'setup' | 'scoring' | 'statistics' | 'history' | 'profile';
 
 // Main App Component - now just wraps the content with AuthProvider
-function App() {
+const App: FC = () => {
   return (
     <AuthProvider supabase={supabase}>
       <GamePersistProvider>
@@ -33,10 +34,10 @@ function App() {
       </GamePersistProvider>
     </AuthProvider>
   );
-}
+};
 
 // The actual app content, using the auth context
-function AppContent() {
+const AppContent: FC = () => {
   const { user, loading, signOut } = useAuth();
   const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
