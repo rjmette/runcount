@@ -73,6 +73,12 @@ export const saveGameToSupabaseHelper = async (options: {
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error saving game to localStorage history:', err);
+    try {
+      const evt = new CustomEvent('appError', {
+        detail: 'Unable to save game locally. Check storage settings.',
+      });
+      window.dispatchEvent(evt);
+    } catch {}
   }
 
   // Only save to Supabase if user is authenticated
@@ -99,10 +105,22 @@ export const saveGameToSupabaseHelper = async (options: {
     if (error) {
       // eslint-disable-next-line no-console
       console.error('Error saving game to Supabase:', error);
+      try {
+        const evt = new CustomEvent('appError', {
+          detail: "Cloud save failed. We'll keep trying in the background.",
+        });
+        window.dispatchEvent(evt);
+      } catch {}
     }
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Error saving game to Supabase:', err);
+    try {
+      const evt = new CustomEvent('appError', {
+        detail: 'Network error during cloud save.',
+      });
+      window.dispatchEvent(evt);
+    } catch {}
   }
 };
 

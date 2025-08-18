@@ -12,6 +12,7 @@ import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
 import { useGamePersist } from '../../context/GamePersistContext';
+import { useError } from '../../context/ErrorContext';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -30,6 +31,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   setBallsOnTable: parentSetBallsOnTable,
 }) => {
   const { saveGameState, getGameState, clearGameState } = useGamePersist();
+  const { addError } = useError();
 
   // Modal state management
   const [showEndGameModal, setShowEndGameModal] = useState(false);
@@ -70,11 +72,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           if (error) {
             console.error('Error saving game to Supabase after login:', error);
+            addError(
+              'Could not save your in-progress game to the cloud after login. Your local progress is safe.'
+            );
           } else {
             console.log('Successfully saved game to Supabase after login');
           }
         } catch (err) {
           console.error('Error saving game to Supabase after login:', err);
+          addError(
+            'A network error occurred while saving your game. Please try again.'
+          );
         }
       };
 
@@ -119,21 +127,27 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed,
       winner_id
     ) => {
-      await saveGameToSupabaseHelper({
-        supabase,
-        user,
-        saveGameState,
-        clearGameState,
-        matchStartTime: matchStartTime
-          ? matchStartTime.toISOString()
-          : undefined,
-        matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-        gameId,
-        players,
-        actions,
-        completed,
-        winner_id,
-      });
+      try {
+        await saveGameToSupabaseHelper({
+          supabase,
+          user,
+          saveGameState,
+          clearGameState,
+          matchStartTime: matchStartTime
+            ? matchStartTime.toISOString()
+            : undefined,
+          matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          gameId,
+          players,
+          actions,
+          completed,
+          winner_id,
+        });
+      } catch (e) {
+        addError(
+          'Failed to save your game. Changes are saved locally and will sync when online.'
+        );
+      }
     },
   });
 
@@ -154,17 +168,23 @@ const GameScoring: React.FC<GameScoringProps> = ({
         completed,
         winner_id
       ) => {
-        await saveGameToSupabaseHelper({
-          supabase,
-          user,
-          saveGameState,
-          clearGameState,
-          gameId,
-          players,
-          actions,
-          completed,
-          winner_id,
-        });
+        try {
+          await saveGameToSupabaseHelper({
+            supabase,
+            user,
+            saveGameState,
+            clearGameState,
+            gameId,
+            players,
+            actions,
+            completed,
+            winner_id,
+          });
+        } catch (e) {
+          addError(
+            'Could not save your recent action to the cloud. It will retry automatically.'
+          );
+        }
       },
       setPlayerData,
       setActions,
@@ -196,21 +216,27 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed,
       winner_id
     ) => {
-      await saveGameToSupabaseHelper({
-        supabase,
-        user,
-        saveGameState,
-        clearGameState,
-        matchStartTime: matchStartTime
-          ? matchStartTime.toISOString()
-          : undefined,
-        matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-        gameId,
-        players,
-        actions,
-        completed,
-        winner_id,
-      });
+      try {
+        await saveGameToSupabaseHelper({
+          supabase,
+          user,
+          saveGameState,
+          clearGameState,
+          matchStartTime: matchStartTime
+            ? matchStartTime.toISOString()
+            : undefined,
+          matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          gameId,
+          players,
+          actions,
+          completed,
+          winner_id,
+        });
+      } catch (e) {
+        addError(
+          'Failed to update game history in the cloud. Your local history is intact.'
+        );
+      }
     },
     setPlayerData,
     setActions,
@@ -378,10 +404,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
                   'Error updating completed game in Supabase:',
                   error
                 );
+                addError(
+                  'Unable to finalize your game in the cloud. It will attempt again shortly.'
+                );
               }
             });
         } catch (err) {
           console.error('Error updating completed game in Supabase:', err);
+          addError('A network error occurred while finalizing your game.');
         }
       }
     } else {
