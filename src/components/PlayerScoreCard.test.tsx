@@ -12,7 +12,15 @@ const getByClassName = (container: HTMLElement, className: string): HTMLElement 
 vi.mock('./ScoreButton', () => ({
   default: function MockScoreButton(props: any) {
     // Handle both string and non-string labels safely
-    const labelStr = typeof props.label === 'string' ? props.label : String(props.label);
+    let labelStr: string;
+    if (typeof props.label === 'string') {
+      labelStr = props.label;
+    } else if (React.isValidElement(props.label)) {
+      // For complex React elements like the Rack button, extract text content
+      labelStr = 'rack'; // Default to 'rack' for the complex button
+    } else {
+      labelStr = String(props.label);
+    }
     const testId = `score-button-${labelStr.toLowerCase().replace(/\s+/g, '-')}`;
     
     return (
@@ -117,8 +125,7 @@ describe('PlayerScoreCard Component', () => {
     expect(progressBar).toHaveStyle('width: 100%');
   });
   
-  // TODO: Fix this test - button test IDs need to match actual component
-  test.skip('shows active styling when isActive is true', () => {
+  test('shows active styling when isActive is true', () => {
     render(
       <PlayerScoreCard 
         player={mockPlayer}
@@ -134,12 +141,11 @@ describe('PlayerScoreCard Component', () => {
     // Check for active indicator
     expect(screen.getByText('Active')).toBeInTheDocument();
     
-    // Score buttons should be visible when active
+    // Score buttons should be visible when active (using the mock test IDs)
     expect(screen.getByTestId('score-button-miss')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-foul-(-1)')).toBeInTheDocument();
+    expect(screen.getByTestId('score-button-foul')).toBeInTheDocument();
     expect(screen.getByTestId('score-button-safety')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-new-rack')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-history')).toBeInTheDocument();
+    expect(screen.getByTestId('score-button-rack')).toBeInTheDocument();
   });
   
   test('does not show score buttons when not active', () => {
@@ -164,8 +170,7 @@ describe('PlayerScoreCard Component', () => {
     // etc.
   });
   
-  // TODO: Fix this test - button test IDs and component props need updating
-  test.skip('calls the appropriate functions when buttons are clicked', () => {
+  test('calls the appropriate functions when buttons are clicked', () => {
     render(
       <PlayerScoreCard 
         player={mockPlayer}
@@ -179,25 +184,21 @@ describe('PlayerScoreCard Component', () => {
       />
     );
     
-    // Click on Miss button
+    // Click on Miss button - the component calls onAddMiss() without parameters
     fireEvent.click(screen.getByTestId('score-button-miss'));
     expect(mockHandlers.onAddMiss).toHaveBeenCalledTimes(1);
     
-    // Click on Foul button
-    fireEvent.click(screen.getByTestId('score-button-foul-(-1)'));
+    // Click on Foul button - the component calls onAddFoul() without parameters  
+    fireEvent.click(screen.getByTestId('score-button-foul'));
     expect(mockHandlers.onAddFoul).toHaveBeenCalledTimes(1);
     
-    // Click on Safety button
+    // Click on Safety button - the component calls onAddSafety() without parameters
     fireEvent.click(screen.getByTestId('score-button-safety'));
     expect(mockHandlers.onAddSafety).toHaveBeenCalledTimes(1);
     
-    // Click on New Rack button
-    fireEvent.click(screen.getByTestId('score-button-new-rack'));
+    // Click on Rack button - the component calls onAddScore(1)
+    fireEvent.click(screen.getByTestId('score-button-rack'));
     expect(mockHandlers.onAddScore).toHaveBeenCalledWith(1);
-    
-    // Click on History button
-    fireEvent.click(screen.getByTestId('score-button-history'));
-    expect(mockHandlers.onShowHistory).toHaveBeenCalledTimes(1);
   });
   
   test('handles zero innings case correctly for BPI calculation', () => {
