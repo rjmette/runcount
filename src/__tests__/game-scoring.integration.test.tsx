@@ -34,7 +34,7 @@ describe('Game Scoring Integration Tests', () => {
     gameId: null,
     setGameId: vi.fn(),
     finishGame: vi.fn(),
-    supabase: mockSupabase,
+    supabase: mockSupabase as any,
     user: null,
     breakingPlayerId: 0,
     matchStartTime: null,
@@ -125,16 +125,16 @@ describe('Game Scoring Integration Tests', () => {
 
     render(<GameScoring {...props} />);
 
-    // Alice scores to reach target
-    await userEvent.click(screen.getByRole('button', { name: /Rack/i }));
+    // Alice makes 1 point via a Miss action (report 14 balls remaining -> 1 made)
+    await userEvent.click(screen.getByRole('button', { name: /Miss/i }));
+    const botButton = await screen.findByText('14');
+    await userEvent.click(botButton);
 
-    // Game should show completion indicators
-    await waitFor(() => {
-      // Either trophy or finish game button should appear
-      const trophy = screen.queryByText('🏆');
-      const finishButton = screen.queryByRole('button', { name: /Finish Game/i });
-      expect(trophy || finishButton).toBeTruthy();
+    // Game should show completion indicator via EndGame modal's Continue button
+    const continueButton = await screen.findByRole('button', {
+      name: /Continue/i,
     });
+    expect(continueButton).toBeInTheDocument();
   });
 
   test('should handle multiple player scoring scenarios', async () => {
@@ -168,7 +168,7 @@ describe('Game Scoring Integration Tests', () => {
 
     // Rapid fire scoring
     const rackButton = screen.getByRole('button', { name: /Rack/i });
-    
+
     // Click multiple times rapidly
     await userEvent.click(rackButton);
     await userEvent.click(rackButton);

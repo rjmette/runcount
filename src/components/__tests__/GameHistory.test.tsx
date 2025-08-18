@@ -2,29 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import GameHistory from '../GameHistory';
-
-// Mock the hooks
-vi.mock('../GameHistory/hooks/useGameHistory', () => ({
-  useGameHistory: vi.fn(() => ({
-    games: [],
-    loading: false,
-    error: null,
-    deleteGame: vi.fn(),
-  })),
-}));
-
-vi.mock('../GameHistory/hooks/useGameSelection', () => ({
-  useGameSelection: vi.fn(() => ({
-    selectedGameId: null,
-    selectedGame: null,
-    showDeleteConfirmation: false,
-    gameToDelete: null,
-    handleGameSelect: vi.fn(),
-    confirmDelete: vi.fn(),
-    cancelDelete: vi.fn(),
-    handleDeleteSuccess: vi.fn(),
-  })),
-}));
+import * as GameHistoryHook from '../GameHistory/hooks/useGameHistory';
+import * as GameSelectionHook from '../GameHistory/hooks/useGameSelection';
 
 // Mock the components
 vi.mock('../GameHistory/components/GameList', () => ({
@@ -32,11 +11,15 @@ vi.mock('../GameHistory/components/GameList', () => ({
 }));
 
 vi.mock('../GameHistory/components/GameDetails', () => ({
-  GameDetails: () => <div data-testid="game-details">Game Details Component</div>,
+  GameDetails: () => (
+    <div data-testid="game-details">Game Details Component</div>
+  ),
 }));
 
 vi.mock('../GameHistory/components/DeleteConfirmationModal', () => ({
-  DeleteConfirmationModal: () => <div data-testid="delete-confirmation-modal">Delete Confirmation Modal</div>,
+  DeleteConfirmationModal: () => (
+    <div data-testid="delete-confirmation-modal">Delete Confirmation Modal</div>
+  ),
 }));
 
 // Mock Supabase
@@ -49,14 +32,27 @@ const mockSupabase = {
   })),
 };
 
-const mockUser = {
-  id: 'user-1',
-  email: 'test@example.com',
-};
+const mockUser = { id: 'user-1', email: 'test@example.com' } as any;
 
 describe('GameHistory Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(GameHistoryHook, 'useGameHistory').mockReturnValue({
+      games: [],
+      loading: false,
+      error: null,
+      deleteGame: vi.fn(),
+    } as any);
+    vi.spyOn(GameSelectionHook, 'useGameSelection').mockReturnValue({
+      selectedGameId: null,
+      selectedGame: null,
+      showDeleteConfirmation: false,
+      gameToDelete: null,
+      handleGameSelect: vi.fn(),
+      confirmDelete: vi.fn(),
+      cancelDelete: vi.fn(),
+      handleDeleteSuccess: vi.fn(),
+    } as any);
   });
 
   test('renders GameList component by default', () => {
@@ -84,9 +80,8 @@ describe('GameHistory Component', () => {
   });
 
   test('handles loading state', () => {
-    // Mock loading state
-    const { useGameHistory } = require('../GameHistory/hooks/useGameHistory');
-    useGameHistory.mockReturnValue({
+    // Override mock to return loading state
+    (GameHistoryHook.useGameHistory as any).mockReturnValue({
       games: [],
       loading: true,
       error: null,
@@ -101,18 +96,20 @@ describe('GameHistory Component', () => {
       />
     );
 
-    expect(screen.getByTestId('game-list')).toBeInTheDocument();
+    // Should render a loading status
+    expect(
+      screen.getByRole('status', { name: 'Loading game history...' })
+    ).toBeInTheDocument();
   });
 
   test('handles error state', () => {
     // Mock error state
-    const { useGameHistory } = require('../GameHistory/hooks/useGameHistory');
-    useGameHistory.mockReturnValue({
+    (GameHistoryHook.useGameHistory as any).mockReturnValue({
       games: [],
       loading: false,
       error: 'Failed to load games',
       deleteGame: vi.fn(),
-    });
+    } as any);
 
     render(
       <GameHistory
@@ -122,30 +119,36 @@ describe('GameHistory Component', () => {
       />
     );
 
-    expect(screen.getByTestId('game-list')).toBeInTheDocument();
+    // Error banner renders with Start New Game button
+    expect(screen.getByText(/Failed to load games/i)).toBeInTheDocument();
   });
 
   test('handles games with valid data', () => {
     const mockGames = [
       {
         id: 'game-1',
-        players: [{ id: 0, name: 'Alice' }, { id: 1, name: 'Bob' }],
+        players: [
+          { id: 0, name: 'Alice' },
+          { id: 1, name: 'Bob' },
+        ],
         date: '2023-01-01',
       },
       {
         id: 'game-2',
-        players: [{ id: 0, name: 'Charlie' }, { id: 1, name: 'Dave' }],
+        players: [
+          { id: 0, name: 'Charlie' },
+          { id: 1, name: 'Dave' },
+        ],
         date: '2023-01-02',
       },
     ];
 
-    const { useGameHistory } = require('../GameHistory/hooks/useGameHistory');
-    useGameHistory.mockReturnValue({
+    (GameHistoryHook.useGameHistory as any).mockReturnValue({
       games: mockGames,
       loading: false,
       error: null,
       deleteGame: vi.fn(),
-    });
+    } as any);
 
     render(
       <GameHistory

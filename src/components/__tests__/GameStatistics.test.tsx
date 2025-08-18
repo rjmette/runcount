@@ -10,15 +10,21 @@ vi.mock('../GameStatistics/components/InningsModal', () => ({
 }));
 
 vi.mock('../GameStatistics/components/StatDescriptionsModal', () => ({
-  StatDescriptionsModal: () => <div data-testid="stat-descriptions-modal">Stat Descriptions Modal</div>,
+  StatDescriptionsModal: () => (
+    <div data-testid="stat-descriptions-modal">Stat Descriptions Modal</div>
+  ),
 }));
 
 vi.mock('../shared/GameStatusPanel', () => ({
-  GameStatusPanel: () => <div data-testid="game-status-panel">Game Status Panel</div>,
+  GameStatusPanel: () => (
+    <div data-testid="game-status-panel">Game Status Panel</div>
+  ),
 }));
 
 vi.mock('../shared/PerformanceMetricsPanel', () => ({
-  PerformanceMetricsPanel: () => <div data-testid="performance-metrics-panel">Performance Metrics Panel</div>,
+  PerformanceMetricsPanel: () => (
+    <div data-testid="performance-metrics-panel">Performance Metrics Panel</div>
+  ),
 }));
 
 // Mock localStorage
@@ -39,15 +45,19 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock Supabase
+// Mock Supabase with chainable query builder (including upsert for save on login)
 const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(() => ({
-      eq: vi.fn(() => ({
-        single: vi.fn()
-      }))
-    }))
-  }))
+  from: vi.fn(() => {
+    const query: any = {
+      select: vi.fn(() => query),
+      eq: vi.fn(() => query),
+      single: vi.fn(async () => ({ data: null, error: null })),
+      upsert: vi.fn(async () => ({ data: null, error: null })),
+      insert: vi.fn(async () => ({ data: null, error: null })),
+      order: vi.fn(async () => ({ data: [], error: null })),
+    };
+    return query;
+  }),
 };
 
 const mockGameData: GameData = {
@@ -103,7 +113,9 @@ describe('GameStatistics Component', () => {
       />
     );
 
-    expect(screen.getByText('Loading game statistics...')).toBeInTheDocument();
+    expect(
+      screen.getByRole('status', { name: 'Loading game statistics...' })
+    ).toBeInTheDocument();
   });
 
   test('shows error when no game ID provided', async () => {
@@ -137,7 +149,9 @@ describe('GameStatistics Component', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('game-status-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('performance-metrics-panel')).toBeInTheDocument();
+      expect(
+        screen.getByTestId('performance-metrics-panel')
+      ).toBeInTheDocument();
     });
   });
 
@@ -160,7 +174,7 @@ describe('GameStatistics Component', () => {
     });
   });
 
-  test('renders navigation buttons when game data is loaded', async () => {
+  test('renders navigation buttons when game data is loaded (with user)', async () => {
     localStorage.setItem('runcount_game_game-1', JSON.stringify(mockGameData));
 
     render(
@@ -169,7 +183,7 @@ describe('GameStatistics Component', () => {
         supabase={mockSupabase as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
-        user={null}
+        user={{ id: 'user-1' } as any}
       />
     );
 
