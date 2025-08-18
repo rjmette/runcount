@@ -10,7 +10,7 @@ import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
 import { MatchTimer } from './components/MatchTimer';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { ErrorProvider } from './context/ErrorContext';
+import { ErrorProvider, useError } from './context/ErrorContext';
 import {
   ErrorBoundary,
   ErrorEventsBridge,
@@ -52,18 +52,7 @@ const App: FC = () => {
 // The actual app content, using the auth context
 const AppContent: FC = () => {
   const { user, loading, signOut } = useAuth();
-  // Lazy import to avoid circular deps if any
-  const { addError } = ((): { addError: (m: string) => void } => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { useError } = require('./context/ErrorContext');
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const { addError } = useError();
-      return { addError };
-    } catch {
-      return { addError: () => {} };
-    }
-  })();
+  const { addError } = useError();
   const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
   // Game state management
