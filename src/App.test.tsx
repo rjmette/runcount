@@ -83,10 +83,10 @@ describe('App Component', () => {
     render(<App />);
 
     // Click the user icon button in the header (last button in header controls when unauthenticated)
-  const header = screen.getByRole('banner');
-  const buttons = header.querySelectorAll('button');
-  const userIconButton = buttons[buttons.length - 1] as HTMLButtonElement;
-  fireEvent.click(userIconButton);
+    const header = screen.getByRole('banner');
+    const buttons = header.querySelectorAll('button');
+    const userIconButton = buttons[buttons.length - 1] as HTMLButtonElement;
+    fireEvent.click(userIconButton);
 
     await waitFor(() => {
       expect(screen.getByText('Authentication')).toBeInTheDocument();
