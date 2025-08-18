@@ -10,6 +10,7 @@ import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
+import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
 import { useGamePersist } from '../../context/GamePersistContext';
 
 const GameScoring: React.FC<GameScoringProps> = ({
@@ -41,7 +42,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
   >(null);
-  const [currentBreakingPlayerId, setCurrentBreakingPlayerId] = useState<number>(breakingPlayerId);
+  const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
+    useState<number>(breakingPlayerId);
 
   // Add effect to detect user login and save game to SupaBase
   useEffect(() => {
@@ -117,79 +119,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed,
       winner_id
     ) => {
-      // Save game state to our persistent storage context
-      if (completed) {
-        clearGameState();
-      } else {
-        saveGameState({
-          id: gameId,
-          date: new Date().toISOString(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-          startTime: matchStartTime || undefined,
-          endTime: matchEndTime || undefined,
-        });
-      }
-
-      // First save to localStorage
-      try {
-        const now = new Date();
-        localStorage.setItem(
-          `runcount_game_${gameId}`,
-          JSON.stringify({
-            id: gameId,
-            date: now.toISOString(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-            startTime: matchStartTime,
-            endTime: matchEndTime,
-          })
-        );
-      } catch (err) {
-        console.error('Error saving game to localStorage history:', err);
-      }
-
-      // Only save to Supabase if user is authenticated
-      if (!user) {
-        return;
-      }
-
-      try {
-        const now = new Date();
-        const payload = {
-          id: gameId,
-          date: now.toISOString(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-          owner_id: user.id,
-          deleted: false,
-          startTime: matchStartTime || undefined,
-          endTime: matchEndTime || undefined,
-        };
-
-        const { error } = await supabase.from('games').upsert(payload);
-
-        if (error) {
-          console.error('Error saving game to Supabase:', error);
-          if (error.code === '42804') {
-            console.error(
-              'Type mismatch error: Check that owner_id is UUID type in the database'
-            );
-          } else if (error.code === '42501') {
-            console.error(
-              'RLS policy violation: Make sure you have the correct policies set up'
-            );
-          }
-        }
-      } catch (err) {
-        console.error('Error saving game to Supabase:', err);
-      }
+      await saveGameToSupabaseHelper({
+        supabase,
+        user,
+        saveGameState,
+        clearGameState,
+        matchStartTime: matchStartTime
+          ? matchStartTime.toISOString()
+          : undefined,
+        matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+        gameId,
+        players,
+        actions,
+        completed,
+        winner_id,
+      });
     },
   });
 
@@ -210,73 +154,17 @@ const GameScoring: React.FC<GameScoringProps> = ({
         completed,
         winner_id
       ) => {
-        // Save game state to our persistent storage context
-        if (completed) {
-          clearGameState();
-        } else {
-          saveGameState({
-            id: gameId,
-            date: new Date().toISOString(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-          });
-        }
-
-        // First save to localStorage
-        try {
-          const now = new Date();
-          localStorage.setItem(
-            `runcount_game_${gameId}`,
-            JSON.stringify({
-              id: gameId,
-              date: now.toISOString(),
-              players,
-              actions,
-              completed,
-              winner_id: winner_id,
-            })
-          );
-        } catch (err) {
-          console.error('Error saving game to localStorage history:', err);
-        }
-
-        // Only save to Supabase if user is authenticated
-        if (!user) {
-          return;
-        }
-
-        try {
-          const now = new Date();
-          const payload = {
-            id: gameId,
-            date: now.toISOString(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-            owner_id: user.id,
-            deleted: false,
-          };
-
-          const { error } = await supabase.from('games').upsert(payload);
-
-          if (error) {
-            console.error('Error saving game to Supabase:', error);
-            if (error.code === '42804') {
-              console.error(
-                'Type mismatch error: Check that owner_id is UUID type in the database'
-              );
-            } else if (error.code === '42501') {
-              console.error(
-                'RLS policy violation: Make sure you have the correct policies set up'
-              );
-            }
-          }
-        } catch (err) {
-          console.error('Error saving game to Supabase:', err);
-        }
+        await saveGameToSupabaseHelper({
+          supabase,
+          user,
+          saveGameState,
+          clearGameState,
+          gameId,
+          players,
+          actions,
+          completed,
+          winner_id,
+        });
       },
       setPlayerData,
       setActions,
@@ -308,77 +196,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed,
       winner_id
     ) => {
-      // Save game state to our persistent storage context
-      if (completed) {
-        clearGameState();
-      } else {
-        saveGameState({
-          id: gameId,
-          date: new Date().toISOString(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-        });
-      }
-
-      // First save to localStorage
-      try {
-        const now = new Date();
-        localStorage.setItem(
-          `runcount_game_${gameId}`,
-          JSON.stringify({
-            id: gameId,
-            date: now.toISOString(),
-            players,
-            actions,
-            completed,
-            winner_id: winner_id,
-            startTime: matchStartTime,
-            endTime: matchEndTime,
-          })
-        );
-      } catch (err) {
-        console.error('Error saving game to localStorage history:', err);
-      }
-
-      // Only save to Supabase if user is authenticated
-      if (!user) {
-        return;
-      }
-
-      try {
-        const now = new Date();
-        const payload = {
-          id: gameId,
-          date: now.toISOString(),
-          players,
-          actions,
-          completed,
-          winner_id: winner_id,
-          owner_id: user.id,
-          deleted: false,
-          startTime: matchStartTime || undefined,
-          endTime: matchEndTime || undefined,
-        };
-
-        const { error } = await supabase.from('games').upsert(payload);
-
-        if (error) {
-          console.error('Error saving game to Supabase:', error);
-          if (error.code === '42804') {
-            console.error(
-              'Type mismatch error: Check that owner_id is UUID type in the database'
-            );
-          } else if (error.code === '42501') {
-            console.error(
-              'RLS policy violation: Make sure you have the correct policies set up'
-            );
-          }
-        }
-      } catch (err) {
-        console.error('Error saving game to Supabase:', err);
-      }
+      await saveGameToSupabaseHelper({
+        supabase,
+        user,
+        saveGameState,
+        clearGameState,
+        matchStartTime: matchStartTime
+          ? matchStartTime.toISOString()
+          : undefined,
+        matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+        gameId,
+        players,
+        actions,
+        completed,
+        winner_id,
+      });
     },
     setPlayerData,
     setActions,
@@ -460,7 +292,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed: false,
       winner_id: null,
     });
-  }, [activePlayerIndex, playerData, currentInning, setCurrentInning, setActivePlayerIndex, setPlayerData, setPlayerNeedsReBreak, setShowBreakFoulModal, actions, gameId, saveGameState]);
+  }, [
+    activePlayerIndex,
+    playerData,
+    currentInning,
+    setCurrentInning,
+    setActivePlayerIndex,
+    setPlayerData,
+    setPlayerNeedsReBreak,
+    setShowBreakFoulModal,
+    actions,
+    gameId,
+    saveGameState,
+  ]);
 
   // Memoize require re-break handler
   const handleRequireReBreak = useCallback(() => {
@@ -492,7 +336,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
       completed: false,
       winner_id: null,
     });
-  }, [setBallsOnTable, playerData, activePlayerIndex, setPlayerNeedsReBreak, setShowBreakFoulModal, setAlertMessage, setShowAlertModal, actions, gameId, saveGameState]);
+  }, [
+    setBallsOnTable,
+    playerData,
+    activePlayerIndex,
+    setPlayerNeedsReBreak,
+    setShowBreakFoulModal,
+    setAlertMessage,
+    setShowAlertModal,
+    actions,
+    gameId,
+    saveGameState,
+  ]);
 
   const handleEndGame = () => {
     if (!gameWinner && gameId) {
@@ -563,10 +418,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
   // Handle changing the breaking player
   const handleChangeBreaker = (newBreakingPlayerId: number) => {
     setCurrentBreakingPlayerId(newBreakingPlayerId);
-    
+
     // Update the active player to match the new breaking player
     setActivePlayerIndex(newBreakingPlayerId);
-    
+
     // Update player data to ensure the new breaking player has correct innings count
     const updatedPlayerData = [...playerData];
     updatedPlayerData.forEach((player, index) => {
@@ -583,10 +438,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
       }
     });
     setPlayerData(updatedPlayerData);
-    
+
     // Update localStorage to persist the breaking player preference
-    localStorage.setItem('runcount_lastBreakingPlayerId', JSON.stringify(newBreakingPlayerId));
-    
+    localStorage.setItem(
+      'runcount_lastBreakingPlayerId',
+      JSON.stringify(newBreakingPlayerId)
+    );
+
     // Save the updated game state
     if (gameId) {
       saveGameState({
@@ -598,7 +456,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         winner_id: null,
       });
     }
-    
+
     // No need for alert - the UI immediately shows the change
   };
 
