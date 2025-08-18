@@ -132,6 +132,11 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
               : 'bg-blue-600 dark:bg-blue-500'
           } h-2 rounded-full`}
           style={{ width: `${percentage}%` }}
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Score progress: ${player.score} of ${targetScore} points (${percentage}%)`}
         />
       </div>
 

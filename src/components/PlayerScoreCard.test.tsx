@@ -3,10 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import PlayerScoreCard from './PlayerScoreCard';
 import { Player } from '../types/game';
 
-// Helper function to get element by class name using Testing Library's built-in queries
-const getByClassName = (container: HTMLElement, className: string): HTMLElement => {
-  return container.querySelector(`.${className}`) as HTMLElement;
-};
+// No longer need helper function - use semantic queries instead
 
 // Mock the ScoreButton component to simplify testing
 vi.mock('./ScoreButton', () => ({
@@ -91,10 +88,10 @@ describe('PlayerScoreCard Component', () => {
     expect(screen.getByText('1')).toBeInTheDocument(); // Safeties
     expect(screen.getByText('3')).toBeInTheDocument(); // Misses
     
-    // Check progress percentage (25/75 = 33%)
-    const container = screen.getByTestId('player-card') || document.body;
-    const progressBar = getByClassName(container, 'bg-blue-600');
-    expect(progressBar).toHaveStyle('width: 33%');
+    // Check progress percentage (25/75 = 33%) using semantic queries
+    const progressBar = screen.getByRole('progressbar');
+    expect(progressBar).toHaveAttribute('aria-valuenow', '33');
+    expect(progressBar).toHaveAttribute('aria-label', 'Score progress: 25 of 75 points (33%)');
   });
   
   test('displays trophy icon when player reaches target score', () => {
@@ -119,10 +116,10 @@ describe('PlayerScoreCard Component', () => {
     // Look for trophy emoji
     expect(screen.getByText('🏆')).toBeInTheDocument();
     
-    // Check progress bar is at 100%
-    const container = screen.getByTestId('player-card') || document.body;
-    const progressBar = getByClassName(container, 'bg-green-600');
-    expect(progressBar).toHaveStyle('width: 100%');
+    // Check progress bar is at 100% using semantic queries
+    const progressBar = screen.getByRole('progressbar');
+    expect(progressBar).toHaveAttribute('aria-valuenow', '100');
+    expect(progressBar).toHaveAttribute('aria-label', 'Score progress: 75 of 75 points (100%)');
   });
   
   test('shows active styling when isActive is true', () => {
