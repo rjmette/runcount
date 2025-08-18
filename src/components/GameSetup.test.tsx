@@ -36,7 +36,8 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
 
     // Check breaking player selection (Player 1 should be default)
-    expect(screen.getByText('Player 1 Breaks')).toHaveClass('bg-blue-100');
+    expect(screen.getByRole('button', { name: /Player 1 Breaks/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: /Player 2 Breaks/i })).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('displays error when submitting with empty player names', async () => {
@@ -198,7 +199,13 @@ describe('GameSetup Component', () => {
     const player2BreakBtn = screen.getByRole('button', {
       name: /Mike.*Breaks/i,
     });
-    expect(player2BreakBtn).toHaveClass('bg-blue-100');
+    expect(player2BreakBtn).toHaveAttribute('aria-pressed', 'true');
+    
+    // Check that Player 1 is no longer selected
+    const player1BreakBtn = screen.getByRole('button', {
+      name: /John.*Breaks/i,
+    });
+    expect(player1BreakBtn).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('target score inputs work correctly', async () => {

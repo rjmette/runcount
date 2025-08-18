@@ -109,109 +109,112 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   }, [user, gameData, supabase, savedToSupabase]);
 
   // Memoize expensive statistics calculations
-  const calculateStats = useMemo(() => (players: Player[], actions: any[]) => {
-    // Create a map to track results
-    const playerStats: Record<
-      number,
-      {
-        totalBallsPocketed: number;
-        totalInnings: number;
-        safetyInnings: number;
-        successfulSafeties: number;
-        failedSafeties: number;
-        totalSafeties: number;
-        ballsMade: number;
-        shotsTaken: number;
-      }
-    > = {};
+  const calculateStats = useMemo(
+    () => (players: Player[], actions: any[]) => {
+      // Create a map to track results
+      const playerStats: Record<
+        number,
+        {
+          totalBallsPocketed: number;
+          totalInnings: number;
+          safetyInnings: number;
+          successfulSafeties: number;
+          failedSafeties: number;
+          totalSafeties: number;
+          ballsMade: number;
+          shotsTaken: number;
+        }
+      > = {};
 
-    // Initialize stats for each player
-    players.forEach((player) => {
-      playerStats[player.id] = {
-        totalBallsPocketed: player.score || 0,
-        totalInnings: player.innings || 0,
-        safetyInnings: 0,
-        successfulSafeties: 0,
-        failedSafeties: 0,
-        totalSafeties: player.safeties || 0,
-        ballsMade: player.score || 0,
-        shotsTaken:
-          (player.score || 0) +
-          (player.missedShots || 0) +
-          (player.safeties || 0) +
-          (player.fouls || 0),
-      };
-    });
+      // Initialize stats for each player
+      players.forEach((player) => {
+        playerStats[player.id] = {
+          totalBallsPocketed: player.score || 0,
+          totalInnings: player.innings || 0,
+          safetyInnings: 0,
+          successfulSafeties: 0,
+          failedSafeties: 0,
+          totalSafeties: player.safeties || 0,
+          ballsMade: player.score || 0,
+          shotsTaken:
+            (player.score || 0) +
+            (player.missedShots || 0) +
+            (player.safeties || 0) +
+            (player.fouls || 0),
+        };
+      });
 
-    // Analyze action sequence to determine safety effectiveness
-    for (let i = 0; i < actions.length - 1; i++) {
-      const currentAction = actions[i];
-      const nextAction = actions[i + 1];
+      // Analyze action sequence to determine safety effectiveness
+      for (let i = 0; i < actions.length - 1; i++) {
+        const currentAction = actions[i];
+        const nextAction = actions[i + 1];
 
-      // If current action is a safety
-      if (currentAction.type === 'safety') {
-        // Get current and next player IDs
-        const currentPlayerId = currentAction.playerId;
-        const nextPlayerId = nextAction.playerId;
+        // If current action is a safety
+        if (currentAction.type === 'safety') {
+          // Get current and next player IDs
+          const currentPlayerId = currentAction.playerId;
+          const nextPlayerId = nextAction.playerId;
 
-        // Count as a safety inning
-        playerStats[currentPlayerId].safetyInnings++;
+          // Count as a safety inning
+          playerStats[currentPlayerId].safetyInnings++;
 
-        // If next action is by a different player (opponent)
-        if (nextPlayerId !== currentPlayerId) {
-          // Check if next action is a foul or miss (successful safety)
-          if (nextAction.type === 'foul' || nextAction.type === 'miss') {
-            playerStats[currentPlayerId].successfulSafeties++;
-          } else {
-            // Opponent got to continue (failed safety)
-            playerStats[currentPlayerId].failedSafeties++;
+          // If next action is by a different player (opponent)
+          if (nextPlayerId !== currentPlayerId) {
+            // Check if next action is a foul or miss (successful safety)
+            if (nextAction.type === 'foul' || nextAction.type === 'miss') {
+              playerStats[currentPlayerId].successfulSafeties++;
+            } else {
+              // Opponent got to continue (failed safety)
+              playerStats[currentPlayerId].failedSafeties++;
+            }
           }
         }
       }
-    }
 
-    // Calculate final statistics for each player
-    return players.map((player) => {
-      const stats = playerStats[player.id];
+      // Calculate final statistics for each player
+      return players.map((player) => {
+        const stats = playerStats[player.id];
 
-      // 1. Traditional BPI
-      const traditionalBPI =
-        stats.totalInnings > 0
-          ? (stats.totalBallsPocketed / stats.totalInnings).toFixed(2)
-          : '0.00';
+        // 1. Traditional BPI
+        const traditionalBPI =
+          stats.totalInnings > 0
+            ? (stats.totalBallsPocketed / stats.totalInnings).toFixed(2)
+            : '0.00';
 
-      // 2. Offensive BPI (excluding safety innings)
-      const offensiveInnings = Math.max(
-        1,
-        stats.totalInnings - stats.safetyInnings
-      );
-      const offensiveBPI = (
-        stats.totalBallsPocketed / offensiveInnings
-      ).toFixed(2);
+        // 2. Offensive BPI (excluding safety innings)
+        const offensiveInnings = Math.max(
+          1,
+          stats.totalInnings - stats.safetyInnings
+        );
+        const offensiveBPI = (
+          stats.totalBallsPocketed / offensiveInnings
+        ).toFixed(2);
 
-      // 3. Safety Efficiency percentage
-      const safetyEfficiency =
-        stats.totalSafeties > 0
-          ? Math.round((stats.successfulSafeties / stats.totalSafeties) * 100)
-          : 0;
+        // 3. Safety Efficiency percentage
+        const safetyEfficiency =
+          stats.totalSafeties > 0
+            ? Math.round((stats.successfulSafeties / stats.totalSafeties) * 100)
+            : 0;
 
-      // 4. Shooting Percentage
-      const shootingPercentage =
-        stats.shotsTaken > 0
-          ? Math.round((stats.ballsMade / stats.shotsTaken) * 100)
-          : 0;
+        // 4. Shooting Percentage
+        const shootingPercentage =
+          stats.shotsTaken > 0
+            ? Math.round((stats.ballsMade / stats.shotsTaken) * 100)
+            : 0;
 
-      return {
-        ...player,
-        bpi: traditionalBPI,
-        offensiveBPI,
-        safetyEfficiency,
-        successfulSafeties: stats.successfulSafeties,
-        failedSafeties: stats.failedSafeties,
-        shootingPercentage,
-      };
-    });
-  }, [gameData?.players, gameData?.actions]);
+        return {
+          ...player,
+          bpi: traditionalBPI,
+          offensiveBPI,
+          safetyEfficiency,
+          successfulSafeties: stats.successfulSafeties,
+          failedSafeties: stats.failedSafeties,
+          shootingPercentage,
+        };
+      });
+    },
+    [gameData?.players, gameData?.actions]
+  );
 
   const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';
@@ -262,7 +265,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const copyMatchResults = async () => {
     const formattedText = formatGameResultsForEmail;
     const { copyWithFeedback } = await import('../utils/copyToClipboard');
-    
+
     await copyWithFeedback(
       formattedText,
       () => {
@@ -285,8 +288,13 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div
+        className="flex items-center justify-center h-64"
+        role="status"
+        aria-label="Loading game statistics..."
+      >
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div>
+        <span className="sr-only">Loading game statistics...</span>
       </div>
     );
   }
