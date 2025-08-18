@@ -10,6 +10,12 @@ import Auth from './components/auth/Auth';
 import UserProfile from './components/auth/UserProfile';
 import { MatchTimer } from './components/MatchTimer';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ErrorProvider, useError } from './context/ErrorContext';
+import {
+  ErrorBoundary,
+  ErrorEventsBridge,
+} from './components/shared/ErrorBoundary';
+import ErrorBanner from './components/shared/ErrorBanner';
 import {
   GamePersistProvider,
   useGamePersist,
@@ -28,17 +34,25 @@ type GameState = 'setup' | 'scoring' | 'statistics' | 'history' | 'profile';
 // Main App Component - now just wraps the content with AuthProvider
 const App: FC = () => {
   return (
-    <AuthProvider supabase={supabase}>
-      <GamePersistProvider>
-        <AppContent />
-      </GamePersistProvider>
-    </AuthProvider>
+    <ErrorProvider>
+      <ErrorBoundary>
+        <ErrorEventsBridge>
+          <AuthProvider supabase={supabase}>
+            <GamePersistProvider>
+              <AppContent />
+              <ErrorBanner />
+            </GamePersistProvider>
+          </AuthProvider>
+        </ErrorEventsBridge>
+      </ErrorBoundary>
+    </ErrorProvider>
   );
 };
 
 // The actual app content, using the auth context
 const AppContent: FC = () => {
   const { user, loading, signOut } = useAuth();
+  const { addError } = useError();
   const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
   // Game state management
@@ -236,6 +250,9 @@ const AppContent: FC = () => {
       }
     } catch (error) {
       console.warn('Fullscreen toggle failed:', error);
+      addError(
+        'Unable to toggle fullscreen. Your browser may not support this feature.'
+      );
       // For iOS Safari, provide user feedback since fullscreen is very limited
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
         alert(
@@ -247,11 +264,16 @@ const AppContent: FC = () => {
 
   // Memoize sign out handler
   const handleSignOut = useCallback(async () => {
-    await signOut();
-    setShowProfileModal(false);
-    // Only redirect to setup if not in the middle of a game
-    if (gameState !== 'scoring' && gameState !== 'statistics') {
-      setGameState('setup');
+    try {
+      await signOut();
+    } catch (e) {
+      addError('Failed to sign out. Please try again.');
+    } finally {
+      setShowProfileModal(false);
+      // Only redirect to setup if not in the middle of a game
+      if (gameState !== 'scoring' && gameState !== 'statistics') {
+        setGameState('setup');
+      }
     }
   }, [signOut, gameState]);
 

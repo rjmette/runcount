@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useError } from './ErrorContext';
 import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -16,10 +17,11 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ 
-  supabase, 
-  children 
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  supabase,
+  children,
 }) => {
+  const { addError } = useError();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -29,12 +31,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     const getInitialSession = async () => {
       try {
         setLoading(true);
-        
+
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
         setUser(data.session?.user || null);
       } catch (error) {
         console.error('Error getting initial session:', error);
+        addError(
+          'Unable to restore your session. You may need to log in again.'
+        );
       } finally {
         setLoading(false);
       }
@@ -62,6 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
+      addError('Sign out failed. Please try again.');
     }
   };
 
@@ -72,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       setUser(data.session?.user || null);
     } catch (error) {
       console.error('Error refreshing session:', error);
+      addError('Unable to refresh your session. Please sign in again.');
     }
   };
 
