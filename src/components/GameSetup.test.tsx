@@ -47,7 +47,9 @@ describe('GameSetup Component', () => {
     );
 
     // Try to submit form without filling player names
-    fireEvent.submit(screen.getByRole('button', { name: /Start Game/i }).closest('form')!);
+    fireEvent.submit(
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+    );
 
     // Check for error message
     expect(
@@ -98,7 +100,9 @@ describe('GameSetup Component', () => {
     await userEvent.type(player1TargetScore, '0');
 
     // Try to submit form
-    fireEvent.submit(screen.getByRole('button', { name: /Start Game/i }).closest('form')!);
+    fireEvent.submit(
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+    );
 
     // Check for error message
     expect(
