@@ -180,9 +180,18 @@ const AppContent: FC = () => {
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      document.removeEventListener(
+        'webkitfullscreenchange',
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        'mozfullscreenchange',
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        'MSFullscreenChange',
+        handleFullscreenChange
+      );
     };
   }, []);
 
@@ -229,7 +238,9 @@ const AppContent: FC = () => {
       console.warn('Fullscreen toggle failed:', error);
       // For iOS Safari, provide user feedback since fullscreen is very limited
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        alert('Fullscreen not supported on this device. Try using "Add to Home Screen" for a fullscreen-like experience.');
+        alert(
+          'Fullscreen not supported on this device. Try using "Add to Home Screen" for a fullscreen-like experience.'
+        );
       }
     }
   }, []);
@@ -245,16 +256,42 @@ const AppContent: FC = () => {
   }, [signOut, gameState]);
 
   // Memoize the game start callback
-  const handleStartGame = useCallback((players: string[], playerTargetScores: Record<string, number>, breakingPlayerId: number) => {
-    console.log('App: Setting breaking player ID to:', breakingPlayerId);
-    setPlayers(players);
-    setPlayerTargetScores(playerTargetScores);
-    setBreakingPlayerId(breakingPlayerId);
-    // Save settings for future use
-    setLastPlayers(players);
-    setLastPlayerTargetScores(playerTargetScores);
-    setLastBreakingPlayerId(breakingPlayerId);
-    setGameState('scoring');
+  const handleStartGame = useCallback(
+    (
+      players: string[],
+      playerTargetScores: Record<string, number>,
+      breakingPlayerId: number
+    ) => {
+      console.log('App: Setting breaking player ID to:', breakingPlayerId);
+      setPlayers(players);
+      setPlayerTargetScores(playerTargetScores);
+      setBreakingPlayerId(breakingPlayerId);
+      // Save settings for future use
+      setLastPlayers(players);
+      setLastPlayerTargetScores(playerTargetScores);
+      setLastBreakingPlayerId(breakingPlayerId);
+      setGameState('scoring');
+    },
+    []
+  );
+
+  // Stable callbacks used by child components (must not be created conditionally)
+  const handleFinishGame = useCallback(() => {
+    // Don't reset gameId here, as we need it for statistics
+    setGameState('statistics');
+  }, []);
+
+  const handleStartNewGame = useCallback(() => {
+    setCurrentGameId(null);
+    setGameState('setup');
+  }, []);
+
+  const handleViewHistory = useCallback(() => {
+    setGameState('history');
+  }, []);
+
+  const handleGoToSetup = useCallback(() => {
+    setGameState('setup');
   }, []);
 
   // Switch between different components based on game state
@@ -276,10 +313,7 @@ const AppContent: FC = () => {
             playerTargetScores={playerTargetScores}
             gameId={currentGameId}
             setGameId={setCurrentGameId}
-            finishGame={useCallback(() => {
-              // Don't reset gameId here, as we need it for statistics
-              setGameState('statistics');
-            }, [])}
+            finishGame={handleFinishGame}
             supabase={supabase}
             user={user}
             breakingPlayerId={breakingPlayerId}
@@ -296,11 +330,8 @@ const AppContent: FC = () => {
           <GameStatistics
             gameId={currentGameId}
             supabase={supabase}
-            startNewGame={useCallback(() => {
-              setCurrentGameId(null);
-              setGameState('setup');
-            }, [])}
-            viewHistory={useCallback(() => setGameState('history'), [])}
+            startNewGame={handleStartNewGame}
+            viewHistory={handleViewHistory}
             user={user}
           />
         );
@@ -308,7 +339,7 @@ const AppContent: FC = () => {
         return (
           <GameHistory
             supabase={supabase}
-            startNewGame={useCallback(() => setGameState('setup'), [])}
+            startNewGame={handleGoToSetup}
             user={user}
           />
         );
@@ -344,7 +375,7 @@ const AppContent: FC = () => {
             </h2>
           </div>
           <div className="p-3 sm:p-4">
-            {(gameState === 'scoring' || gameState === 'statistics') ? (
+            {gameState === 'scoring' || gameState === 'statistics' ? (
               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-lg text-sm">
                 <p>
                   <strong>Note:</strong> Logging in will save your current game
@@ -441,8 +472,8 @@ const AppContent: FC = () => {
         <div className="flex justify-between items-center">
           <div>
             {gameState === 'scoring' ? (
-              <MatchTimer 
-                startTime={matchStartTime} 
+              <MatchTimer
+                startTime={matchStartTime}
                 endTime={matchEndTime}
                 isRunning={!matchEndTime}
                 ballsOnTable={ballsOnTable}
@@ -627,6 +658,6 @@ const AppContent: FC = () => {
       {renderProfileModal()}
     </div>
   );
-}
+};
 
 export default App;
