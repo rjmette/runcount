@@ -9,6 +9,8 @@ interface PlayerCardProps {
   colorScheme: 'blue' | 'green';
 }
 
+const COMMON_TARGET_SCORES = [50, 75, 100, 125, 150] as const;
+
 const PlayerCard: React.FC<PlayerCardProps> = ({
   playerNumber,
   playerName,
@@ -35,7 +37,6 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   };
 
   const color = colors[colorScheme];
-  const commonScores = [50, 75, 100, 125, 150];
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
@@ -82,11 +83,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
             </div>
             <div className="flex gap-1.5">
-              {commonScores.map((score) => (
+              {COMMON_TARGET_SCORES.map((score) => (
                 <button
                   key={score}
                   type="button"
                   onClick={() => onTargetScoreChange(score)}
+                  aria-label={`Set Player ${playerNumber} target score to ${score} points`}
                   className={`px-2 py-1 text-xs rounded-lg transition-colors ${
                     targetScore === score ? color.button : color.buttonInactive
                   }`}

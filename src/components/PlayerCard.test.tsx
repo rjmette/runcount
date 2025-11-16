@@ -1,0 +1,215 @@
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import PlayerCard from './PlayerCard';
+
+describe('PlayerCard Component', () => {
+  const mockOnPlayerNameChange = vi.fn();
+  const mockOnTargetScoreChange = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('renders player card with correct player number', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName=""
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    expect(screen.getByText('Player 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Player 1 name')).toBeInTheDocument();
+  });
+
+  test('renders with player name and target score', () => {
+    render(
+      <PlayerCard
+        playerNumber={2}
+        playerName="John Doe"
+        targetScore={100}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="green"
+      />
+    );
+
+    expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
+    expect(screen.getByDisplayValue(100)).toBeInTheDocument();
+  });
+
+  test('calls onPlayerNameChange when name input changes', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName=""
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const nameInput = screen.getByLabelText('Player 1 name');
+    fireEvent.change(nameInput, { target: { value: 'Jane' } });
+
+    expect(mockOnPlayerNameChange).toHaveBeenCalledWith('Jane');
+  });
+
+  test('calls onTargetScoreChange when score input changes', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const scoreInput = screen.getByLabelText('Player 1 target score');
+    fireEvent.change(scoreInput, { target: { value: '125' } });
+
+    expect(mockOnTargetScoreChange).toHaveBeenCalledWith(125);
+  });
+
+  test('renders all quick-select score buttons', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const expectedScores = [50, 75, 100, 125, 150];
+    expectedScores.forEach((score) => {
+      expect(
+        screen.getByLabelText(`Set Player 1 target score to ${score} points`)
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('quick-select button updates target score', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const button100 = screen.getByLabelText('Set Player 1 target score to 100 points');
+    fireEvent.click(button100);
+
+    expect(mockOnTargetScoreChange).toHaveBeenCalledWith(100);
+  });
+
+  test('active quick-select button has correct styling for blue color scheme', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const button75 = screen.getByLabelText('Set Player 1 target score to 75 points');
+    expect(button75).toHaveClass('bg-blue-500', 'text-white');
+  });
+
+  test('active quick-select button has correct styling for green color scheme', () => {
+    render(
+      <PlayerCard
+        playerNumber={2}
+        playerName="Jane"
+        targetScore={100}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="green"
+      />
+    );
+
+    const button100 = screen.getByLabelText('Set Player 2 target score to 100 points');
+    expect(button100).toHaveClass('bg-green-500', 'text-white');
+  });
+
+  test('inactive quick-select buttons have correct styling', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const button50 = screen.getByLabelText('Set Player 1 target score to 50 points');
+    expect(button50).toHaveClass('bg-gray-100', 'dark:bg-gray-700');
+  });
+
+  test('has required attribute on name input', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName=""
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const nameInput = screen.getByLabelText('Player 1 name');
+    expect(nameInput).toBeRequired();
+  });
+
+  test('has required attribute on target score input', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const scoreInput = screen.getByLabelText('Player 1 target score');
+    expect(scoreInput).toBeRequired();
+  });
+
+  test('target score input has min and step attributes', () => {
+    render(
+      <PlayerCard
+        playerNumber={1}
+        playerName="John"
+        targetScore={75}
+        onPlayerNameChange={mockOnPlayerNameChange}
+        onTargetScoreChange={mockOnTargetScoreChange}
+        colorScheme="blue"
+      />
+    );
+
+    const scoreInput = screen.getByLabelText('Player 1 target score');
+    expect(scoreInput).toHaveAttribute('min', '1');
+    expect(scoreInput).toHaveAttribute('step', '1');
+  });
+});
