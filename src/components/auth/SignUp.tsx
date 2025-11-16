@@ -7,6 +7,13 @@ interface SignUpProps {
   onSuccess?: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,8 +50,8 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred during sign up');
+    } catch (error) {
+      setError(getErrorMessage(error, 'An error occurred during sign up'));
     } finally {
       setLoading(false);
     }
@@ -63,8 +70,8 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
       });
 
       if (error) throw error;
-    } catch (error: any) {
-      setError(error.message || `An error occurred during ${provider} sign up`);
+    } catch (error) {
+      setError(getErrorMessage(error, `An error occurred during ${provider} sign up`));
     } finally {
       setLoading(false);
     }

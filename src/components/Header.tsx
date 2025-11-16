@@ -117,6 +117,7 @@ export const Header: FC<HeaderProps> = ({
                 <button
                   className="bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 p-2 rounded-full text-white"
                   onClick={onProfileClick}
+                  aria-label="Open profile menu"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -139,6 +140,7 @@ export const Header: FC<HeaderProps> = ({
                 <button
                   className="bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 p-2 rounded-full text-gray-300 dark:text-gray-400 hover:text-gray-200 transition-colors"
                   onClick={onAuthClick}
+                  aria-label="Open authentication modal"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

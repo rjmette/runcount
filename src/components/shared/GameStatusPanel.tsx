@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { type Player } from '../../types/game';
+import { type Player, type GameAction } from '../../types/game';
 
 import { type StatCalculator } from './types';
 
@@ -14,7 +14,7 @@ interface GameStatusPanelProps {
   onCopyResults: () => void;
   onViewInnings?: () => void;
   copySuccess: boolean;
-  actions: any[];
+  actions: GameAction[];
 }
 
 export const GameStatusPanel: React.FC<GameStatusPanelProps> = ({

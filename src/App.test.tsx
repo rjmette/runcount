@@ -60,12 +60,10 @@ describe('App Component', () => {
     localStorage.clear();
   });
 
-  // TODO: Fix test - UI content has changed
   test('renders header with app title', () => {
     render(<App />);
 
-    // Check for RunCount title (tagline now only appears during loading)
-    expect(screen.getByText('RunCount')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /RunCount/i })).toBeInTheDocument();
   });
 
   test('shows GameSetup component by default', async () => {
@@ -76,39 +74,33 @@ describe('App Component', () => {
     });
   });
 
-  // TODO: Fix test - button text has changed
   test('opens Authentication modal when clicking user icon (unauthenticated)', async () => {
     render(<App />);
 
-    // Click the user icon button in the header (last button in header controls when unauthenticated)
-    const header = screen.getByRole('banner');
-    const buttons = header.querySelectorAll('button');
-    const userIconButton = buttons[buttons.length - 1] as HTMLButtonElement;
-    fireEvent.click(userIconButton);
+    fireEvent.click(screen.getByRole('button', { name: /open authentication modal/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Authentication')).toBeInTheDocument();
     });
   });
 
-  // TODO: Fix test - footer content has changed
   test('shows navigation tab for New Game when not scoring', async () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('New Game')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /New Game/i })).toBeInTheDocument();
     });
   });
 
-  // TODO: Fix test - navigation content has changed
   test('displays correct navigation labels when not authenticated', async () => {
     render(<App />);
 
     await waitFor(() => {
-      // Unauthenticated users only see New Game (History/Profile appear after login)
-      expect(screen.getByText('New Game')).toBeInTheDocument();
-      expect(screen.queryByText('History')).not.toBeInTheDocument();
-      expect(screen.queryByText('My Profile')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /New Game/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /History/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /My Profile/i }),
+      ).not.toBeInTheDocument();
     });
   });
 });

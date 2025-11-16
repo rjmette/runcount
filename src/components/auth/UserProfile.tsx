@@ -8,6 +8,13 @@ interface UserProfileProps {
   onSignOut: () => Promise<void>;
 }
 
+const getErrorMessage = (error: unknown, fallback = 'An error occurred') => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +43,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) 
       setNewEmail('');
       setShowSuccessAnimation(true);
       setTimeout(() => setShowSuccessAnimation(false), 2000);
-    } catch (error: any) {
-      setError(error.message || 'An error occurred');
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -67,8 +74,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) 
       setConfirmPassword('');
       setShowSuccessAnimation(true);
       setTimeout(() => setShowSuccessAnimation(false), 2000);
-    } catch (error: any) {
-      setError(error.message || 'An error occurred');
+    } catch (error) {
+      setError(getErrorMessage(error));
     } finally {
       setLoading(false);
     }

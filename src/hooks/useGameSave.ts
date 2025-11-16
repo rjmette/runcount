@@ -1,26 +1,33 @@
-import { type SupabaseClient } from '@supabase/supabase-js';
+import { type SupabaseClient, type User } from '@supabase/supabase-js';
+
+import type { GameAction, GameData, Player } from '../types/game';
 
 type UseGameSaveArgs = {
-  supabase: SupabaseClient | any;
-  user: any | null;
-  saveGameState: (state: any) => void;
+  supabase: SupabaseClient;
+  user: User | null;
+  saveGameState: (state: GameData) => void;
   clearGameState: () => void;
-  matchStartTime?: string | undefined;
-  matchEndTime?: string | undefined;
+  matchStartTime?: string;
+  matchEndTime?: string;
 };
 
 type WinnerId = number | string | null;
 
+type SupabaseGamePayload = GameData & {
+  owner_id: string;
+  deleted: boolean;
+};
+
 export const saveGameToSupabaseHelper = async (options: {
-  supabase: any;
-  user: any | null;
-  saveGameState: (s: any) => void;
+  supabase: SupabaseClient;
+  user: User | null;
+  saveGameState: (state: GameData) => void;
   clearGameState: () => void;
-  matchStartTime?: string | undefined;
-  matchEndTime?: string | undefined;
+  matchStartTime?: string;
+  matchEndTime?: string;
   gameId: string;
-  players: any;
-  actions: any;
+  players: Player[];
+  actions: GameAction[];
   completed: boolean;
   winner_id: WinnerId;
 }) => {
@@ -38,7 +45,6 @@ export const saveGameToSupabaseHelper = async (options: {
     winner_id: winnerId,
   } = options;
 
-  // Save game state to our persistent storage context
   if (completed) {
     clearGameState();
   } else {
@@ -48,13 +54,12 @@ export const saveGameToSupabaseHelper = async (options: {
       players,
       actions,
       completed,
-      winner_id: winnerId as any,
+      winner_id: winnerId,
       startTime: matchStartTime,
       endTime: matchEndTime,
     });
   }
 
-  // First save to localStorage
   try {
     const now = new Date();
     localStorage.setItem(
@@ -65,7 +70,7 @@ export const saveGameToSupabaseHelper = async (options: {
         players,
         actions,
         completed,
-        winner_id: winnerId as any,
+        winner_id: winnerId,
         startTime: matchStartTime,
         endTime: matchEndTime,
       }),
@@ -82,24 +87,27 @@ export const saveGameToSupabaseHelper = async (options: {
     }
   }
 
-  // Only save to Supabase if user is authenticated
   if (!user) return;
 
   try {
     const now = new Date();
-    const payload: any = {
+    const payload: SupabaseGamePayload = {
       id: gameId,
       date: now.toISOString(),
       players,
       actions,
       completed,
-      winner_id: winnerId as any,
+      winner_id: winnerId,
       owner_id: user.id,
       deleted: false,
     };
 
-    if (matchStartTime) payload.startTime = matchStartTime;
-    if (matchEndTime) payload.endTime = matchEndTime;
+    if (matchStartTime) {
+      payload.startTime = matchStartTime;
+    }
+    if (matchEndTime) {
+      payload.endTime = matchEndTime;
+    }
 
     const { error } = await supabase.from('games').upsert(payload);
 
@@ -137,12 +145,12 @@ export const useGameSave = ({
 }: UseGameSaveArgs) => {
   const saveGameToSupabase = async (
     gameId: string,
-    players: any,
-    actions: any,
+    players: Player[],
+    actions: GameAction[],
     completed: boolean,
     winnerId: WinnerId,
-    startTime?: string | undefined,
-    endTime?: string | undefined,
+    startTime?: string,
+    endTime?: string,
   ) => {
     await saveGameToSupabaseHelper({
       supabase,
