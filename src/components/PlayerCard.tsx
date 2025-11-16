@@ -1,4 +1,6 @@
 import React from 'react';
+import { COMMON_TARGET_SCORES } from '../constants/gameSettings';
+import { PLAYER_COLOR_SCHEMES } from '../constants/theme';
 
 interface PlayerCardProps {
   playerNumber: 1 | 2;
@@ -9,8 +11,6 @@ interface PlayerCardProps {
   colorScheme: 'blue' | 'green';
 }
 
-const COMMON_TARGET_SCORES = [50, 75, 100, 125, 150] as const;
-
 const PlayerCard: React.FC<PlayerCardProps> = ({
   playerNumber,
   playerName,
@@ -19,24 +19,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   onTargetScoreChange,
   colorScheme,
 }) => {
-  const colors = {
-    blue: {
-      badge: 'bg-blue-100 dark:bg-blue-900',
-      badgeText: 'text-blue-600 dark:text-blue-400',
-      gradient: 'bg-gradient-to-br from-blue-400 to-blue-600',
-      button: 'bg-blue-500 text-white',
-      buttonInactive: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
-    },
-    green: {
-      badge: 'bg-green-100 dark:bg-green-900',
-      badgeText: 'text-green-600 dark:text-green-400',
-      gradient: 'bg-gradient-to-br from-green-400 to-green-600',
-      button: 'bg-green-500 text-white',
-      buttonInactive: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
-    },
-  };
-
-  const color = colors[colorScheme];
+  const color = PLAYER_COLOR_SCHEMES[colorScheme];
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">

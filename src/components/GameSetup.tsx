@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameSetupProps } from '../types/game';
 import { useGamePersist } from '../context/GamePersistContext';
 import PlayerCard from './PlayerCard';
+import { DEFAULT_PLAYER1_TARGET, DEFAULT_PLAYER2_TARGET } from '../constants/gameSettings';
 
 const GameSetup: React.FC<GameSetupProps> = ({
   startGame,
@@ -12,8 +13,8 @@ const GameSetup: React.FC<GameSetupProps> = ({
   const { clearGameState } = useGamePersist();
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
-  const [player1TargetScore, setPlayer1TargetScore] = useState(75);
-  const [player2TargetScore, setPlayer2TargetScore] = useState(60);
+  const [player1TargetScore, setPlayer1TargetScore] = useState(DEFAULT_PLAYER1_TARGET);
+  const [player2TargetScore, setPlayer2TargetScore] = useState(DEFAULT_PLAYER2_TARGET);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0); // Default to player 1
   const [error, setError] = useState('');
 
