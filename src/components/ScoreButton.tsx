@@ -9,6 +9,7 @@ const ScoreButton: React.FC<ScoreButtonProps> = ({
 }) => {
   return (
     <button
+      type="button"
       onClick={() => onClick(value)}
       className={`px-5 py-3 rounded-md text-white font-medium text-lg shadow-md hover:shadow-lg transition-all ${className}`}
     >

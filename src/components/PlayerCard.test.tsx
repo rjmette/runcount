@@ -116,7 +116,7 @@ describe('PlayerCard Component', () => {
     expect(mockOnTargetScoreChange).toHaveBeenCalledWith(100);
   });
 
-  test('active quick-select button has correct styling for blue color scheme', () => {
+  test('quick-select buttons expose selection state via aria-pressed', () => {
     render(
       <PlayerCard
         playerNumber={1}
@@ -128,40 +128,17 @@ describe('PlayerCard Component', () => {
       />
     );
 
-    const button75 = screen.getByLabelText('Set Player 1 target score to 75 points');
-    expect(button75).toHaveClass('bg-blue-500', 'text-white');
-  });
-
-  test('active quick-select button has correct styling for green color scheme', () => {
-    render(
-      <PlayerCard
-        playerNumber={2}
-        playerName="Jane"
-        targetScore={100}
-        onPlayerNameChange={mockOnPlayerNameChange}
-        onTargetScoreChange={mockOnTargetScoreChange}
-        colorScheme="green"
-      />
+    const selectedButton = screen.getByLabelText(
+      'Set Player 1 target score to 75 points'
+    );
+    const unselectedButton = screen.getByLabelText(
+      'Set Player 1 target score to 50 points'
     );
 
-    const button100 = screen.getByLabelText('Set Player 2 target score to 100 points');
-    expect(button100).toHaveClass('bg-green-500', 'text-white');
-  });
-
-  test('inactive quick-select buttons have correct styling', () => {
-    render(
-      <PlayerCard
-        playerNumber={1}
-        playerName="John"
-        targetScore={75}
-        onPlayerNameChange={mockOnPlayerNameChange}
-        onTargetScoreChange={mockOnTargetScoreChange}
-        colorScheme="blue"
-      />
-    );
-
-    const button50 = screen.getByLabelText('Set Player 1 target score to 50 points');
-    expect(button50).toHaveClass('bg-gray-100', 'dark:bg-gray-700');
+    expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
+    expect(selectedButton).toHaveAttribute('data-state', 'selected');
+    expect(unselectedButton).toHaveAttribute('aria-pressed', 'false');
+    expect(unselectedButton).toHaveAttribute('data-state', 'unselected');
   });
 
   test('has required attribute on name input', () => {

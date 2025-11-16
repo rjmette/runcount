@@ -46,7 +46,10 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
 
     // Check breaking player selection (Player 1 should be default)
-    const breakingButtons = screen.getAllByRole('button', { pressed: true });
+    const breakingButtons = screen.getAllByRole('button', {
+      pressed: true,
+      name: /Select .* breaking player/i,
+    });
     expect(breakingButtons).toHaveLength(1);
     expect(breakingButtons[0]).toHaveAttribute('aria-pressed', 'true');
   });
@@ -168,9 +171,10 @@ describe('GameSetup Component', () => {
     await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
     // Select Player 2 as the breaking player - find by player name text in button
-    const buttons = screen.getAllByRole('button', { pressed: false });
-    const player2Button = buttons.find(btn => btn.textContent?.includes('Player Two'));
-    fireEvent.click(player2Button!);
+    const player2Button = screen.getByRole('button', {
+      name: /Select .*Player Two.* breaking player/i,
+    });
+    fireEvent.click(player2Button);
 
     // Submit form
     fireEvent.click(screen.getByRole('button', { name: /Start Game/i }));
@@ -208,11 +212,15 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(100)).toBeInTheDocument(); // Mike's target score
 
     // Check that Mike (Player 2) is selected as breaking
-    const player2BreakBtn = screen.getByRole('button', { name: '2 Mike' });
+    const player2BreakBtn = screen.getByRole('button', {
+      name: /Select .*Mike.* breaking player/i,
+    });
     expect(player2BreakBtn).toHaveAttribute('aria-pressed', 'true');
 
     // Check that Player 1 is no longer selected
-    const player1BreakBtn = screen.getByRole('button', { name: '1 John' });
+    const player1BreakBtn = screen.getByRole('button', {
+      name: /Select .*John.* breaking player/i,
+    });
     expect(player1BreakBtn).toHaveAttribute('aria-pressed', 'false');
   });
 

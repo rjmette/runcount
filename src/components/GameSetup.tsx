@@ -125,6 +125,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 type="button"
                 onClick={() => setBreakingPlayerId(0)}
                 aria-pressed={breakingPlayerId === 0}
+                aria-label={`Select ${(player1 || 'Player 1')} as breaking player`}
                 className={`p-4 rounded-2xl border-2 transition-all duration-200 ${
                   breakingPlayerId === 0
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
@@ -149,6 +150,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 type="button"
                 onClick={() => setBreakingPlayerId(1)}
                 aria-pressed={breakingPlayerId === 1}
+                aria-label={`Select ${(player2 || 'Player 2')} as breaking player`}
                 className={`p-4 rounded-2xl border-2 transition-all duration-200 ${
                   breakingPlayerId === 1
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/30'

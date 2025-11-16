@@ -35,8 +35,8 @@ describe('ScoreButton Component', () => {
     expect(mockOnClick).toHaveBeenCalledWith(testValue);
   });
   
-  test('applies custom className when provided', () => {
-    const customClass = 'bg-green-500';
+  test('applies any custom className that is provided', () => {
+    const customClass = 'custom-score-button';
     
     render(
       <ScoreButton 
@@ -51,23 +51,15 @@ describe('ScoreButton Component', () => {
     expect(button).toHaveClass(customClass);
   });
   
-  test('includes default classes even when custom class is provided', () => {
-    const customClass = 'bg-red-500';
-    
+  test('sets type button to avoid unintended form submissions', () => {
     render(
       <ScoreButton 
-        label="Red Button" 
-        value={5} 
+        label="Form Safe" 
+        value={1} 
         onClick={() => {}} 
-        className={customClass}
       />
     );
-    
-    const button = screen.getByRole('button', { name: /Red Button/i });
-    
-    // Check that it has both custom class and some of the default classes
-    expect(button).toHaveClass(customClass);
-    expect(button).toHaveClass('rounded-md');
-    expect(button).toHaveClass('text-white');
+    const button = screen.getByRole('button', { name: /Form Safe/i });
+    expect(button).toHaveAttribute('type', 'button');
   });
 });

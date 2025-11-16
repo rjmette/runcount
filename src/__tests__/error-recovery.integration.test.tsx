@@ -34,18 +34,18 @@ describe('Error Recovery Integration Tests', () => {
     
     // Should not crash and should show fresh game setup
     await waitFor(() => {
-      expect(screen.getByText('New Game Setup')).toBeInTheDocument();
+      expect(screen.getByText('New Game')).toBeInTheDocument();
     });
 
     // Should not show resume game option due to corrupted state
     expect(screen.queryByRole('button', { name: /Resume Game/i })).not.toBeInTheDocument();
 
     // Should be able to start a new game normally
-    await userEvent.clear(screen.getByLabelText('Player 1 Name'));
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
     
-    await userEvent.clear(screen.getByLabelText('Player 2 Name'));
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Bob');
+    await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
@@ -79,11 +79,11 @@ describe('Error Recovery Integration Tests', () => {
     });
 
     // 2. Same player names should show validation error
-    await userEvent.clear(screen.getByLabelText('Player 1 Name'));
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
     
-    await userEvent.clear(screen.getByLabelText('Player 2 Name'));
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Alice');
 
     fireEvent.submit(
       screen.getByRole('button', { name: /Start Game/i }).closest('form')!
@@ -94,8 +94,8 @@ describe('Error Recovery Integration Tests', () => {
     });
 
     // 3. Fix the configuration and verify it works
-    await userEvent.clear(screen.getByLabelText('Player 2 Name'));
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Bob');
+    await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
@@ -125,11 +125,11 @@ describe('Error Recovery Integration Tests', () => {
     );
     
     // Setup and start game - should not crash despite storage errors
-    await userEvent.clear(screen.getByLabelText('Player 1 Name'));
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
     
-    await userEvent.clear(screen.getByLabelText('Player 2 Name'));
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Bob');
+    await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
@@ -156,14 +156,14 @@ describe('Error Recovery Integration Tests', () => {
     );
     
     // Test extreme target scores
-    await userEvent.clear(screen.getByLabelText('Player 1 Name'));
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
     
-    await userEvent.clear(screen.getByLabelText('Player 2 Name'));
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Bob');
+    await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
     // Test zero target score
-    const player1TargetInput = screen.getByLabelText('Target Score', { selector: '#player1TargetScore' });
+    const player1TargetInput = screen.getByLabelText('Player 1 target score');
     await userEvent.clear(player1TargetInput);
     await userEvent.type(player1TargetInput, '0');
 
@@ -200,8 +200,8 @@ describe('Error Recovery Integration Tests', () => {
     );
     
     // Rapid form interactions
-    const player1Input = screen.getByLabelText('Player 1 Name');
-    const player2Input = screen.getByLabelText('Player 2 Name');
+    const player1Input = screen.getByLabelText(/Player 1 name/i);
+    const player2Input = screen.getByLabelText(/Player 2 name/i);
     
     // Rapid typing and clearing
     await userEvent.type(player1Input, 'A');
@@ -213,8 +213,12 @@ describe('Error Recovery Integration Tests', () => {
     await userEvent.type(player2Input, 'Bob');
 
     // Rapid button clicks on breaking player selection
-    const player1BreakBtn = screen.getByRole('button', { name: /Alice Breaks/i });
-    const player2BreakBtn = screen.getByRole('button', { name: /Bob Breaks/i });
+    const player1BreakBtn = screen.getByRole('button', {
+      name: /Select .*Alice.* breaking player/i,
+    });
+    const player2BreakBtn = screen.getByRole('button', {
+      name: /Select .*Bob.* breaking player/i,
+    });
     
     await userEvent.click(player2BreakBtn);
     await userEvent.click(player1BreakBtn);
@@ -243,8 +247,8 @@ describe('Error Recovery Integration Tests', () => {
     );
     
     // Start filling form
-    await userEvent.clear(screen.getByLabelText('Player 1 Name'));
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Alice');
+    await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
+    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
     
     // Unmount component during operation
     unmount();

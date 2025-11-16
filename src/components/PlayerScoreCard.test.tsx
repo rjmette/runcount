@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import PlayerScoreCard from './PlayerScoreCard';
-import { Player } from '../types/game';
+import { createMockPlayer } from '../testing/factories';
 
 // No longer need helper function - use semantic queries instead
 
@@ -33,18 +33,15 @@ vi.mock('./ScoreButton', () => ({
 
 describe('PlayerScoreCard Component', () => {
   // Sample player data for testing
-  const mockPlayer: Player = {
-    id: 1,
-    name: 'Test Player',
+  const mockPlayer = createMockPlayer({
     score: 25,
     innings: 5,
     highRun: 8,
     fouls: 2,
-    consecutiveFouls: 0,
     safeties: 1,
     missedShots: 3,
-    targetScore: 75
-  };
+    targetScore: 75,
+  });
   
   const mockHandlers = {
     onAddScore: vi.fn(),
@@ -95,11 +92,11 @@ describe('PlayerScoreCard Component', () => {
   });
   
   test('displays trophy icon when player reaches target score', () => {
-    const winningPlayer = {
+    const winningPlayer = createMockPlayer({
       ...mockPlayer,
-      score: 75, // Equal to target score
-      consecutiveFouls: 0
-    };
+      score: 75,
+      targetScore: 75,
+    });
     
     render(
       <PlayerScoreCard 
