@@ -10,6 +10,17 @@ describe('GameSetup Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock localStorage
+    const localStorageMock = {
+      getItem: vi.fn(),
+      setItem: vi.fn(),
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+    };
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+    });
   });
 
   test('renders the form with default values', () => {
@@ -20,13 +31,12 @@ describe('GameSetup Component', () => {
     );
 
     // Check for title and form elements
-    expect(screen.getByText('New Game Setup')).toBeInTheDocument();
+    expect(screen.getByText('New Game')).toBeInTheDocument();
 
-    // Use more specific selectors for form elements
-    expect(screen.getByLabelText('Player 1 Name')).toBeInTheDocument(); // Use exact text
-    expect(screen.getByLabelText('Player 2 Name')).toBeInTheDocument(); // Use exact text
+    // Check inputs using aria-labels
+    expect(screen.getByLabelText('Player 1 name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Player 2 name')).toBeInTheDocument();
 
-    // Use test IDs instead of text content for numeric fields
     expect(
       screen.getByRole('button', { name: /Start Game/i })
     ).toBeInTheDocument();
@@ -36,8 +46,9 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
 
     // Check breaking player selection (Player 1 should be default)
-    expect(screen.getByRole('button', { name: /Player 1 Breaks/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /Player 2 Breaks/i })).toHaveAttribute('aria-pressed', 'false');
+    const breakingButtons = screen.getAllByRole('button', { pressed: true });
+    expect(breakingButtons).toHaveLength(1);
+    expect(breakingButtons[0]).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('displays error when submitting with empty player names', async () => {
@@ -66,9 +77,9 @@ describe('GameSetup Component', () => {
       </GamePersistProvider>
     );
 
-    // Find player input fields by their IDs
-    const player1Input = screen.getByPlaceholderText('Enter player 1 name');
-    const player2Input = screen.getByPlaceholderText('Enter player 2 name');
+    // Find player input fields by aria-labels
+    const player1Input = screen.getByLabelText('Player 1 name');
+    const player2Input = screen.getByLabelText('Player 2 name');
 
     // Fill in the same name for both players
     await userEvent.type(player1Input, 'Same Name');
@@ -92,8 +103,8 @@ describe('GameSetup Component', () => {
     );
 
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
     // Set invalid target score - use ID selector instead of label
     const player1TargetScore = screen.getByDisplayValue(75);
@@ -120,8 +131,8 @@ describe('GameSetup Component', () => {
     );
 
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
     // Change target scores
     const player1TargetScore = screen.getByDisplayValue(75);
@@ -153,11 +164,13 @@ describe('GameSetup Component', () => {
     );
 
     // Fill in player names
-    await userEvent.type(screen.getByLabelText('Player 1 Name'), 'Player One');
-    await userEvent.type(screen.getByLabelText('Player 2 Name'), 'Player Two');
+    await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
-    // Select Player 2 as the breaking player
-    fireEvent.click(screen.getByText('Player Two Breaks'));
+    // Select Player 2 as the breaking player - find by player name text in button
+    const buttons = screen.getAllByRole('button', { pressed: false });
+    const player2Button = buttons.find(btn => btn.textContent?.includes('Player Two'));
+    fireEvent.click(player2Button!);
 
     // Submit form
     fireEvent.click(screen.getByRole('button', { name: /Start Game/i }));
@@ -187,24 +200,19 @@ describe('GameSetup Component', () => {
     );
 
     // Check that the fields are prefilled with last game settings
-    expect(screen.getByLabelText('Player 1 Name')).toHaveValue('John');
-    expect(screen.getByLabelText('Player 2 Name')).toHaveValue('Mike');
+    expect(screen.getByLabelText('Player 1 name')).toHaveValue('John');
+    expect(screen.getByLabelText('Player 2 name')).toHaveValue('Mike');
 
     // Check target scores
     expect(screen.getByDisplayValue(125)).toBeInTheDocument(); // John's target score
     expect(screen.getByDisplayValue(100)).toBeInTheDocument(); // Mike's target score
 
     // Check that Mike (Player 2) is selected as breaking
-    // Use a partial text match since player name is rendered separately from "Breaks"
-    const player2BreakBtn = screen.getByRole('button', {
-      name: /Mike.*Breaks/i,
-    });
+    const player2BreakBtn = screen.getByRole('button', { name: '2 Mike' });
     expect(player2BreakBtn).toHaveAttribute('aria-pressed', 'true');
-    
+
     // Check that Player 1 is no longer selected
-    const player1BreakBtn = screen.getByRole('button', {
-      name: /John.*Breaks/i,
-    });
+    const player1BreakBtn = screen.getByRole('button', { name: '1 John' });
     expect(player1BreakBtn).toHaveAttribute('aria-pressed', 'false');
   });
 

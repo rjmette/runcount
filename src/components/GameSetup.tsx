@@ -106,10 +106,11 @@ const GameSetup: React.FC<GameSetupProps> = ({
                   onChange={(e) => setPlayer1(e.target.value)}
                   className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-600 text-gray-900 dark:text-white"
                   placeholder="Enter name"
+                  aria-label="Player 1 name"
                   required
                 />
               </div>
-              
+
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
@@ -122,6 +123,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                       className="text-4xl font-bold bg-transparent border-none outline-none w-20 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       step="1"
+                      aria-label="Player 1 target score"
                       required
                     />
                     <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
@@ -152,10 +154,11 @@ const GameSetup: React.FC<GameSetupProps> = ({
                   onChange={(e) => setPlayer2(e.target.value)}
                   className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-600 text-gray-900 dark:text-white"
                   placeholder="Enter name"
+                  aria-label="Player 2 name"
                   required
                 />
               </div>
-              
+
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
@@ -168,6 +171,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                       className="text-4xl font-bold bg-transparent border-none outline-none w-20 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       min="1"
                       step="1"
+                      aria-label="Player 2 target score"
                       required
                     />
                     <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
