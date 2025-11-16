@@ -450,6 +450,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setShowBOTModal(true);
   };
 
+  // Handle canceling the break foul penalty modal
+  const handleCancelBreakFoulPenalty = () => {
+    setShowBreakFoulPenaltyModal(false);
+    setBotAction(null);
+    setSelectedFoulPenalty(null);
+  };
+
   const handleBOTSubmit = (botsValue: number) => {
     setShowBOTModal(false);
 
@@ -622,7 +629,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           />
           <BreakFoulPenaltyModal
             show={showBreakFoulPenaltyModal}
-            onClose={() => setShowBreakFoulPenaltyModal(false)}
+            onClose={handleCancelBreakFoulPenalty}
             onSelectPenalty={handleBreakFoulPenaltySelect}
             playerName={playerData[activePlayerIndex]?.name || ''}
           />
