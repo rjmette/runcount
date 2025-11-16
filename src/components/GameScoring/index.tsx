@@ -6,6 +6,7 @@ import { EndGameModal } from './components/EndGameModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { AlertModal } from './components/AlertModal';
 import { BreakFoulModal } from './components/BreakFoulModal';
+import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { useGameState } from './hooks/useGameState';
 import { useGameActions } from './hooks/useGameActions';
@@ -38,12 +39,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
+  const [showBreakFoulPenaltyModal, setShowBreakFoulPenaltyModal] = useState(false);
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showBreakDialog, setShowBreakDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [botAction, setBotAction] = useState<
     'newrack' | 'foul' | 'safety' | 'miss' | null
   >(null);
+  const [selectedFoulPenalty, setSelectedFoulPenalty] = useState<1 | 2 | null>(null);
   const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
     useState<number>(breakingPlayerId);
 
@@ -421,11 +424,29 @@ const GameScoring: React.FC<GameScoringProps> = ({
     finishGame();
   };
 
+  // Check if current action is a break shot
+  const isBreakShot =
+    (actions.length === 0 && currentInning === 1) ||
+    playerNeedsReBreak === playerData[activePlayerIndex]?.id;
+
   // Handle action button clicks
   const handleActionClick = (
     action: 'newrack' | 'foul' | 'safety' | 'miss'
   ) => {
     setBotAction(action);
+
+    // If it's a foul on a break shot, show penalty selection modal first
+    if (action === 'foul' && isBreakShot) {
+      setShowBreakFoulPenaltyModal(true);
+    } else {
+      setShowBOTModal(true);
+    }
+  };
+
+  // Handle break foul penalty selection
+  const handleBreakFoulPenaltySelect = (penalty: 1 | 2) => {
+    setSelectedFoulPenalty(penalty);
+    setShowBreakFoulPenaltyModal(false);
     setShowBOTModal(true);
   };
 
@@ -435,7 +456,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     if (botAction === 'newrack') {
       handleAddScore(0, botsValue);
     } else if (botAction === 'foul') {
-      handleAddFoul(botsValue);
+      handleAddFoul(botsValue, selectedFoulPenalty ?? undefined);
     } else if (botAction === 'safety') {
       handleAddSafety(botsValue);
     } else if (botAction === 'miss') {
@@ -443,6 +464,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
 
     setBotAction(null);
+    setSelectedFoulPenalty(null);
   };
 
   // Handle changing the breaking player
@@ -587,16 +609,24 @@ const GameScoring: React.FC<GameScoringProps> = ({
       </div>
 
       {playerData.length > 0 && (
-        <BreakFoulModal
-          show={showBreakFoulModal}
-          onClose={() => setShowBreakFoulModal(false)}
-          onAcceptTable={handleAcceptTable}
-          onRequireReBreak={handleRequireReBreak}
-          breaker={playerData[activePlayerIndex]}
-          incomingPlayer={
-            playerData[(activePlayerIndex + 1) % playerData.length]
-          }
-        />
+        <>
+          <BreakFoulModal
+            show={showBreakFoulModal}
+            onClose={() => setShowBreakFoulModal(false)}
+            onAcceptTable={handleAcceptTable}
+            onRequireReBreak={handleRequireReBreak}
+            breaker={playerData[activePlayerIndex]}
+            incomingPlayer={
+              playerData[(activePlayerIndex + 1) % playerData.length]
+            }
+          />
+          <BreakFoulPenaltyModal
+            show={showBreakFoulPenaltyModal}
+            onClose={() => setShowBreakFoulPenaltyModal(false)}
+            onSelectPenalty={handleBreakFoulPenaltySelect}
+            playerName={playerData[activePlayerIndex]?.name || ''}
+          />
+        </>
       )}
 
       <EndGameModal

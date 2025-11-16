@@ -144,7 +144,7 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(0); // reset fouls
   });
 
-  test('handleAddFoul applies break foul penalty (-2 points)', () => {
+  test('handleAddFoul applies default break foul penalty (-2 points)', () => {
     const { result, players } = setup();
 
     act(() => {
@@ -152,6 +152,32 @@ describe('useGameActions', () => {
     });
 
     // Break foul logic: adds balls pocketed (1) then subtracts break foul penalty (-2) = -1 total
+    expect(players[0].score).toBe(-1); // 1 ball pocketed - 2 break foul penalty = -1
+    expect(players[0].fouls).toBe(1);
+    expect(players[0].consecutiveFouls).toBe(1);
+  });
+
+  test('handleAddFoul applies 1-point break foul penalty when specified', () => {
+    const { result, players } = setup();
+
+    act(() => {
+      result.current.handleAddFoul(14, 1);
+    });
+
+    // Break foul with 1-point penalty: adds balls pocketed (1) then subtracts 1-point penalty = 0 total
+    expect(players[0].score).toBe(0); // 1 ball pocketed - 1 break foul penalty = 0
+    expect(players[0].fouls).toBe(1);
+    expect(players[0].consecutiveFouls).toBe(1);
+  });
+
+  test('handleAddFoul applies 2-point break foul penalty when specified', () => {
+    const { result, players } = setup();
+
+    act(() => {
+      result.current.handleAddFoul(14, 2);
+    });
+
+    // Break foul with 2-point penalty: adds balls pocketed (1) then subtracts 2-point penalty = -1 total
     expect(players[0].score).toBe(-1); // 1 ball pocketed - 2 break foul penalty = -1
     expect(players[0].fouls).toBe(1);
     expect(players[0].consecutiveFouls).toBe(1);
