@@ -101,7 +101,7 @@ export const useGameActions = ({
     return { needsBOTInput: false };
   };
 
-  const handleAddFoul = (botsValue?: number) => {
+  const handleAddFoul = (botsValue?: number, foulPenalty?: number) => {
     if (botsValue === undefined) {
       return { needsBOTInput: true, action: 'foul' };
     }
@@ -115,10 +115,13 @@ export const useGameActions = ({
       (actions.length === 0 && currentInning === 1) ||
       playerNeedsReBreak === playerData[activePlayerIndex].id;
 
+    // Use the provided penalty, or default to -2 for break fouls, -1 for regular
+    const penaltyValue = foulPenalty !== undefined ? -Math.abs(foulPenalty) : (isOpeningBreak ? -2 : -1);
+
     const newAction: GameAction = {
       type: 'foul',
       playerId: playerData[activePlayerIndex].id,
-      value: isOpeningBreak ? -2 : -1, // -2 for foul on break, -1 for regular foul
+      value: penaltyValue,
       timestamp: new Date(),
       ballsOnTable: botsValue,
       reBreak: isThirdConsecutiveFoul,
@@ -153,8 +156,9 @@ export const useGameActions = ({
 
     // Check for three consecutive fouls first (regardless of break or not)
     if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 3) {
-      // Apply the foul penalty first (-1 or -2 depending on if it's a break foul)
-      updatedPlayerData[activePlayerIndex].score -= isOpeningBreak ? 2 : 1;
+      // Apply the foul penalty first (use the actual penalty value from the action)
+      const actualPenalty = Math.abs(penaltyValue);
+      updatedPlayerData[activePlayerIndex].score += penaltyValue;
 
       // Then apply the additional 15-point penalty for three consecutive fouls
       updatedPlayerData[activePlayerIndex].score -= 15;
@@ -165,8 +169,8 @@ export const useGameActions = ({
       const playerName = updatedPlayerData[activePlayerIndex].name;
       setAlertMessage(
         `${playerName} has committed three consecutive fouls! ${
-          isOpeningBreak ? 17 : 16
-        }-point penalty applied (${isOpeningBreak ? 2 : 1} for ${
+          actualPenalty + 15
+        }-point penalty applied (${actualPenalty} for ${
           isOpeningBreak ? 'break ' : ''
         }foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`
       );
@@ -174,14 +178,15 @@ export const useGameActions = ({
     }
     // Handle break fouls that are not three consecutive fouls
     else if (isOpeningBreak) {
-      // Apply a -2 penalty for fouling on the break
-      updatedPlayerData[activePlayerIndex].score -= 2;
+      // Apply the penalty (already negative)
+      updatedPlayerData[activePlayerIndex].score += penaltyValue;
 
       const breakerName = updatedPlayerData[activePlayerIndex].name;
       const incomingPlayerName = updatedPlayerData[nextPlayerIndex].name;
+      const actualPenalty = Math.abs(penaltyValue);
 
       setAlertMessage(
-        `${breakerName} fouled on the break! 2-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
+        `${breakerName} fouled on the break! ${actualPenalty}-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
       );
       setShowAlertModal(true);
 
