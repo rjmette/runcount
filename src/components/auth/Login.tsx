@@ -7,6 +7,13 @@ interface LoginProps {
   onSuccess?: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,8 +37,8 @@ const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred during login');
+    } catch (error) {
+      setError(getErrorMessage(error, 'An error occurred during login'));
     } finally {
       setLoading(false);
     }
@@ -50,8 +57,8 @@ const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
       });
 
       if (error) throw error;
-    } catch (error: any) {
-      setError(error.message || `An error occurred during ${provider} login`);
+    } catch (error) {
+      setError(getErrorMessage(error, `An error occurred during ${provider} login`));
     } finally {
       setLoading(false);
     }

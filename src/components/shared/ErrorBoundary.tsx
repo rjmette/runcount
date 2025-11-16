@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { type ErrorInfo } from 'react';
 
 import { useError } from '../../context/ErrorContext';
 
+type ErrorBoundaryProps = {
+  children: React.ReactNode;
+};
+
+type ErrorBoundaryState = {
+  hasError: boolean;
+};
+
 export class ErrorBoundary extends React.Component<
-  {
-    children: React.ReactNode;
-  },
-  { hasError: boolean }
+  ErrorBoundaryProps,
+  ErrorBoundaryState
 > {
   static contextType = React.createContext(null);
   declare context: React.ContextType<typeof ErrorBoundary.contextType>;
 
-  constructor(props: any) {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
@@ -20,7 +26,7 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true };
   }
 
-  componentDidCatch(error: any, info: any) {
+  componentDidCatch(error: Error, info: ErrorInfo) {
     // Fallback: try using window.dispatchEvent to signal error if context is not available
     try {
       const event = new CustomEvent('appError', {

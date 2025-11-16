@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { type GameStatisticsProps, type GameData, type Player } from '../types/game';
+import {
+  type GameStatisticsProps,
+  type GameData,
+  type GameAction,
+  type Player,
+} from '../types/game';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
@@ -112,7 +117,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   // Memoize expensive statistics calculations
   const calculateStats = useMemo(
-    () => (players: Player[], actions: any[]) => {
+    () => (players: Player[], actions: GameAction[]) => {
       // Create a map to track results
       const playerStats: Record<
         number,

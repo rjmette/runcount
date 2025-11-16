@@ -7,6 +7,13 @@ interface ResetPasswordProps {
   onSuccess?: () => void;
 }
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+};
+
 const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,8 +47,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
           onSuccess();
         }, 2000);
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred');
+    } catch (error) {
+      setError(getErrorMessage(error, 'An error occurred'));
     } finally {
       setLoading(false);
     }
@@ -75,8 +82,8 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
           onSuccess();
         }, 2000);
       }
-    } catch (error: any) {
-      setError(error.message || 'An error occurred');
+    } catch (error) {
+      setError(getErrorMessage(error, 'An error occurred'));
     } finally {
       setLoading(false);
     }
