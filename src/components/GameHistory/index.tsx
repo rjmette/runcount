@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { GameHistoryProps } from '../../types/game';
+
+import { type GameHistoryProps } from '../../types/game';
+
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
+import { GameDetails } from './components/GameDetails';
+import { GameList } from './components/GameList';
 import { useGameHistory } from './hooks/useGameHistory';
 import { useGameSelection } from './hooks/useGameSelection';
-import { GameList } from './components/GameList';
-import { GameDetails } from './components/GameDetails';
-import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
@@ -30,7 +32,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         typeof game === 'object' &&
         game.id &&
         Array.isArray(game.players) &&
-        game.players.length > 0
+        game.players.length > 0,
     ).length;
   };
 
@@ -156,8 +158,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
                 games.findIndex((game) => game.id === selectedGameId) > 0
               }
               canNavigateNext={
-                games.findIndex((game) => game.id === selectedGameId) <
-                games.length - 1
+                games.findIndex((game) => game.id === selectedGameId) < games.length - 1
               }
             />
           ) : (

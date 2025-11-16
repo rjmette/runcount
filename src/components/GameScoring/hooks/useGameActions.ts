@@ -1,4 +1,4 @@
-import { Player, GameAction } from '../../../types/game';
+import { type Player, type GameAction } from '../../../types/game';
 
 interface UseGameActionsProps {
   playerData: Player[];
@@ -13,7 +13,7 @@ interface UseGameActionsProps {
     players: Player[],
     actions: GameAction[],
     completed: boolean,
-    winner_id: number | null
+    winner_id: number | null,
   ) => void;
   setPlayerData: (data: Player[]) => void;
   setActions: (actions: GameAction[]) => void;
@@ -90,13 +90,7 @@ export const useGameActions = ({
     }
 
     setPlayerData(updatedPlayerData);
-    saveGameToSupabase(
-      gameId,
-      updatedPlayerData,
-      [...actions, newAction],
-      false,
-      null
-    );
+    saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
 
     return { needsBOTInput: false };
   };
@@ -106,8 +100,7 @@ export const useGameActions = ({
       return { needsBOTInput: true, action: 'foul' };
     }
 
-    const isThirdConsecutiveFoul =
-      playerData[activePlayerIndex].consecutiveFouls === 2;
+    const isThirdConsecutiveFoul = playerData[activePlayerIndex].consecutiveFouls === 2;
 
     // Check if this is the first action of the game (i.e., the opening break)
     // or if the player needs to re-break
@@ -116,7 +109,8 @@ export const useGameActions = ({
       playerNeedsReBreak === playerData[activePlayerIndex].id;
 
     // Use the provided penalty, or default to -2 for break fouls, -1 for regular
-    const penaltyValue = foulPenalty !== undefined ? -Math.abs(foulPenalty) : (isOpeningBreak ? -2 : -1);
+    const penaltyValue =
+      foulPenalty !== undefined ? -Math.abs(foulPenalty) : isOpeningBreak ? -2 : -1;
 
     const newAction: GameAction = {
       type: 'foul',
@@ -138,13 +132,10 @@ export const useGameActions = ({
 
     const hasScoreActions = actions.some(
       (action) =>
-        action.type === 'score' &&
-        action.playerId === playerData[activePlayerIndex].id
+        action.type === 'score' && action.playerId === playerData[activePlayerIndex].id,
     );
 
-    const totalToAdd = hasScoreActions
-      ? ballsPocketed
-      : currentRun + ballsPocketed;
+    const totalToAdd = hasScoreActions ? ballsPocketed : currentRun + ballsPocketed;
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
 
     if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
@@ -172,7 +163,7 @@ export const useGameActions = ({
           actualPenalty + 15
         }-point penalty applied (${actualPenalty} for ${
           isOpeningBreak ? 'break ' : ''
-        }foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`
+        }foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`,
       );
       setShowAlertModal(true);
     }
@@ -186,7 +177,7 @@ export const useGameActions = ({
       const actualPenalty = Math.abs(penaltyValue);
 
       setAlertMessage(
-        `${breakerName} fouled on the break! ${actualPenalty}-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`
+        `${breakerName} fouled on the break! ${actualPenalty}-point penalty applied. ${incomingPlayerName} can choose to accept the table as-is or require ${breakerName} to break again (with the same foul penalties if they foul again).`,
       );
       setShowAlertModal(true);
 
@@ -194,7 +185,7 @@ export const useGameActions = ({
       if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
         const playerName = updatedPlayerData[activePlayerIndex].name;
         setAlertMessage(
-          `Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular foul deduction.`
+          `Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular foul deduction.`,
         );
         setShowAlertModal(true);
       }
@@ -209,7 +200,7 @@ export const useGameActions = ({
       if (updatedPlayerData[activePlayerIndex].consecutiveFouls === 2) {
         const playerName = updatedPlayerData[activePlayerIndex].name;
         setAlertMessage(
-          `Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular 1-point deduction.`
+          `Warning: ${playerName} has two consecutive fouls. A third consecutive foul will result in a 15-point penalty plus the regular 1-point deduction.`,
         );
         setShowAlertModal(true);
       }
@@ -240,16 +231,10 @@ export const useGameActions = ({
         updatedPlayerData,
         [...actions, newAction],
         true,
-        winner.id
+        winner.id,
       );
     } else {
-      saveGameToSupabase(
-        gameId,
-        updatedPlayerData,
-        [...actions, newAction],
-        false,
-        null
-      );
+      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
     }
 
     return { needsBOTInput: false };
@@ -285,13 +270,10 @@ export const useGameActions = ({
 
     const hasScoreActions = actions.some(
       (action) =>
-        action.type === 'score' &&
-        action.playerId === playerData[activePlayerIndex].id
+        action.type === 'score' && action.playerId === playerData[activePlayerIndex].id,
     );
 
-    const totalToAdd = hasScoreActions
-      ? ballsPocketed
-      : currentRun + ballsPocketed;
+    const totalToAdd = hasScoreActions ? ballsPocketed : currentRun + ballsPocketed;
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
 
     if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
@@ -319,16 +301,10 @@ export const useGameActions = ({
         updatedPlayerData,
         [...actions, newAction],
         true,
-        winner.id
+        winner.id,
       );
     } else {
-      saveGameToSupabase(
-        gameId,
-        updatedPlayerData,
-        [...actions, newAction],
-        false,
-        null
-      );
+      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
     }
 
     return { needsBOTInput: false };
@@ -364,13 +340,10 @@ export const useGameActions = ({
 
     const hasScoreActions = actions.some(
       (action) =>
-        action.type === 'score' &&
-        action.playerId === playerData[activePlayerIndex].id
+        action.type === 'score' && action.playerId === playerData[activePlayerIndex].id,
     );
 
-    const totalToAdd = hasScoreActions
-      ? ballsPocketed
-      : currentRun + ballsPocketed;
+    const totalToAdd = hasScoreActions ? ballsPocketed : currentRun + ballsPocketed;
     updatedPlayerData[activePlayerIndex].score += totalToAdd;
 
     if (totalToAdd > updatedPlayerData[activePlayerIndex].highRun) {
@@ -398,16 +371,10 @@ export const useGameActions = ({
         updatedPlayerData,
         [...actions, newAction],
         true,
-        winner.id
+        winner.id,
       );
     } else {
-      saveGameToSupabase(
-        gameId,
-        updatedPlayerData,
-        [...actions, newAction],
-        false,
-        null
-      );
+      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
     }
 
     return { needsBOTInput: false };

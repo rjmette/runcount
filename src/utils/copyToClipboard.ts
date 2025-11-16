@@ -1,9 +1,9 @@
 /**
  * Robust cross-platform copy to clipboard utility with mobile fallback support
- * 
+ *
  * Handles various mobile browser limitations:
  * - iOS Safari clipboard API restrictions
- * - Android WebView inconsistencies  
+ * - Android WebView inconsistencies
  * - Touch event handling for mobile devices
  * - Fallback to legacy execCommand for older browsers
  */
@@ -45,7 +45,7 @@ export async function copyToClipboard(text: string): Promise<CopyResult> {
  */
 function fallbackCopyToClipboard(text: string): CopyResult {
   const textArea = document.createElement('textarea');
-  
+
   // Configure textarea for mobile compatibility
   textArea.value = text;
   textArea.style.position = 'fixed';
@@ -54,15 +54,15 @@ function fallbackCopyToClipboard(text: string): CopyResult {
   textArea.style.opacity = '0';
   textArea.style.pointerEvents = 'none';
   textArea.readOnly = true;
-  
+
   // Add to DOM
   document.body.appendChild(textArea);
-  
+
   try {
     // Focus and select text (required for mobile)
     textArea.focus();
     textArea.select();
-    
+
     // For iOS Safari - ensure range selection
     if (navigator.userAgent.match(/ipad|iphone/i)) {
       const range = document.createRange();
@@ -73,19 +73,19 @@ function fallbackCopyToClipboard(text: string): CopyResult {
         selection.addRange(range);
       }
     }
-    
+
     // Execute copy command
     const successful = document.execCommand('copy');
-    
+
     if (successful) {
       return { success: true };
     } else {
       return { success: false, error: 'Copy command failed' };
     }
   } catch (err) {
-    return { 
-      success: false, 
-      error: err instanceof Error ? err.message : 'Unknown copy error' 
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown copy error',
     };
   } finally {
     // Always clean up
@@ -100,15 +100,15 @@ function fallbackCopyToClipboard(text: string): CopyResult {
 export async function copyWithFeedback(
   text: string,
   onSuccess?: () => void,
-  onError?: (error: string) => void
+  onError?: (error: string) => void,
 ): Promise<CopyResult> {
   const result = await copyToClipboard(text);
-  
+
   if (result.success) {
     onSuccess?.();
   } else {
     onError?.(result.error || 'Copy failed');
   }
-  
+
   return result;
 }

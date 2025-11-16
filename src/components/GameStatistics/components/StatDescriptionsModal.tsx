@@ -48,9 +48,7 @@ export const StatDescriptionsModal: React.FC<StatDescriptionsModalProps> = ({
               <h4 className="font-medium text-gray-900 dark:text-white mb-1">
                 {statName}
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {description}
-              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-300">{description}</p>
             </div>
           ))}
         </div>

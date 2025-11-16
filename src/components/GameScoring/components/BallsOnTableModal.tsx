@@ -20,9 +20,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full dark:text-white">
-        <h3 className="text-xl font-bold mb-4">
-          How many balls are on the table?
-        </h3>
+        <h3 className="text-xl font-bold mb-4">How many balls are on the table?</h3>
 
         <div className="mb-6">
           <p className="mb-4 text-gray-600 dark:text-gray-300">
@@ -46,7 +44,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
               : // For other actions, create an array from 2 to current ballsOnTable
                 Array.from(
                   { length: Math.max(0, currentBallsOnTable - 1) },
-                  (_, i) => i + 2
+                  (_, i) => i + 2,
                 ).map((num) => (
                   <button
                     key={num}

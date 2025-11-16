@@ -1,12 +1,14 @@
 import type { FC } from 'react';
+
+import UserProfile from './auth/UserProfile';
+import GameHistory from './GameHistory/index';
+import GameScoring from './GameScoring/index';
+import GameSetup from './GameSetup';
+import GameStatistics from './GameStatistics';
+
+import type { GameState } from '../hooks/useGameState';
 import type { User } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import GameSetup from './GameSetup';
-import GameScoring from './GameScoring/index';
-import GameStatistics from './GameStatistics';
-import GameHistory from './GameHistory/index';
-import UserProfile from './auth/UserProfile';
-import type { GameState } from '../hooks/useGameState';
 
 interface GameRouterProps {
   gameState: GameState;
@@ -19,7 +21,7 @@ interface GameRouterProps {
   onStartGame: (
     players: string[],
     playerTargetScores: Record<string, number>,
-    breakingPlayerId: number
+    breakingPlayerId: number,
   ) => void;
   // Game scoring props
   players: string[];
@@ -111,21 +113,9 @@ export const GameRouter: FC<GameRouterProps> = ({
         />
       );
     case 'history':
-      return (
-        <GameHistory
-          supabase={supabase}
-          startNewGame={onGoToSetup}
-          user={user}
-        />
-      );
+      return <GameHistory supabase={supabase} startNewGame={onGoToSetup} user={user} />;
     case 'profile':
-      return (
-        <UserProfile
-          supabase={supabase}
-          user={user!}
-          onSignOut={onSignOut}
-        />
-      );
+      return <UserProfile supabase={supabase} user={user!} onSignOut={onSignOut} />;
     default:
       return <GameSetup startGame={onStartGame} />;
   }

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { useError } from '../../context/ErrorContext';
 
 export const ErrorBanner: React.FC = () => {

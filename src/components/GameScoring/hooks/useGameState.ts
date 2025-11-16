@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Player, GameAction, GameData } from '../../../types/game';
+
 import { v4 as uuidv4 } from 'uuid';
+
+import { type Player, type GameAction, type GameData } from '../../../types/game';
 
 interface UseGameStateProps {
   players: string[];
@@ -14,7 +16,7 @@ interface UseGameStateProps {
     players: Player[],
     actions: GameAction[],
     completed: boolean,
-    winner_id: number | null
+    winner_id: number | null,
   ) => void;
 }
 
@@ -27,9 +29,7 @@ export const useGameState = ({
   getGameState,
   saveGameToSupabase,
 }: UseGameStateProps) => {
-  const [activePlayerIndex, setActivePlayerIndex] = useState(
-    () => breakingPlayerId
-  );
+  const [activePlayerIndex, setActivePlayerIndex] = useState(() => breakingPlayerId);
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
@@ -37,9 +37,7 @@ export const useGameState = ({
   const [ballsOnTable, setBallsOnTable] = useState(15);
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
-  const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(
-    null
-  );
+  const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(null);
   const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
   const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
 
@@ -54,7 +52,7 @@ export const useGameState = ({
       // Restore from saved game state
       setPlayerData(savedGameState.players);
       setActions(savedGameState.actions);
-      
+
       // Restore match timing
       if (savedGameState.startTime) {
         setMatchStartTime(new Date(savedGameState.startTime));
@@ -97,8 +95,7 @@ export const useGameState = ({
 
             // Switch to next player
             if (!action.reBreak) {
-              activePlayer =
-                (playerIds.indexOf(action.playerId) + 1) % playerIds.length;
+              activePlayer = (playerIds.indexOf(action.playerId) + 1) % playerIds.length;
               if (activePlayer === 0) {
                 currentInningValue++;
               }
@@ -153,15 +150,14 @@ export const useGameState = ({
         setActivePlayerIndex(breakingPlayerId);
       }
       setPlayerNeedsReBreak(null);
-      
+
       // Start match timer for new game
       const startTime = new Date();
       setMatchStartTime(startTime);
       setMatchEndTime(null);
-      
+
       saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array is intentional - we only want this to run once on mount
 
   // Update the current run display in the DOM

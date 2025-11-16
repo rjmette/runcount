@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { GameData } from '../../../types/game';
+
+import { type GameData } from '../../../types/game';
 
 interface UseGameSelectionProps {
   games: GameData[];

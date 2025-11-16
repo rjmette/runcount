@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
+import { type SupabaseClient, type User, type Session } from '@supabase/supabase-js';
+
 import { useError } from './ErrorContext';
-import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
   user: User | null;
@@ -17,10 +19,7 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({
-  supabase,
-  children,
-}) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }) => {
   const { addError } = useError();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -37,9 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         setUser(data.session?.user || null);
       } catch (error) {
         console.error('Error getting initial session:', error);
-        addError(
-          'Unable to restore your session. You may need to log in again.'
-        );
+        addError('Unable to restore your session. You may need to log in again.');
       } finally {
         setLoading(false);
       }
@@ -48,13 +45,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     getInitialSession();
 
     // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user || null);
+      setLoading(false);
+    });
 
     return () => {
       // Clean up subscription

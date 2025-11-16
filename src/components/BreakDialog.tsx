@@ -15,7 +15,9 @@ const BreakDialog: React.FC<BreakDialogProps> = ({
   players,
   currentBreakingPlayerId,
 }) => {
-  const [selectedBreakingPlayerId, setSelectedBreakingPlayerId] = useState<number>(currentBreakingPlayerId);
+  const [selectedBreakingPlayerId, setSelectedBreakingPlayerId] = useState<number>(
+    currentBreakingPlayerId,
+  );
 
   if (!isOpen) return null;
 
@@ -52,13 +54,17 @@ const BreakDialog: React.FC<BreakDialogProps> = ({
             />
           </svg>
         </button>
-        
+
         {/* Header */}
         <div className="p-4 sm:p-6 text-center bg-gray-100 dark:bg-gray-700 rounded-t-2xl">
           <div className="text-gray-800 dark:text-white">
             <div className="text-3xl sm:text-4xl mb-1 sm:mb-2">🔄</div>
-            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">Change Breaking Player</h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Select who should break</p>
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">
+              Change Breaking Player
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              Select who should break
+            </p>
           </div>
         </div>
 

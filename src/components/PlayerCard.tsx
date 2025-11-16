@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { COMMON_TARGET_SCORES } from '../constants/gameSettings';
 import { PLAYER_COLOR_SCHEMES } from '../constants/theme';
 
@@ -27,8 +28,12 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
           Player {playerNumber}
         </h3>
-        <div className={`w-8 h-8 ${color.badge} rounded-full flex items-center justify-center`}>
-          <span className={`${color.badgeText} text-sm font-semibold`}>{playerNumber}</span>
+        <div
+          className={`w-8 h-8 ${color.badge} rounded-full flex items-center justify-center`}
+        >
+          <span className={`${color.badgeText} text-sm font-semibold`}>
+            {playerNumber}
+          </span>
         </div>
       </div>
 
@@ -86,7 +91,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               })}
             </div>
           </div>
-          <div className={`w-16 h-16 ${color.gradient} rounded-2xl flex items-center justify-center ml-4`}>
+          <div
+            className={`w-16 h-16 ${color.gradient} rounded-2xl flex items-center justify-center ml-4`}
+          >
             <span className="text-white text-2xl">🎯</span>
           </div>
         </div>

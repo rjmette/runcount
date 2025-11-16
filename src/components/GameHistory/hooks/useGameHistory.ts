@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { SupabaseClient, User } from '@supabase/supabase-js';
-import { GameData } from '../../../types/game';
+
+import { type SupabaseClient, type User } from '@supabase/supabase-js';
+
+import { type GameData } from '../../../types/game';
 
 interface UseGameHistoryProps {
   supabase: SupabaseClient;
@@ -55,10 +57,7 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
 
             // Check that players array exists and is properly formed
             if (!Array.isArray(game.players) || game.players.length === 0) {
-              console.error(
-                'Game has invalid or empty players array:',
-                game.id
-              );
+              console.error('Game has invalid or empty players array:', game.id);
               return false;
             }
 
@@ -104,17 +103,17 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
               } else {
                 // Otherwise, update the game in the list
                 return prevGames.map((game) =>
-                  game.id === updatedGame.id ? updatedGame : game
+                  game.id === updatedGame.id ? updatedGame : game,
                 );
               }
             });
           } else if (payload.eventType === 'DELETE') {
             const deletedGame = payload.old as unknown as GameData;
             setGames((prevGames) =>
-              prevGames.filter((game) => game.id !== deletedGame.id)
+              prevGames.filter((game) => game.id !== deletedGame.id),
             );
           }
-        }
+        },
       )
       .subscribe();
 

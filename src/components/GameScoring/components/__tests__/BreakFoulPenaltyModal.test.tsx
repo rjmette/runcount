@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+
 import { BreakFoulPenaltyModal } from '../BreakFoulPenaltyModal';
 
 describe('BreakFoulPenaltyModal', () => {
@@ -49,7 +50,9 @@ describe('BreakFoulPenaltyModal', () => {
     const onSelectPenalty = vi.fn();
     render(<BreakFoulPenaltyModal {...defaultProps} onSelectPenalty={onSelectPenalty} />);
 
-    const onePointButton = screen.getByText('Scratch on Legal Break (-1 point)').closest('button');
+    const onePointButton = screen
+      .getByText('Scratch on Legal Break (-1 point)')
+      .closest('button');
     fireEvent.click(onePointButton!);
 
     expect(onSelectPenalty).toHaveBeenCalledWith(1);
@@ -60,7 +63,9 @@ describe('BreakFoulPenaltyModal', () => {
     const onSelectPenalty = vi.fn();
     render(<BreakFoulPenaltyModal {...defaultProps} onSelectPenalty={onSelectPenalty} />);
 
-    const twoPointButton = screen.getByText('Illegal Break (-2 points)').closest('button');
+    const twoPointButton = screen
+      .getByText('Illegal Break (-2 points)')
+      .closest('button');
     fireEvent.click(twoPointButton!);
 
     expect(onSelectPenalty).toHaveBeenCalledWith(2);

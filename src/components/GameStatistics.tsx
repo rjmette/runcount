@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { GameStatisticsProps, GameData, Player } from '../types/game';
+
+import { type GameStatisticsProps, type GameData, type Player } from '../types/game';
+
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from './shared/GameStatusPanel';
@@ -182,13 +184,8 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
             : '0.00';
 
         // 2. Offensive BPI (excluding safety innings)
-        const offensiveInnings = Math.max(
-          1,
-          stats.totalInnings - stats.safetyInnings
-        );
-        const offensiveBPI = (
-          stats.totalBallsPocketed / offensiveInnings
-        ).toFixed(2);
+        const offensiveInnings = Math.max(1, stats.totalInnings - stats.safetyInnings);
+        const offensiveBPI = (stats.totalBallsPocketed / offensiveInnings).toFixed(2);
 
         // 3. Safety Efficiency percentage
         const safetyEfficiency =
@@ -213,7 +210,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         };
       });
     },
-    [gameData?.players, gameData?.actions]
+    [gameData?.players, gameData?.actions],
   );
 
   const formatGameResultsForEmail = useMemo(() => {
@@ -274,7 +271,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       },
       (error) => {
         console.error('Failed to copy text:', error);
-      }
+      },
     );
   };
 
@@ -303,10 +300,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     return (
       <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded relative">
         <strong className="font-bold">Error!</strong>
-        <span className="block sm:inline">
-          {' '}
-          {error || 'Failed to load game data'}
-        </span>
+        <span className="block sm:inline"> {error || 'Failed to load game data'}</span>
         <div className="mt-4">
           <button
             onClick={startNewGame}
@@ -356,9 +350,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         completed={gameData.completed}
         date={gameData.date}
         matchLength={matchLength}
-        calculatePlayerStats={(player) =>
-          calculateStats([player], gameData.actions)[0]
-        }
+        calculatePlayerStats={(player) => calculateStats([player], gameData.actions)[0]}
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
         copySuccess={copySuccess}
@@ -380,9 +372,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         players={gameData.players}
         actions={gameData.actions}
         winnerId={gameData.winner_id}
-        calculatePlayerStats={(player) =>
-          calculateStats([player], gameData.actions)[0]
-        }
+        calculatePlayerStats={(player) => calculateStats([player], gameData.actions)[0]}
         tooltipContent={tooltipContent}
         onShowDescriptions={() => setShowDescriptionsModal(true)}
       />

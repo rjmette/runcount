@@ -1,7 +1,10 @@
 import React from 'react';
+
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import GameStatistics from '../GameStatistics';
+
 import type { GameData } from '../../types/game';
 
 // Mock the sub-components
@@ -16,9 +19,7 @@ vi.mock('../GameStatistics/components/StatDescriptionsModal', () => ({
 }));
 
 vi.mock('../shared/GameStatusPanel', () => ({
-  GameStatusPanel: () => (
-    <div data-testid="game-status-panel">Game Status Panel</div>
-  ),
+  GameStatusPanel: () => <div data-testid="game-status-panel">Game Status Panel</div>,
 }));
 
 vi.mock('../shared/PerformanceMetricsPanel', () => ({
@@ -110,11 +111,11 @@ describe('GameStatistics Component', () => {
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
-      />
+      />,
     );
 
     expect(
-      screen.getByRole('status', { name: 'Loading game statistics...' })
+      screen.getByRole('status', { name: 'Loading game statistics...' }),
     ).toBeInTheDocument();
   });
 
@@ -126,7 +127,7 @@ describe('GameStatistics Component', () => {
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -144,14 +145,12 @@ describe('GameStatistics Component', () => {
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
-      />
+      />,
     );
 
     await waitFor(() => {
       expect(screen.getByTestId('game-status-panel')).toBeInTheDocument();
-      expect(
-        screen.getByTestId('performance-metrics-panel')
-      ).toBeInTheDocument();
+      expect(screen.getByTestId('performance-metrics-panel')).toBeInTheDocument();
     });
   });
 
@@ -166,7 +165,7 @@ describe('GameStatistics Component', () => {
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
-      />
+      />,
     );
 
     await waitFor(() => {
@@ -184,7 +183,7 @@ describe('GameStatistics Component', () => {
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={{ id: 'user-1' } as any}
-      />
+      />,
     );
 
     await waitFor(() => {

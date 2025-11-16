@@ -1,13 +1,13 @@
 import React from 'react';
-import { vi } from 'vitest';
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
+
 import App from '../App';
 
 // Mock contexts and heavy components to keep this fast and deterministic
 vi.mock('../context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => ({ user: null, loading: false, signOut: vi.fn() }),
 }));
 

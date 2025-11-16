@@ -1,12 +1,16 @@
 import React from 'react';
+
+import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
 import GameScoring from '..';
 
+import type * as GamePersistContextModule from '../../../context/GamePersistContext';
+
 vi.mock('../../../context/GamePersistContext', async () => {
-  const actual = await vi.importActual<
-    typeof import('../../../context/GamePersistContext')
-  >('../../../context/GamePersistContext');
+  const actual = await vi.importActual<typeof GamePersistContextModule>(
+    '../../../context/GamePersistContext',
+  );
   return {
     ...actual,
     useGamePersist: () => ({
@@ -47,7 +51,7 @@ describe('GameScoring integration', () => {
         setMatchEndTime={() => {}}
         ballsOnTable={15}
         setBallsOnTable={() => {}}
-      />
+      />,
     );
 
     // Player cards should render

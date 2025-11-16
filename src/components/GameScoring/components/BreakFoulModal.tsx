@@ -1,5 +1,6 @@
 import React from 'react';
-import { Player } from '../../../types/game';
+
+import { type Player } from '../../../types/game';
 
 interface BreakFoulModalProps {
   show: boolean;
@@ -12,7 +13,7 @@ interface BreakFoulModalProps {
 
 export const BreakFoulModal: React.FC<BreakFoulModalProps> = ({
   show,
-  onClose,
+  onClose: _onClose,
   onAcceptTable,
   onRequireReBreak,
   breaker,
@@ -49,8 +50,8 @@ export const BreakFoulModal: React.FC<BreakFoulModalProps> = ({
             Require {breaker.name} to break again
           </button>
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-            Note: If {breaker.name} fouls again on the re-break, they will
-            receive another 2-point penalty.
+            Note: If {breaker.name} fouls again on the re-break, they will receive another
+            2-point penalty.
           </div>
         </div>
       </div>

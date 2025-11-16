@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { SupabaseClient, User } from '@supabase/supabase-js';
+
+import { type SupabaseClient, type User } from '@supabase/supabase-js';
 
 interface UserProfileProps {
   supabase: SupabaseClient;
@@ -7,11 +8,7 @@ interface UserProfileProps {
   onSignOut: () => Promise<void>;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({
-  supabase,
-  user,
-  onSignOut,
-}) => {
+const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -35,9 +32,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
       if (error) throw error;
 
-      setMessage(
-        'Email update initiated. Check your new email for confirmation!'
-      );
+      setMessage('Email update initiated. Check your new email for confirmation!');
       setNewEmail('');
       setShowSuccessAnimation(true);
       setTimeout(() => setShowSuccessAnimation(false), 2000);
@@ -55,7 +50,6 @@ const UserProfile: React.FC<UserProfileProps> = ({
       setError("Passwords don't match");
       return;
     }
-
 
     try {
       setLoading(true);
@@ -305,9 +299,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 ></path>
               </svg>
             </div>
-            <p className="text-gray-900 dark:text-white font-medium">
-              Success!
-            </p>
+            <p className="text-gray-900 dark:text-white font-medium">Success!</p>
             <p className="text-gray-600 dark:text-gray-300 text-sm mt-2">
               Your changes have been saved.
             </p>

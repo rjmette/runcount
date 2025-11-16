@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 type ErrorItem = {
   id: string;
@@ -27,9 +21,7 @@ const defaultCtx: ErrorContextType = {
 
 const ErrorContext = createContext<ErrorContextType>(defaultCtx);
 
-export const ErrorProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const ErrorProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [errors, setErrors] = useState<ErrorItem[]>([]);
 
   const addError = useCallback((message: string) => {
@@ -50,12 +42,10 @@ export const ErrorProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const value = useMemo(
     () => ({ errors, addError, clearError, clearAll }),
-    [errors, addError, clearError, clearAll]
+    [errors, addError, clearError, clearAll],
   );
 
-  return (
-    <ErrorContext.Provider value={value}>{children}</ErrorContext.Provider>
-  );
+  return <ErrorContext.Provider value={value}>{children}</ErrorContext.Provider>;
 };
 
 export const useError = () => useContext(ErrorContext);

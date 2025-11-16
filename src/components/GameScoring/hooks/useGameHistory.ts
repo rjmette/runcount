@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Player, GameAction } from '../../../types/game';
+
+import { type Player, type GameAction } from '../../../types/game';
 
 interface UseGameScoringHistoryProps {
   players: string[];
@@ -12,7 +13,7 @@ interface UseGameScoringHistoryProps {
     players: Player[],
     actions: GameAction[],
     completed: boolean,
-    winner_id: number | null
+    winner_id: number | null,
   ) => void;
   setPlayerData: (data: Player[]) => void;
   setActions: (actions: GameAction[]) => void;
@@ -63,7 +64,7 @@ export const useGameScoringHistory = ({
     const previousActions = [...actions.slice(0, -1)];
 
     // Reset to the initial state
-    let updatedPlayerData = [...initialPlayerData];
+    const updatedPlayerData = [...initialPlayerData];
     let currentInningCount = 1;
     let currentActivePlayer = breakingPlayerId;
     let runningBOT = 15;
@@ -72,9 +73,7 @@ export const useGameScoringHistory = ({
     // Replay all actions except the last one
     for (let i = 0; i < previousActions.length; i++) {
       const action = previousActions[i];
-      const playerIdx = updatedPlayerData.findIndex(
-        (p) => p.id === action.playerId
-      );
+      const playerIdx = updatedPlayerData.findIndex((p) => p.id === action.playerId);
 
       if (playerIdx === -1) continue;
 
@@ -94,7 +93,7 @@ export const useGameScoringHistory = ({
           }
           break;
 
-        case 'foul':
+        case 'foul': {
           if (action.ballsOnTable !== undefined) {
             const ballsPocketed = Math.max(0, runningBOT - action.ballsOnTable);
             updatedPlayerData[playerIdx].score += ballsPocketed;
@@ -128,6 +127,7 @@ export const useGameScoringHistory = ({
 
           runningScore = 0;
           break;
+        }
 
         case 'safety':
         case 'miss':
@@ -175,9 +175,7 @@ export const useGameScoringHistory = ({
 
     // Check if the last action was a three-foul that requires re-break
     const finalAction =
-      previousActions.length > 0
-        ? previousActions[previousActions.length - 1]
-        : null;
+      previousActions.length > 0 ? previousActions[previousActions.length - 1] : null;
     if (finalAction && finalAction.type === 'foul' && finalAction.reBreak) {
       setPlayerNeedsReBreak(finalAction.playerId);
     } else {

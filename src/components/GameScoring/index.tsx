@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GameScoringProps } from '../../types/game';
-import PlayerScoreCard from '../PlayerScoreCard';
+
+import { useError } from '../../context/ErrorContext';
+import { useGamePersist } from '../../context/GamePersistContext';
+import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
+import { type GameScoringProps } from '../../types/game';
 import BreakDialog from '../BreakDialog';
-import { EndGameModal } from './components/EndGameModal';
-import { BallsOnTableModal } from './components/BallsOnTableModal';
+import { InningsModal } from '../GameStatistics/components/InningsModal';
+import PlayerScoreCard from '../PlayerScoreCard';
+
 import { AlertModal } from './components/AlertModal';
+import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { BreakFoulModal } from './components/BreakFoulModal';
 import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
-import { InningsModal } from '../GameStatistics/components/InningsModal';
-import { useGameState } from './hooks/useGameState';
+import { EndGameModal } from './components/EndGameModal';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
-import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
-import { useGamePersist } from '../../context/GamePersistContext';
-import { useError } from '../../context/ErrorContext';
+import { useGameState } from './hooks/useGameState';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -76,16 +78,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
           if (error) {
             console.error('Error saving game to Supabase after login:', error);
             addError(
-              'Could not save your in-progress game to the cloud after login. Your local progress is safe.'
+              'Could not save your in-progress game to the cloud after login. Your local progress is safe.',
             );
           } else {
             console.log('Successfully saved game to Supabase after login');
           }
         } catch (err) {
           console.error('Error saving game to Supabase after login:', err);
-          addError(
-            'A network error occurred while saving your game. Please try again.'
-          );
+          addError('A network error occurred while saving your game. Please try again.');
         }
       };
 
@@ -123,22 +123,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setGameId,
     breakingPlayerId,
     getGameState,
-    saveGameToSupabase: async (
-      gameId,
-      players,
-      actions,
-      completed,
-      winner_id
-    ) => {
+    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime
-            ? matchStartTime.toISOString()
-            : undefined,
+          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
           gameId,
           players,
@@ -146,9 +138,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
           completed,
           winner_id,
         });
-      } catch (e) {
+      } catch (_error) {
+        console.error('Failed to persist game to Supabase', _error);
         addError(
-          'Failed to save your game. Changes are saved locally and will sync when online.'
+          'Failed to save your game. Changes are saved locally and will sync when online.',
         );
       }
     },
@@ -164,13 +157,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       gameId: gameId || '',
       currentInning,
-      saveGameToSupabase: async (
-        gameId,
-        players,
-        actions,
-        completed,
-        winner_id
-      ) => {
+      saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
         try {
           await saveGameToSupabaseHelper({
             supabase,
@@ -183,9 +170,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
             completed,
             winner_id,
           });
-        } catch (e) {
+        } catch (_error) {
+          console.error('Failed to persist action to Supabase', _error);
           addError(
-            'Could not save your recent action to the cloud. It will retry automatically.'
+            'Could not save your recent action to the cloud. It will retry automatically.',
           );
         }
       },
@@ -212,22 +200,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
     breakingPlayerId,
     actions,
     gameId: gameId || '',
-    saveGameToSupabase: async (
-      gameId,
-      players,
-      actions,
-      completed,
-      winner_id
-    ) => {
+    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime
-            ? matchStartTime.toISOString()
-            : undefined,
+          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
           gameId,
           players,
@@ -235,9 +215,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
           completed,
           winner_id,
         });
-      } catch (e) {
+      } catch (_error) {
+        console.error('Failed to persist updated history to Supabase', _error);
         addError(
-          'Failed to update game history in the cloud. Your local history is intact.'
+          'Failed to update game history in the cloud. Your local history is intact.',
         );
       }
     },
@@ -256,18 +237,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const hasBreakFoul = lastAction?.isBreakFoul && lastAction?.type === 'foul';
 
   // Store the ID of the last action with a break foul to prevent showing the modal multiple times for the same action
-  const [lastBreakFoulActionId, setLastBreakFoulActionId] = useState<
-    number | null
-  >(null);
+  const [lastBreakFoulActionId, setLastBreakFoulActionId] = useState<number | null>(null);
 
   // If there's a break foul and we haven't handled it yet, show the modal
   React.useEffect(() => {
     // Only show the modal if there's a new break foul (not one we've already seen)
-    if (
-      hasBreakFoul &&
-      lastAction &&
-      lastBreakFoulActionId !== actions.length - 1
-    ) {
+    if (hasBreakFoul && lastAction && lastBreakFoulActionId !== actions.length - 1) {
       setShowBreakFoulModal(true);
       setLastBreakFoulActionId(actions.length - 1);
     }
@@ -351,7 +326,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
     // Show an alert to explain what's happening
     setAlertMessage(
-      `${updatedPlayerData[activePlayerIndex].name} must break again. The same foul penalties apply.`
+      `${updatedPlayerData[activePlayerIndex].name} must break again. The same foul penalties apply.`,
     );
     setShowAlertModal(true);
 
@@ -403,12 +378,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
             .upsert(payload)
             .then(({ error }) => {
               if (error) {
-                console.error(
-                  'Error updating completed game in Supabase:',
-                  error
-                );
+                console.error('Error updating completed game in Supabase:', error);
                 addError(
-                  'Unable to finalize your game in the cloud. It will attempt again shortly.'
+                  'Unable to finalize your game in the cloud. It will attempt again shortly.',
                 );
               }
             });
@@ -430,9 +402,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     playerNeedsReBreak === playerData[activePlayerIndex]?.id;
 
   // Handle action button clicks
-  const handleActionClick = (
-    action: 'newrack' | 'foul' | 'safety' | 'miss'
-  ) => {
+  const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
     setBotAction(action);
 
     // If it's a foul on a break shot, show penalty selection modal first
@@ -501,7 +471,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // Update localStorage to persist the breaking player preference
     localStorage.setItem(
       'runcount_lastBreakingPlayerId',
-      JSON.stringify(newBreakingPlayerId)
+      JSON.stringify(newBreakingPlayerId),
     );
 
     // Save the updated game state
@@ -623,9 +593,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onAcceptTable={handleAcceptTable}
             onRequireReBreak={handleRequireReBreak}
             breaker={playerData[activePlayerIndex]}
-            incomingPlayer={
-              playerData[(activePlayerIndex + 1) % playerData.length]
-            }
+            incomingPlayer={playerData[(activePlayerIndex + 1) % playerData.length]}
           />
           <BreakFoulPenaltyModal
             show={showBreakFoulPenaltyModal}

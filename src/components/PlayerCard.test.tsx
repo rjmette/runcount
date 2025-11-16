@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { render, screen, fireEvent } from '@testing-library/react';
+
 import PlayerCard from './PlayerCard';
 
 describe('PlayerCard Component', () => {
@@ -19,7 +21,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     expect(screen.getByText('Player 1')).toBeInTheDocument();
@@ -35,7 +37,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="green"
-      />
+      />,
     );
 
     expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
@@ -51,7 +53,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const nameInput = screen.getByLabelText('Player 1 name');
@@ -69,7 +71,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const scoreInput = screen.getByLabelText('Player 1 target score');
@@ -87,13 +89,13 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const expectedScores = [50, 75, 100, 125, 150];
     expectedScores.forEach((score) => {
       expect(
-        screen.getByLabelText(`Set Player 1 target score to ${score} points`)
+        screen.getByLabelText(`Set Player 1 target score to ${score} points`),
       ).toBeInTheDocument();
     });
   });
@@ -107,7 +109,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const button100 = screen.getByLabelText('Set Player 1 target score to 100 points');
@@ -125,14 +127,14 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const selectedButton = screen.getByLabelText(
-      'Set Player 1 target score to 75 points'
+      'Set Player 1 target score to 75 points',
     );
     const unselectedButton = screen.getByLabelText(
-      'Set Player 1 target score to 50 points'
+      'Set Player 1 target score to 50 points',
     );
 
     expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
@@ -150,7 +152,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const nameInput = screen.getByLabelText('Player 1 name');
@@ -166,7 +168,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const scoreInput = screen.getByLabelText('Player 1 target score');
@@ -182,7 +184,7 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
-      />
+      />,
     );
 
     const scoreInput = screen.getByLabelText('Player 1 target score');

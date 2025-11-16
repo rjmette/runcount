@@ -1,4 +1,4 @@
-import { GameAction, Player } from '../../../types/game';
+import { type GameAction, type Player } from '../../../types/game';
 
 export interface InningAction {
   inningNumber: number;
@@ -11,7 +11,7 @@ export interface InningAction {
 
 export const calculateInningActions = (
   actions: GameAction[],
-  players: Player[]
+  players: Player[],
 ): InningAction[] => {
   const inningActions: InningAction[] = [];
   let currentInningNumber = 1;
@@ -35,10 +35,7 @@ export const calculateInningActions = (
       // Calculate balls pocketed in this final shot (if any)
       const prevAction = idx > 0 ? actions[idx - 1] : null;
       const prevBOT = prevAction?.ballsOnTable ?? 15;
-      const ballsPocketedOnFinalShot = Math.max(
-        0,
-        prevBOT - (action.ballsOnTable || 0)
-      );
+      const ballsPocketedOnFinalShot = Math.max(0, prevBOT - (action.ballsOnTable || 0));
 
       // If it's a foul, subtract 1 point for the penalty
       const pointsInAction =
@@ -78,9 +75,7 @@ export const calculateInningActions = (
 };
 
 export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
-  const playerActions = actions.filter(
-    (action) => action.playerId === player.id
-  );
+  const playerActions = actions.filter((action) => action.playerId === player.id);
 
   // Calculate safety statistics
   let successfulSafeties = 0;
@@ -92,10 +87,7 @@ export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
     const nextAction = actions[i + 1];
 
     // If current action is a safety by this player
-    if (
-      currentAction.type === 'safety' &&
-      currentAction.playerId === player.id
-    ) {
+    if (currentAction.type === 'safety' && currentAction.playerId === player.id) {
       safetyInnings++;
 
       // If next action is by a different player (opponent)
@@ -110,17 +102,14 @@ export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
 
   // Calculate safety efficiency percentage
   const safetyEfficiency =
-    player.safeties > 0
-      ? Math.round((successfulSafeties / player.safeties) * 100)
-      : 0;
+    player.safeties > 0 ? Math.round((successfulSafeties / player.safeties) * 100) : 0;
 
   // Calculate offensive BPI (excluding safety innings)
   const offensiveInnings = Math.max(1, player.innings - safetyInnings);
   const offensiveBPI = (player.score / offensiveInnings).toFixed(2);
 
   return {
-    bpi:
-      player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00',
+    bpi: player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00',
     totalActions: playerActions.length,
     shootingPercentage:
       playerActions.length > 0

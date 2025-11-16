@@ -1,6 +1,8 @@
 import React from 'react';
+
 import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import GameHistory from '../GameHistory';
 import * as GameHistoryHook from '../GameHistory/hooks/useGameHistory';
 import * as GameSelectionHook from '../GameHistory/hooks/useGameSelection';
@@ -11,9 +13,7 @@ vi.mock('../GameHistory/components/GameList', () => ({
 }));
 
 vi.mock('../GameHistory/components/GameDetails', () => ({
-  GameDetails: () => (
-    <div data-testid="game-details">Game Details Component</div>
-  ),
+  GameDetails: () => <div data-testid="game-details">Game Details Component</div>,
 }));
 
 vi.mock('../GameHistory/components/DeleteConfirmationModal', () => ({
@@ -61,7 +61,7 @@ describe('GameHistory Component', () => {
         supabase={mockSupabase as any}
         startNewGame={vi.fn()}
         user={mockUser}
-      />
+      />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();
@@ -69,11 +69,7 @@ describe('GameHistory Component', () => {
 
   test('renders without user (guest mode)', () => {
     render(
-      <GameHistory
-        supabase={mockSupabase as any}
-        startNewGame={vi.fn()}
-        user={null}
-      />
+      <GameHistory supabase={mockSupabase as any} startNewGame={vi.fn()} user={null} />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();
@@ -93,12 +89,12 @@ describe('GameHistory Component', () => {
         supabase={mockSupabase as any}
         startNewGame={vi.fn()}
         user={mockUser}
-      />
+      />,
     );
 
     // Should render a loading status
     expect(
-      screen.getByRole('status', { name: 'Loading game history...' })
+      screen.getByRole('status', { name: 'Loading game history...' }),
     ).toBeInTheDocument();
   });
 
@@ -116,7 +112,7 @@ describe('GameHistory Component', () => {
         supabase={mockSupabase as any}
         startNewGame={vi.fn()}
         user={mockUser}
-      />
+      />,
     );
 
     // Error banner renders with Start New Game button
@@ -155,7 +151,7 @@ describe('GameHistory Component', () => {
         supabase={mockSupabase as any}
         startNewGame={vi.fn()}
         user={mockUser}
-      />
+      />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();

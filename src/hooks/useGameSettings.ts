@@ -13,20 +13,14 @@ export const useGameSettings = () => {
   const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<
     Record<string, number>
   >(() => {
-    const savedTargetScores = localStorage.getItem(
-      'runcount_lastPlayerTargetScores'
-    );
+    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
     return savedTargetScores ? JSON.parse(savedTargetScores) : {};
   });
 
-  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(
-    () => {
-      const savedBreakingPlayerId = localStorage.getItem(
-        'runcount_lastBreakingPlayerId'
-      );
-      return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
-    }
-  );
+  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() => {
+    const savedBreakingPlayerId = localStorage.getItem('runcount_lastBreakingPlayerId');
+    return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
+  });
 
   // Persist game settings to localStorage
   useEffect(() => {
@@ -39,7 +33,7 @@ export const useGameSettings = () => {
     if (Object.keys(lastPlayerTargetScores).length > 0) {
       localStorage.setItem(
         'runcount_lastPlayerTargetScores',
-        JSON.stringify(lastPlayerTargetScores)
+        JSON.stringify(lastPlayerTargetScores),
       );
     }
   }, [lastPlayerTargetScores]);
@@ -47,7 +41,7 @@ export const useGameSettings = () => {
   useEffect(() => {
     localStorage.setItem(
       'runcount_lastBreakingPlayerId',
-      JSON.stringify(lastBreakingPlayerId)
+      JSON.stringify(lastBreakingPlayerId),
     );
   }, [lastBreakingPlayerId]);
 

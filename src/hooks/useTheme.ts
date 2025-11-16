@@ -10,10 +10,7 @@ export const useTheme = () => {
     return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no theme is saved
   });
 
-  const toggleDarkMode = useCallback(
-    () => setDarkMode(!darkMode),
-    [darkMode]
-  );
+  const toggleDarkMode = useCallback(() => setDarkMode(!darkMode), [darkMode]);
 
   // Update theme when darkMode changes
   useEffect(() => {

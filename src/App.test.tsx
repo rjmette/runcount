@@ -1,13 +1,13 @@
 import React from 'react';
-import { vi } from 'vitest';
+
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { vi } from 'vitest';
+
 import App from './App';
 
 // Mock context to bypass Supabase auth
 vi.mock('./context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => ({
     user: null,
     loading: false,
@@ -25,9 +25,7 @@ vi.mock('./components/GameScoring', () => ({
 }));
 
 vi.mock('./components/GameStatistics', () => ({
-  default: () => (
-    <div data-testid="game-statistics">Game Statistics Component</div>
-  ),
+  default: () => <div data-testid="game-statistics">Game Statistics Component</div>,
 }));
 
 vi.mock('./components/GameHistory', () => ({

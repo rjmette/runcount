@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { SupabaseClient } from '@supabase/supabase-js';
+
+import { type SupabaseClient } from '@supabase/supabase-js';
+
 import Login from './Login';
-import SignUp from './SignUp';
 import ResetPassword from './ResetPassword';
+import SignUp from './SignUp';
 
 type AuthTab = 'login' | 'signup' | 'reset-password';
 

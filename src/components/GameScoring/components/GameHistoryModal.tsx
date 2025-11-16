@@ -1,5 +1,6 @@
 import React from 'react';
-import { Player, GameAction } from '../../../types/game';
+
+import { type Player, type GameAction } from '../../../types/game';
 
 interface GameHistoryModalProps {
   isOpen: boolean;
@@ -28,7 +29,6 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
 
   let currentInningNumber = 1;
   let currentPlayerId = playerData[0]?.id;
-  let currentInningPoints = 0;
   let currentRun = 0;
 
   // Track cumulative scores for each player
@@ -41,7 +41,6 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
   actions.forEach((action, idx) => {
     if (action.type === 'score') {
       // For score actions (regular balls or new rack), just add to inning points
-      currentInningPoints += action.value;
       currentRun += action.value;
     } else if (['miss', 'safety', 'foul'].includes(action.type)) {
       // For turn-ending actions (miss, safety, foul), calculate points
@@ -50,10 +49,7 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
       // Calculate balls pocketed in this final shot (if any)
       const prevAction = idx > 0 ? actions[idx - 1] : null;
       const prevBOT = prevAction?.ballsOnTable ?? 15;
-      const ballsPocketedOnFinalShot = Math.max(
-        0,
-        prevBOT - (action.ballsOnTable || 0)
-      );
+      const ballsPocketedOnFinalShot = Math.max(0, prevBOT - (action.ballsOnTable || 0));
 
       // If it's a foul, subtract 1 point for the penalty
       const pointsInAction =
@@ -85,7 +81,6 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
       }
 
       // Reset points for next inning
-      currentInningPoints = 0;
       currentRun = 0;
     }
   });
@@ -121,9 +116,7 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
               </thead>
               <tbody>
                 {sortedInnings.map((inning, idx) => {
-                  const player = playerData.find(
-                    (p) => p.id === inning.playerId
-                  );
+                  const player = playerData.find((p) => p.id === inning.playerId);
                   const actionType = inning.endAction.type;
                   const actionLabel =
                     actionType.charAt(0).toUpperCase() + actionType.slice(1);
@@ -148,19 +141,16 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
                         )}
                       </td>
                       <td className="px-4 py-2">
-                        {inning.pointsInInning > 0 &&
-                        inning.endAction.type !== 'foul'
+                        {inning.pointsInInning > 0 && inning.endAction.type !== 'foul'
                           ? inning.pointsInInning
                           : inning.endAction.type === 'foul'
-                          ? inning.pointsInInning + 1
-                          : 0}
+                            ? inning.pointsInInning + 1
+                            : 0}
                       </td>
                       <td className="px-4 py-2 font-medium text-blue-600 dark:text-blue-400">
                         {inning.currentScore}
                       </td>
-                      <td className="px-4 py-2">
-                        {inning.endAction.ballsOnTable}
-                      </td>
+                      <td className="px-4 py-2">{inning.endAction.ballsOnTable}</td>
                       <td className="px-4 py-2">
                         {inning.endTime.toLocaleTimeString([], {
                           hour: '2-digit',

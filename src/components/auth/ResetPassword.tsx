@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { SupabaseClient } from '@supabase/supabase-js';
+
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 interface ResetPasswordProps {
   supabase: SupabaseClient;
   onSuccess?: () => void;
 }
 
-const ResetPassword: React.FC<ResetPasswordProps> = ({
-  supabase,
-  onSuccess,
-}) => {
+const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

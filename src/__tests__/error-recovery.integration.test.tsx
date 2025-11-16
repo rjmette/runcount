@@ -1,7 +1,9 @@
 import React from 'react';
-import { vi } from 'vitest';
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
+
 import GameSetup from '../components/GameSetup';
 import { GamePersistProvider } from '../context/GamePersistContext';
 
@@ -29,21 +31,23 @@ describe('Error Recovery Integration Tests', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Should not crash and should show fresh game setup
     await waitFor(() => {
       expect(screen.getByText('New Game')).toBeInTheDocument();
     });
 
     // Should not show resume game option due to corrupted state
-    expect(screen.queryByRole('button', { name: /Resume Game/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Resume Game/i }),
+    ).not.toBeInTheDocument();
 
     // Should be able to start a new game normally
     await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
     await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
-    
+
     await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
     await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
@@ -53,27 +57,27 @@ describe('Error Recovery Integration Tests', () => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
         { Alice: 75, Bob: 60 },
-        0
+        0,
       );
     });
   });
 
   test('should handle invalid player configurations gracefully', async () => {
     const mockStartGame = vi.fn();
-    
+
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Try to start game with invalid configurations
-    
+
     // 1. Empty player names should show validation error
     fireEvent.submit(
-      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!,
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Both player names are required')).toBeInTheDocument();
     });
@@ -81,14 +85,14 @@ describe('Error Recovery Integration Tests', () => {
     // 2. Same player names should show validation error
     await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
     await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
-    
+
     await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
     await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Alice');
 
     fireEvent.submit(
-      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!,
     );
-    
+
     await waitFor(() => {
       expect(screen.getByText('Player names must be different')).toBeInTheDocument();
     });
@@ -103,7 +107,7 @@ describe('Error Recovery Integration Tests', () => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
         { Alice: 75, Bob: 60 },
-        0
+        0,
       );
     });
   });
@@ -117,17 +121,17 @@ describe('Error Recovery Integration Tests', () => {
     localStorage.setItem = mockSetItem;
 
     const mockStartGame = vi.fn();
-    
+
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Setup and start game - should not crash despite storage errors
     await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
     await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
-    
+
     await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
     await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
@@ -138,7 +142,7 @@ describe('Error Recovery Integration Tests', () => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
         { Alice: 75, Bob: 60 },
-        0
+        0,
       );
     });
 
@@ -148,17 +152,17 @@ describe('Error Recovery Integration Tests', () => {
 
   test('should handle form validation edge cases', async () => {
     const mockStartGame = vi.fn();
-    
+
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Test extreme target scores
     await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
     await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
-    
+
     await userEvent.clear(screen.getByLabelText(/Player 2 name/i));
     await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
@@ -168,11 +172,13 @@ describe('Error Recovery Integration Tests', () => {
     await userEvent.type(player1TargetInput, '0');
 
     fireEvent.submit(
-      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!,
     );
-    
+
     await waitFor(() => {
-      expect(screen.getByText('Target scores must be greater than 0')).toBeInTheDocument();
+      expect(
+        screen.getByText('Target scores must be greater than 0'),
+      ).toBeInTheDocument();
     });
 
     // Fix and verify success
@@ -185,29 +191,29 @@ describe('Error Recovery Integration Tests', () => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
         { Alice: 50, Bob: 60 },
-        0
+        0,
       );
     });
   });
 
   test('should maintain state during rapid user interactions', async () => {
     const mockStartGame = vi.fn();
-    
+
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Rapid form interactions
     const player1Input = screen.getByLabelText(/Player 1 name/i);
     const player2Input = screen.getByLabelText(/Player 2 name/i);
-    
+
     // Rapid typing and clearing
     await userEvent.type(player1Input, 'A');
     await userEvent.clear(player1Input);
     await userEvent.type(player1Input, 'Alice');
-    
+
     await userEvent.type(player2Input, 'B');
     await userEvent.clear(player2Input);
     await userEvent.type(player2Input, 'Bob');
@@ -219,7 +225,7 @@ describe('Error Recovery Integration Tests', () => {
     const player2BreakBtn = screen.getByRole('button', {
       name: /Select .*Bob.* breaking player/i,
     });
-    
+
     await userEvent.click(player2BreakBtn);
     await userEvent.click(player1BreakBtn);
     await userEvent.click(player2BreakBtn);
@@ -232,24 +238,24 @@ describe('Error Recovery Integration Tests', () => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
         { Alice: 75, Bob: 60 },
-        1 // Player 2 (index 1) should be breaking
+        1, // Player 2 (index 1) should be breaking
       );
     });
   });
 
   test('should handle component unmounting during operations', async () => {
     const mockStartGame = vi.fn();
-    
+
     const { unmount } = render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
-    
+
     // Start filling form
     await userEvent.clear(screen.getByLabelText(/Player 1 name/i));
     await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
-    
+
     // Unmount component during operation
     unmount();
 

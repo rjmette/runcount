@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { GameData, GameSettings } from '../types/game';
+
+import { type GameData, type GameSettings } from '../types/game';
 
 interface GamePersistContextType {
   saveGameState: (gameData: GameData) => void;
@@ -15,7 +16,9 @@ const GamePersistContext = createContext<GamePersistContextType | undefined>(und
 export const ACTIVE_GAME_STORAGE_KEY = 'runcount_active_game';
 export const GAME_SETTINGS_STORAGE_KEY = 'runcount_game_settings';
 
-export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [hasActiveGame, setHasActiveGame] = useState<boolean>(false);
 
   // Check if there's an active game on init
@@ -26,13 +29,14 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const parsedData = JSON.parse(storedGame) as GameData;
         // Only consider it an active game if it's not completed
         setHasActiveGame(!parsedData.completed);
-        
+
         // If it's completed, clean it up
         if (parsedData.completed) {
           localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
         }
-      } catch (error) {
+      } catch (_error) {
         // If parsing fails, clear the corrupted data
+        console.warn('Clearing invalid stored game data', _error);
         localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
         setHasActiveGame(false);
       }
@@ -45,8 +49,8 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       localStorage.setItem(ACTIVE_GAME_STORAGE_KEY, JSON.stringify(gameData));
       setHasActiveGame(true);
-    } catch (error) {
-      console.error('Error saving game state to localStorage:', error);
+    } catch (_error) {
+      console.error('Error saving game state to localStorage:', _error);
     }
   };
 
@@ -56,14 +60,14 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (!gameData) return null;
 
       const parsedData = JSON.parse(gameData) as GameData;
-      
+
       // Convert string dates back to Date objects
       parsedData.date = new Date(parsedData.date);
-      parsedData.actions = parsedData.actions.map(action => ({
+      parsedData.actions = parsedData.actions.map((action) => ({
         ...action,
-        timestamp: new Date(action.timestamp)
+        timestamp: new Date(action.timestamp),
       }));
-      
+
       // Convert timing fields back to Date objects
       if (parsedData.startTime) {
         parsedData.startTime = new Date(parsedData.startTime);
@@ -73,8 +77,8 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       return parsedData;
-    } catch (error) {
-      console.error('Error retrieving game state from localStorage:', error);
+    } catch (_error) {
+      console.error('Error retrieving game state from localStorage:', _error);
       return null;
     }
   };
@@ -83,16 +87,16 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
       setHasActiveGame(false);
-    } catch (error) {
-      console.error('Error clearing game state from localStorage:', error);
+    } catch (_error) {
+      console.error('Error clearing game state from localStorage:', _error);
     }
   };
 
   const saveGameSettings = (settings: GameSettings) => {
     try {
       localStorage.setItem(GAME_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch (error) {
-      console.error('Error saving game settings to localStorage:', error);
+    } catch (_error) {
+      console.error('Error saving game settings to localStorage:', _error);
     }
   };
 
@@ -101,21 +105,21 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const settings = localStorage.getItem(GAME_SETTINGS_STORAGE_KEY);
       if (!settings) return null;
       return JSON.parse(settings) as GameSettings;
-    } catch (error) {
-      console.error('Error retrieving game settings from localStorage:', error);
+    } catch (_error) {
+      console.error('Error retrieving game settings from localStorage:', _error);
       return null;
     }
   };
 
   return (
-    <GamePersistContext.Provider 
-      value={{ 
-        saveGameState, 
-        getGameState, 
-        clearGameState, 
-        saveGameSettings, 
+    <GamePersistContext.Provider
+      value={{
+        saveGameState,
+        getGameState,
+        clearGameState,
+        saveGameSettings,
         getGameSettings,
-        hasActiveGame 
+        hasActiveGame,
       }}
     >
       {children}
