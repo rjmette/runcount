@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { GameSetupProps } from '../types/game';
 import { useGamePersist } from '../context/GamePersistContext';
+import PlayerCard from './PlayerCard';
+import { DEFAULT_PLAYER1_TARGET, DEFAULT_PLAYER2_TARGET } from '../constants/gameSettings';
 
 const GameSetup: React.FC<GameSetupProps> = ({
   startGame,
@@ -11,8 +13,8 @@ const GameSetup: React.FC<GameSetupProps> = ({
   const { clearGameState } = useGamePersist();
   const [player1, setPlayer1] = useState('');
   const [player2, setPlayer2] = useState('');
-  const [player1TargetScore, setPlayer1TargetScore] = useState(75);
-  const [player2TargetScore, setPlayer2TargetScore] = useState(60);
+  const [player1TargetScore, setPlayer1TargetScore] = useState(DEFAULT_PLAYER1_TARGET);
+  const [player2TargetScore, setPlayer2TargetScore] = useState(DEFAULT_PLAYER2_TARGET);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0); // Default to player 1
   const [error, setError] = useState('');
 
@@ -88,101 +90,23 @@ const GameSetup: React.FC<GameSetupProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Player 1 Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Player 1</h3>
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 dark:text-blue-400 text-sm font-semibold">1</span>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  id="player1"
-                  value={player1}
-                  onChange={(e) => setPlayer1(e.target.value)}
-                  className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-600 text-gray-900 dark:text-white"
-                  placeholder="Enter name"
-                  aria-label="Player 1 name"
-                  required
-                />
-              </div>
+          <PlayerCard
+            playerNumber={1}
+            playerName={player1}
+            targetScore={player1TargetScore}
+            onPlayerNameChange={setPlayer1}
+            onTargetScoreChange={setPlayer1TargetScore}
+            colorScheme="blue"
+          />
 
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
-                  <div className="flex items-baseline">
-                    <input
-                      type="number"
-                      id="player1TargetScore"
-                      value={player1TargetScore}
-                      onChange={(e) => setPlayer1TargetScore(Number(e.target.value))}
-                      className="text-4xl font-bold bg-transparent border-none outline-none w-20 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      min="1"
-                      step="1"
-                      aria-label="Player 1 target score"
-                      required
-                    />
-                    <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
-                  </div>
-                </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center">
-                  <span className="text-white text-2xl">🎯</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Player 2 Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Player 2</h3>
-              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <span className="text-green-600 dark:text-green-400 text-sm font-semibold">2</span>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  id="player2"
-                  value={player2}
-                  onChange={(e) => setPlayer2(e.target.value)}
-                  className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-600 text-gray-900 dark:text-white"
-                  placeholder="Enter name"
-                  aria-label="Player 2 name"
-                  required
-                />
-              </div>
-
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
-                  <div className="flex items-baseline">
-                    <input
-                      type="number"
-                      id="player2TargetScore"
-                      value={player2TargetScore}
-                      onChange={(e) => setPlayer2TargetScore(Number(e.target.value))}
-                      className="text-4xl font-bold bg-transparent border-none outline-none w-20 text-gray-900 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      min="1"
-                      step="1"
-                      aria-label="Player 2 target score"
-                      required
-                    />
-                    <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
-                  </div>
-                </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center">
-                  <span className="text-white text-2xl">🎯</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PlayerCard
+            playerNumber={2}
+            playerName={player2}
+            targetScore={player2TargetScore}
+            onPlayerNameChange={setPlayer2}
+            onTargetScoreChange={setPlayer2TargetScore}
+            colorScheme="green"
+          />
 
           {/* Breaking Player Card */}
           <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
