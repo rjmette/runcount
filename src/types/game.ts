@@ -1,4 +1,4 @@
-import { SupabaseClient, User } from '@supabase/supabase-js';
+import { type SupabaseClient, type User } from '@supabase/supabase-js';
 
 export interface Player {
   id: number;
@@ -46,7 +46,7 @@ export interface GameSetupProps {
   startGame: (
     players: string[],
     playerTargetScores: Record<string, number>,
-    breakingPlayerId: number
+    breakingPlayerId: number,
   ) => void;
   lastPlayers?: string[];
   lastPlayerTargetScores?: Record<string, number>;

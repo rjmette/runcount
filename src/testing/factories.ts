@@ -1,4 +1,4 @@
-import { Player } from '../types/game';
+import { type Player } from '../types/game';
 
 export const createMockPlayer = (overrides: Partial<Player> = {}): Player => ({
   id: 1,

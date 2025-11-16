@@ -1,4 +1,4 @@
-import { Player, GameAction } from '../../types/game';
+import { type Player, type GameAction } from '../../types/game';
 
 export interface InningAction {
   inningNumber: number;

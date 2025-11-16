@@ -1,9 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import GameSetup from './GameSetup';
-import { GameSetupProps, Player } from '../types/game';
+
 import { GamePersistProvider } from '../context/GamePersistContext';
+
+import GameSetup from './GameSetup';
 
 describe('GameSetup Component', () => {
   const mockStartGame = vi.fn();
@@ -27,7 +29,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Check for title and form elements
@@ -37,9 +39,7 @@ describe('GameSetup Component', () => {
     expect(screen.getByLabelText('Player 1 name')).toBeInTheDocument();
     expect(screen.getByLabelText('Player 2 name')).toBeInTheDocument();
 
-    expect(
-      screen.getByRole('button', { name: /Start Game/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start Game/i })).toBeInTheDocument();
 
     // Check default values for numeric inputs using their IDs
     expect(screen.getByDisplayValue(75)).toBeInTheDocument(); // Player 1 target score
@@ -58,18 +58,16 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Try to submit form without filling player names
     fireEvent.submit(
-      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!,
     );
 
     // Check for error message
-    expect(
-      await screen.findByText('Both player names are required')
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Both player names are required')).toBeInTheDocument();
     expect(mockStartGame).not.toHaveBeenCalled();
   });
 
@@ -77,7 +75,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Find player input fields by aria-labels
@@ -92,9 +90,7 @@ describe('GameSetup Component', () => {
     fireEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
     // Check for error message
-    expect(
-      screen.getByText('Player names must be different')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Player names must be different')).toBeInTheDocument();
     expect(mockStartGame).not.toHaveBeenCalled();
   });
 
@@ -102,7 +98,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Fill in player names
@@ -116,12 +112,12 @@ describe('GameSetup Component', () => {
 
     // Try to submit form
     fireEvent.submit(
-      screen.getByRole('button', { name: /Start Game/i }).closest('form')!
+      screen.getByRole('button', { name: /Start Game/i }).closest('form')!,
     );
 
     // Check for error message
     expect(
-      await screen.findByText('Target scores must be greater than 0')
+      await screen.findByText('Target scores must be greater than 0'),
     ).toBeInTheDocument();
     expect(mockStartGame).not.toHaveBeenCalled();
   });
@@ -130,7 +126,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Fill in player names
@@ -155,7 +151,7 @@ describe('GameSetup Component', () => {
     expect(mockStartGame).toHaveBeenCalledWith(
       ['Player One', 'Player Two'],
       { 'Player One': 100, 'Player Two': 75 },
-      0 // Player 1 (index 0) is breaking
+      0, // Player 1 (index 0) is breaking
     );
   });
 
@@ -163,7 +159,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Fill in player names
@@ -183,7 +179,7 @@ describe('GameSetup Component', () => {
     expect(mockStartGame).toHaveBeenCalledWith(
       ['Player One', 'Player Two'],
       { 'Player One': 75, 'Player Two': 60 },
-      1 // Player 2 (index 1) is breaking
+      1, // Player 2 (index 1) is breaking
     );
   });
 
@@ -200,7 +196,7 @@ describe('GameSetup Component', () => {
           lastPlayerTargetScores={lastPlayerTargetScores}
           lastBreakingPlayerId={lastBreakingPlayerId}
         />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Check that the fields are prefilled with last game settings
@@ -228,7 +224,7 @@ describe('GameSetup Component', () => {
     render(
       <GamePersistProvider>
         <GameSetup startGame={mockStartGame} />
-      </GamePersistProvider>
+      </GamePersistProvider>,
     );
 
     // Find the score inputs by their placeholders

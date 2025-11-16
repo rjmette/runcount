@@ -1,7 +1,9 @@
 import type { FC } from 'react';
+
+import UserProfile from '../auth/UserProfile';
+
 import type { User } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import UserProfile from '../auth/UserProfile';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -33,11 +35,7 @@ export const ProfileModal: FC<ProfileModalProps> = ({
           </button>
         </div>
         <div className="p-4">
-          <UserProfile
-            supabase={supabase}
-            user={user}
-            onSignOut={onSignOut}
-          />
+          <UserProfile supabase={supabase} user={user} onSignOut={onSignOut} />
         </div>
       </div>
     </div>

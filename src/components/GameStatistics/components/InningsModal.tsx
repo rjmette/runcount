@@ -1,5 +1,6 @@
 import React from 'react';
-import { GameAction, Player } from '../../../types/game';
+
+import { type GameAction, type Player } from '../../../types/game';
 import { calculateInningActions } from '../../GameHistory/utils/calculations';
 
 interface InningsModalProps {
@@ -102,16 +103,15 @@ export const InningsModal: React.FC<InningsModalProps> = ({
                           inning.pointsInInning > 0
                             ? 'text-green-600 dark:text-green-400 font-medium'
                             : inning.pointsInInning < 0
-                            ? 'text-red-600 dark:text-red-400 font-medium'
-                            : 'text-gray-600 dark:text-gray-400'
+                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              : 'text-gray-600 dark:text-gray-400'
                         }`}
                       >
-                        {inning.pointsInInning > 0 &&
-                        inning.endAction.type !== 'foul'
+                        {inning.pointsInInning > 0 && inning.endAction.type !== 'foul'
                           ? inning.pointsInInning
                           : inning.endAction.type === 'foul'
-                          ? inning.pointsInInning + 1
-                          : 0}
+                            ? inning.pointsInInning + 1
+                            : 0}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400">

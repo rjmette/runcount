@@ -1,6 +1,8 @@
 import React from 'react';
-import { Player } from '../../types/game';
-import { StatCalculator } from './types';
+
+import { type Player } from '../../types/game';
+
+import { type StatCalculator } from './types';
 
 interface GameStatusPanelProps {
   players: Player[];
@@ -84,9 +86,7 @@ export const GameStatusPanel: React.FC<GameStatusPanelProps> = ({
                 }`}
               >
                 <div className="flex justify-between items-start mb-2">
-                  <div className="font-medium dark:text-white text-lg">
-                    {player.name}
-                  </div>
+                  <div className="font-medium dark:text-white text-lg">{player.name}</div>
                   {player.id === winnerId && (
                     <div className="text-blue-600 dark:text-blue-400 font-medium flex items-center space-x-1">
                       <span className="text-yellow-500">🏆</span>
@@ -99,12 +99,10 @@ export const GameStatusPanel: React.FC<GameStatusPanelProps> = ({
                     <span className="font-medium">Score:</span> {player.score}
                   </div>
                   <div>
-                    <span className="font-medium">Target:</span>{' '}
-                    {player.targetScore}
+                    <span className="font-medium">Target:</span> {player.targetScore}
                   </div>
                   <div>
-                    <span className="font-medium">High Run:</span>{' '}
-                    {player.highRun}
+                    <span className="font-medium">High Run:</span> {player.highRun}
                   </div>
                   <div>
                     <span className="font-medium">BPI:</span> {stats.bpi}

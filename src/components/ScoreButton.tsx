@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { ScoreButtonProps } from '../types/game';
+
+import { type ScoreButtonProps } from '../types/game';
 
 const ScoreButton: React.FC<ScoreButtonProps> = ({
   label,

@@ -1,26 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { FC } from 'react';
+
 import { createClient } from '@supabase/supabase-js';
 
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ErrorProvider, useError } from './context/ErrorContext';
-import {
-  ErrorBoundary,
-  ErrorEventsBridge,
-} from './components/shared/ErrorBoundary';
-import ErrorBanner from './components/shared/ErrorBanner';
-import { GamePersistProvider } from './context/GamePersistContext';
-
-import { Header } from './components/Header';
-import { Navigation } from './components/Navigation';
 import { GameRouter } from './components/GameRouter';
+import { Header } from './components/Header';
 import { AuthModal } from './components/modals/AuthModal';
 import { ProfileModal } from './components/modals/ProfileModal';
-
+import { Navigation } from './components/Navigation';
+import ErrorBanner from './components/shared/ErrorBanner';
+import { ErrorBoundary, ErrorEventsBridge } from './components/shared/ErrorBoundary';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ErrorProvider, useError } from './context/ErrorContext';
+import { GamePersistProvider } from './context/GamePersistContext';
 import { useFullscreen } from './hooks/useFullscreen';
-import { useTheme } from './hooks/useTheme';
 import { useGameSettings } from './hooks/useGameSettings';
 import { useGameState } from './hooks/useGameState';
+import { useTheme } from './hooks/useTheme';
 
 import './App.css';
 
@@ -99,7 +95,8 @@ const AppContent: FC = () => {
   const handleSignOut = useCallback(async () => {
     try {
       await signOut();
-    } catch (e) {
+    } catch (_error) {
+      console.error('Failed to sign out user', _error);
       addError('Failed to sign out. Please try again.');
     } finally {
       setShowProfileModal(false);
@@ -115,25 +112,20 @@ const AppContent: FC = () => {
     (
       players: string[],
       playerTargetScores: Record<string, number>,
-      breakingPlayerId: number
+      breakingPlayerId: number,
     ) => {
-      handleStartGameBase(
-        players,
-        playerTargetScores,
-        breakingPlayerId,
-        (p, t, b) => {
-          setLastPlayers(p);
-          setLastPlayerTargetScores(t);
-          setLastBreakingPlayerId(b);
-        }
-      );
+      handleStartGameBase(players, playerTargetScores, breakingPlayerId, (p, t, b) => {
+        setLastPlayers(p);
+        setLastPlayerTargetScores(t);
+        setLastBreakingPlayerId(b);
+      });
     },
     [
       handleStartGameBase,
       setLastPlayers,
       setLastPlayerTargetScores,
       setLastBreakingPlayerId,
-    ]
+    ],
   );
 
   // Profile click handler
@@ -176,11 +168,7 @@ const AppContent: FC = () => {
         onProfileClick={handleProfileClick}
       />
 
-      <Navigation
-        gameState={gameState}
-        user={user}
-        onNavigate={setGameState}
-      />
+      <Navigation gameState={gameState} user={user} onNavigate={setGameState} />
 
       <main className="flex-grow container mx-auto p-4">
         <GameRouter

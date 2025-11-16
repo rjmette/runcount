@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { SupabaseClient } from '@supabase/supabase-js';
+
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 interface LoginProps {
   supabase: SupabaseClient;

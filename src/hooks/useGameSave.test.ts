@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { saveGameToSupabaseHelper } from './useGameSave';
 
 describe('saveGameToSupabaseHelper', () => {
@@ -46,7 +47,7 @@ describe('saveGameToSupabaseHelper', () => {
     expect(clearGameState).not.toHaveBeenCalled();
     expect(window.localStorage.setItem).toHaveBeenCalledWith(
       `runcount_game_${gameId}`,
-      expect.stringContaining('"id":"game-123"')
+      expect.stringContaining('"id":"game-123"'),
     );
     expect(tableName).toBe(null);
     expect(upsertSpy).not.toHaveBeenCalled();

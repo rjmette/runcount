@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { useGameActions } from '../useGameActions';
+
 import type { GameAction, Player } from '../../../../types/game';
 
 const basePlayers: Player[] = [
@@ -35,9 +37,7 @@ describe('useGameActions', () => {
     vi.resetAllMocks();
   });
 
-  function setup(
-    overrides: Partial<Parameters<typeof useGameActions>[0]> = {}
-  ) {
+  function setup(overrides: Partial<Parameters<typeof useGameActions>[0]> = {}) {
     let players = JSON.parse(JSON.stringify(basePlayers)) as Player[];
     let actions: GameAction[] = [];
     let ballsOnTable = 15;
@@ -112,7 +112,7 @@ describe('useGameActions', () => {
   }
 
   test('handleAddScore requires balls-on-table input then applies score', () => {
-    const { result, players, actions } = setup();
+    const { result } = setup();
 
     const first = result.current.handleAddScore(1);
     expect(first).toEqual({ needsBOTInput: true, action: 'newrack' });
@@ -184,8 +184,8 @@ describe('useGameActions', () => {
   });
 
   test('handleAddFoul applies regular foul penalty (-1 point)', () => {
-    const { result, players } = setup({ 
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }] // Not first action
+    const { result, players } = setup({
+      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Not first action
     });
 
     act(() => {
@@ -200,7 +200,7 @@ describe('useGameActions', () => {
 
   test('handleAddFoul handles three consecutive fouls with 15-point penalty', () => {
     const { result, players, mocks } = setup();
-    
+
     // Set player to have 2 consecutive fouls already
     players[0].consecutiveFouls = 2;
 
@@ -213,7 +213,7 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(0); // reset after penalty
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
     expect(mocks.setAlertMessage).toHaveBeenCalledWith(
-      expect.stringContaining('three consecutive fouls')
+      expect.stringContaining('three consecutive fouls'),
     );
   });
 
@@ -266,8 +266,8 @@ describe('useGameActions', () => {
   });
 
   test('triggers game end when player reaches target score via safety', () => {
-    const { result, players, mocks } = setup({ 
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }] // Has prior score actions
+    const { result, players, mocks } = setup({
+      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Has prior score actions
     });
     players[0].score = 9; // Set to 9, will add 1 ball pocketed to reach 10
 
@@ -276,7 +276,9 @@ describe('useGameActions', () => {
     });
 
     expect(players[0].score).toBe(10); // Should reach target (9 + 1 pocketed = 10)
-    expect(mocks.setGameWinner).toHaveBeenCalledWith(expect.objectContaining({ name: 'Alice' }));
+    expect(mocks.setGameWinner).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Alice' }),
+    );
     expect(mocks.setShowEndGameModal).toHaveBeenCalledWith(true);
     expect(mocks.setMatchEndTime).toHaveBeenCalledWith(expect.any(Date));
   });
@@ -292,9 +294,9 @@ describe('useGameActions', () => {
   });
 
   test('adds only balls pocketed when prior score actions exist', () => {
-    const { result, players } = setup({ 
+    const { result, players } = setup({
       currentRun: 3,
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 2, timestamp: new Date() }]
+      actions: [{ id: '1', type: 'score', playerId: 0, value: 2, timestamp: new Date() }],
     });
 
     act(() => {
@@ -314,7 +316,7 @@ describe('useGameActions', () => {
 
     expect(players[0].consecutiveFouls).toBe(2);
     expect(mocks.setAlertMessage).toHaveBeenCalledWith(
-      expect.stringContaining('two consecutive fouls')
+      expect.stringContaining('two consecutive fouls'),
     );
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
   });

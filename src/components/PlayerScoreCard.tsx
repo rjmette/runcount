@@ -1,5 +1,7 @@
 import React, { useMemo, memo } from 'react';
-import { Player } from '../types/game';
+
+import { type Player } from '../types/game';
+
 import ScoreButton from './ScoreButton';
 
 interface PlayerScoreCardProps {
@@ -24,16 +26,17 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   onAddFoul,
   onAddSafety,
   onAddMiss,
-  onShowHistory,
+  onShowHistory: _onShowHistory,
   targetScore,
-  onRegularShot,
+  onRegularShot: _onRegularShot,
   needsReBreak,
   currentInning,
   onBreakClick,
 }) => {
   // Memoize expensive calculations
   const { bpi, percentage } = useMemo(() => {
-    const bpiValue = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
+    const bpiValue =
+      player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
     const percentageValue = Math.min(100, Math.floor((player.score / targetScore) * 100));
     return { bpi: bpiValue, percentage: percentageValue };
   }, [player.score, player.innings, targetScore]);
@@ -89,8 +92,8 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
               player.score >= targetScore
                 ? 'text-green-600 dark:text-green-500'
                 : player.score < 0
-                ? 'text-red-600 dark:text-red-500'
-                : 'text-blue-700 dark:text-blue-400'
+                  ? 'text-red-600 dark:text-red-500'
+                  : 'text-blue-700 dark:text-blue-400'
             }`}
           >
             {player.score < 0 && '-'}
@@ -117,10 +120,10 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         </div>
 
         <div>
-          <span className="block text-xl font-bold dark:text-white">
-            {bpi}
+          <span className="block text-xl font-bold dark:text-white">{bpi}</span>
+          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            BPI
           </span>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">BPI</span>
         </div>
       </div>
 
@@ -192,9 +195,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
 
       <div className="mt-2 grid grid-cols-3 gap-1 text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
-          <span className="font-bold dark:text-gray-300">
-            {player.safeties}
-          </span>{' '}
+          <span className="font-bold dark:text-gray-300">{player.safeties}</span>{' '}
           <span className="font-medium">Safeties</span>
         </div>
         <div>
@@ -202,9 +203,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           <span className="font-medium">Fouls</span>
         </div>
         <div>
-          <span className="font-bold dark:text-gray-300">
-            {player.missedShots}
-          </span>{' '}
+          <span className="font-bold dark:text-gray-300">{player.missedShots}</span>{' '}
           <span className="font-medium">Misses</span>
         </div>
       </div>

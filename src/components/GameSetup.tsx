@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { GameSetupProps } from '../types/game';
+
+import {
+  DEFAULT_PLAYER1_TARGET,
+  DEFAULT_PLAYER2_TARGET,
+} from '../constants/gameSettings';
 import { useGamePersist } from '../context/GamePersistContext';
+import { type GameSetupProps } from '../types/game';
+
 import PlayerCard from './PlayerCard';
-import { DEFAULT_PLAYER1_TARGET, DEFAULT_PLAYER2_TARGET } from '../constants/gameSettings';
 
 const GameSetup: React.FC<GameSetupProps> = ({
   startGame,
@@ -78,8 +83,12 @@ const GameSetup: React.FC<GameSetupProps> = ({
       <div className="max-w-md mx-auto pt-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">New Game</h1>
-          <p className="text-gray-500 dark:text-gray-400">Set up your straight pool match</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            New Game
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Set up your straight pool match
+          </p>
         </div>
 
         {/* Error Message */}
@@ -115,8 +124,12 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 <span className="text-orange-600 dark:text-orange-400 text-xl">🎱</span>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Breaking Player</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Who takes the first shot?</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Breaking Player
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Who takes the first shot?
+                </p>
               </div>
             </div>
 
@@ -125,7 +138,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 type="button"
                 onClick={() => setBreakingPlayerId(0)}
                 aria-pressed={breakingPlayerId === 0}
-                aria-label={`Select ${(player1 || 'Player 1')} as breaking player`}
+                aria-label={`Select ${player1 || 'Player 1'} as breaking player`}
                 className={`p-4 rounded-2xl border-2 transition-all duration-200 ${
                   breakingPlayerId === 0
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
@@ -133,14 +146,22 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 }`}
               >
                 <div className="text-center">
-                  <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                    breakingPlayerId === 0 ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      breakingPlayerId === 0
+                        ? 'bg-blue-500'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
                     <span className="text-white text-sm font-semibold">1</span>
                   </div>
-                  <p className={`text-sm font-medium ${
-                    breakingPlayerId === 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'
-                  }`}>
+                  <p
+                    className={`text-sm font-medium ${
+                      breakingPlayerId === 0
+                        ? 'text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}
+                  >
                     {player1 || 'Player 1'}
                   </p>
                 </div>
@@ -150,7 +171,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 type="button"
                 onClick={() => setBreakingPlayerId(1)}
                 aria-pressed={breakingPlayerId === 1}
-                aria-label={`Select ${(player2 || 'Player 2')} as breaking player`}
+                aria-label={`Select ${player2 || 'Player 2'} as breaking player`}
                 className={`p-4 rounded-2xl border-2 transition-all duration-200 ${
                   breakingPlayerId === 1
                     ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
@@ -158,14 +179,22 @@ const GameSetup: React.FC<GameSetupProps> = ({
                 }`}
               >
                 <div className="text-center">
-                  <div className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
-                    breakingPlayerId === 1 ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
-                  }`}>
+                  <div
+                    className={`w-8 h-8 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                      breakingPlayerId === 1
+                        ? 'bg-green-500'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
                     <span className="text-white text-sm font-semibold">2</span>
                   </div>
-                  <p className={`text-sm font-medium ${
-                    breakingPlayerId === 1 ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
-                  }`}>
+                  <p
+                    className={`text-sm font-medium ${
+                      breakingPlayerId === 1
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}
+                  >
                     {player2 || 'Player 2'}
                   </p>
                 </div>

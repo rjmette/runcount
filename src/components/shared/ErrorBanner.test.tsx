@@ -1,7 +1,10 @@
+import React from 'react';
+
 import { render, screen, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import React from 'react';
+
 import { ErrorProvider, useError } from '../../context/ErrorContext';
+
 import { ErrorBanner } from './ErrorBanner';
 
 const TriggerError: React.FC<{ message: string }> = ({ message }) => {
@@ -18,11 +21,11 @@ describe('ErrorBanner', () => {
       <ErrorProvider>
         <ErrorBanner />
         <TriggerError message="Something went wrong. Please try again." />
-      </ErrorProvider>
+      </ErrorProvider>,
     );
 
     expect(
-      screen.getByText('Something went wrong. Please try again.')
+      screen.getByText('Something went wrong. Please try again.'),
     ).toBeInTheDocument();
   });
 
@@ -32,7 +35,7 @@ describe('ErrorBanner', () => {
       <ErrorProvider>
         <ErrorBanner />
         <TriggerError message="Temporary error" />
-      </ErrorProvider>
+      </ErrorProvider>,
     );
 
     expect(screen.getByText('Temporary error')).toBeInTheDocument();

@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
 import React from 'react';
+
+import { render, screen } from '@testing-library/react';
+
 import { ErrorBoundary } from './ErrorBoundary';
 
 const Boom: React.FC = () => {
@@ -11,7 +13,7 @@ describe('ErrorBoundary', () => {
     render(
       <ErrorBoundary>
         <Boom />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText('Something went wrong.')).toBeInTheDocument();

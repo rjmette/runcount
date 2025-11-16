@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { type SupabaseClient } from '@supabase/supabase-js';
 
 type UseGameSaveArgs = {
   supabase: SupabaseClient | any;
@@ -35,7 +35,7 @@ export const saveGameToSupabaseHelper = async (options: {
     players,
     actions,
     completed,
-    winner_id,
+    winner_id: winnerId,
   } = options;
 
   // Save game state to our persistent storage context
@@ -48,7 +48,7 @@ export const saveGameToSupabaseHelper = async (options: {
       players,
       actions,
       completed,
-      winner_id: winner_id as any,
+      winner_id: winnerId as any,
       startTime: matchStartTime,
       endTime: matchEndTime,
     });
@@ -65,20 +65,21 @@ export const saveGameToSupabaseHelper = async (options: {
         players,
         actions,
         completed,
-        winner_id: winner_id as any,
+        winner_id: winnerId as any,
         startTime: matchStartTime,
         endTime: matchEndTime,
-      })
+      }),
     );
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('Error saving game to localStorage history:', err);
     try {
       const evt = new CustomEvent('appError', {
         detail: 'Unable to save game locally. Check storage settings.',
       });
       window.dispatchEvent(evt);
-    } catch {}
+    } catch (dispatchError) {
+      console.warn('Unable to dispatch local save warning', dispatchError);
+    }
   }
 
   // Only save to Supabase if user is authenticated
@@ -92,7 +93,7 @@ export const saveGameToSupabaseHelper = async (options: {
       players,
       actions,
       completed,
-      winner_id: winner_id as any,
+      winner_id: winnerId as any,
       owner_id: user.id,
       deleted: false,
     };
@@ -103,24 +104,26 @@ export const saveGameToSupabaseHelper = async (options: {
     const { error } = await supabase.from('games').upsert(payload);
 
     if (error) {
-      // eslint-disable-next-line no-console
       console.error('Error saving game to Supabase:', error);
       try {
         const evt = new CustomEvent('appError', {
           detail: "Cloud save failed. We'll keep trying in the background.",
         });
         window.dispatchEvent(evt);
-      } catch {}
+      } catch (dispatchError) {
+        console.warn('Unable to dispatch Supabase save warning', dispatchError);
+      }
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error('Error saving game to Supabase:', err);
     try {
       const evt = new CustomEvent('appError', {
         detail: 'Network error during cloud save.',
       });
       window.dispatchEvent(evt);
-    } catch {}
+    } catch (dispatchError) {
+      console.warn('Unable to dispatch Supabase network warning', dispatchError);
+    }
   }
 };
 
@@ -137,9 +140,9 @@ export const useGameSave = ({
     players: any,
     actions: any,
     completed: boolean,
-    winner_id: WinnerId,
+    winnerId: WinnerId,
     startTime?: string | undefined,
-    endTime?: string | undefined
+    endTime?: string | undefined,
   ) => {
     await saveGameToSupabaseHelper({
       supabase,
@@ -152,7 +155,7 @@ export const useGameSave = ({
       players,
       actions,
       completed,
-      winner_id,
+      winner_id: winnerId,
     });
   };
 

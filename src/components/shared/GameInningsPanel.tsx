@@ -1,6 +1,8 @@
 import React from 'react';
-import { Player, GameAction } from '../../types/game';
-import { InningAction } from './types';
+
+import { type Player } from '../../types/game';
+
+import { type InningAction } from './types';
 
 interface GameInningsPanelProps {
   inningActions: InningAction[];
@@ -34,9 +36,7 @@ export const GameInningsPanel: React.FC<GameInningsPanelProps> = ({
               d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"
             />
           </svg>
-          <h3 className="text-lg font-semibold dark:text-white">
-            Game Innings
-          </h3>
+          <h3 className="text-lg font-semibold dark:text-white">Game Innings</h3>
         </div>
         {onViewInnings && (
           <button
@@ -116,25 +116,22 @@ export const GameInningsPanel: React.FC<GameInningsPanelProps> = ({
                   <td className="px-3 py-2 text-sm dark:text-gray-300">
                     {player?.name || 'Unknown'}
                   </td>
-                  <td className="px-3 py-2 text-sm dark:text-gray-300">
-                    {actionLabel}
-                  </td>
+                  <td className="px-3 py-2 text-sm dark:text-gray-300">{actionLabel}</td>
                   <td className="px-3 py-2 text-sm">
                     <span
                       className={`${
                         inning.pointsInInning > 0
                           ? 'text-green-600 dark:text-green-400 font-medium'
                           : inning.pointsInInning < 0
-                          ? 'text-red-600 dark:text-red-400 font-medium'
-                          : 'text-gray-600 dark:text-gray-400'
+                            ? 'text-red-600 dark:text-red-400 font-medium'
+                            : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      {inning.pointsInInning > 0 &&
-                      inning.endAction.type !== 'foul'
+                      {inning.pointsInInning > 0 && inning.endAction.type !== 'foul'
                         ? inning.pointsInInning
                         : inning.endAction.type === 'foul'
-                        ? inning.pointsInInning + 1
-                        : 0}
+                          ? inning.pointsInInning + 1
+                          : 0}
                     </span>
                   </td>
                   <td className="px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400">

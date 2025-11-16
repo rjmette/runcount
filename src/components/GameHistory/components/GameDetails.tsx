@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { GameData } from '../../../types/game';
-import { calculatePlayerStats } from '../utils/calculations';
+
+import { type GameData } from '../../../types/game';
 import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from '../../shared/GameStatusPanel';
 import { PerformanceMetricsPanel } from '../../shared/PerformanceMetricsPanel';
+import { calculatePlayerStats } from '../utils/calculations';
 
 interface GameDetailsProps {
   game: GameData;
@@ -62,9 +63,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
 
     // Add player results
     sortedPlayers.forEach((player) => {
-      emailText += `${player.name}${
-        player.id === game.winner_id ? ' (Winner)' : ''
-      }\n`;
+      emailText += `${player.name}${player.id === game.winner_id ? ' (Winner)' : ''}\n`;
       emailText += `Score: ${player.score}\n`;
       emailText += `Target: ${player.targetScore}\n`;
       emailText += `High Run: ${player.highRun}\n\n`;
@@ -76,7 +75,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
   const copyMatchResults = async () => {
     const formattedText = formatGameResultsForEmail();
     const { copyWithFeedback } = await import('../../../utils/copyToClipboard');
-    
+
     await copyWithFeedback(
       formattedText,
       () => {
@@ -85,7 +84,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
       },
       (error) => {
         console.error('Failed to copy text:', error);
-      }
+      },
     );
   };
 
@@ -184,9 +183,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
         completed={game.completed}
         date={game.date}
         matchLength={matchLength}
-        calculatePlayerStats={(player) =>
-          calculatePlayerStats(player, game.actions)
-        }
+        calculatePlayerStats={(player) => calculatePlayerStats(player, game.actions)}
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
         copySuccess={copySuccess}

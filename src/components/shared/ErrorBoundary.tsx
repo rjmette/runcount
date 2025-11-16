@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { useError } from '../../context/ErrorContext';
 
 export class ErrorBoundary extends React.Component<
@@ -26,8 +27,10 @@ export class ErrorBoundary extends React.Component<
         detail: error?.message || 'Unexpected error',
       });
       window.dispatchEvent(event);
-    } catch {}
-    // eslint-disable-next-line no-console
+    } catch (dispatchError) {
+      console.warn('Failed to dispatch appError event', dispatchError);
+    }
+
     console.error('Uncaught error:', error, info);
   }
 
@@ -58,8 +61,7 @@ export const ErrorEventsBridge: React.FC<{ children: React.ReactNode }> = ({
       addError(detail || 'Unexpected error');
     };
     window.addEventListener('appError', handler as EventListener);
-    return () =>
-      window.removeEventListener('appError', handler as EventListener);
+    return () => window.removeEventListener('appError', handler as EventListener);
   }, [addError]);
 
   return <>{children}</>;

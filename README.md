@@ -29,12 +29,14 @@ A modern, mobile-responsive scoring application for the billiards game Straight 
 ### Installation
 
 1. Clone this repository
+
 ```bash
 git clone https://github.com/rjmette/runcount.git
 cd runcount
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 ```
@@ -59,6 +61,7 @@ npm install
      ```
 
 4. Start the development server
+
 ```bash
 npm start
 ```
@@ -110,15 +113,38 @@ Optimizes the build for best performance with minified bundles.
 Runs the deployment script to publish the app to AWS S3.\
 Requires proper AWS credentials and configuration.
 
+#### `npm run lint`
+
+Runs ESLint with the repository rules (naming conventions, import order, React hooks).
+CI and the `pre-push` hook block merges if this command fails.
+
+#### `npm run lint:fix`
+
+Applies ESLint auto-fixes where possible. Use this when resolving lint feedback locally.
+
+#### `npm run format`
+
+Formats all supported files (TS/TSX/JS, Markdown, JSON, CSS, HTML) with Prettier.
+
+#### `npm run format:check`
+
+Verifies formatting without writing changes. This is useful inside CI or before committing.
+
+### Code Quality Automation
+
+- **Pre-commit**: Husky runs `lint-staged`, which executes ESLint + Prettier on staged files so only clean code enters the repo.
+- **Pre-push**: Husky runs `npm run lint` followed by `npm run test` to catch issues before they reach GitHub.
+- **CI**: `.github/workflows/deploy.yml` now runs `npm run lint` before the test suite so pull requests fail fast when style rules break.
+
 ## Technology Stack
 
-- **Frontend**: 
+- **Frontend**:
   - React 19
   - TypeScript 4.9+
   - Tailwind CSS for responsive styling
   - React Context API for state management
 
-- **Backend**: 
+- **Backend**:
   - Supabase for authentication, database, and storage
   - PostgreSQL database with JSON support
   - Row Level Security (RLS) for data protection
@@ -174,6 +200,7 @@ gh workflow run deploy.yml
 For setting up your own deployment:
 
 1. **S3 Bucket**:
+
    ```bash
    aws s3 mb s3://your-bucket-name
    aws s3 website s3://your-bucket-name --index-document index.html --error-document index.html
@@ -185,6 +212,7 @@ For setting up your own deployment:
    - Create distribution: `aws cloudfront create-distribution --distribution-config file://config.json`
 
 3. **SSL Certificate**:
+
    ```bash
    aws acm request-certificate --domain-name your-domain.com --validation-method DNS --region us-east-1
    ```

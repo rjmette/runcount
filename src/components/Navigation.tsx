@@ -1,6 +1,7 @@
 import type { FC } from 'react';
-import type { User } from '@supabase/supabase-js';
+
 import type { GameState } from '../hooks/useGameState';
+import type { User } from '@supabase/supabase-js';
 
 interface NavigationProps {
   gameState: GameState;
@@ -8,11 +9,7 @@ interface NavigationProps {
   onNavigate: (state: GameState) => void;
 }
 
-export const Navigation: FC<NavigationProps> = ({
-  gameState,
-  user,
-  onNavigate,
-}) => {
+export const Navigation: FC<NavigationProps> = ({ gameState, user, onNavigate }) => {
   // Only show navigation tabs when not in an active game
   if (gameState === 'scoring') {
     return null;

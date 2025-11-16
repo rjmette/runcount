@@ -1,6 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { useGameState } from '../useGameState';
+
 import type { GameData, Player } from '../../../../types/game';
 
 const makePlayers = (names: string[], targetScores: number[] = []) => {
@@ -41,7 +43,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState: () => null,
         saveGameToSupabase,
-      })
+      }),
     );
 
     expect(setGameId).toHaveBeenCalledTimes(1);
@@ -81,7 +83,7 @@ describe('useGameState', () => {
         breakingPlayerId: 1,
         getGameState,
         saveGameToSupabase: vi.fn(),
-      })
+      }),
     );
 
     expect(result.current.matchStartTime).not.toBeNull();
@@ -92,9 +94,30 @@ describe('useGameState', () => {
   test('restores game state with actions and calculates current state correctly', () => {
     const now = new Date();
     const actions = [
-      { id: '1', type: 'score', playerId: 0, value: 5, ballsOnTable: 10, timestamp: now.toISOString() },
-      { id: '2', type: 'miss', playerId: 0, value: 0, ballsOnTable: 10, timestamp: now.toISOString() },
-      { id: '3', type: 'score', playerId: 1, value: 3, ballsOnTable: 7, timestamp: now.toISOString() },
+      {
+        id: '1',
+        type: 'score',
+        playerId: 0,
+        value: 5,
+        ballsOnTable: 10,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '2',
+        type: 'miss',
+        playerId: 0,
+        value: 0,
+        ballsOnTable: 10,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '3',
+        type: 'score',
+        playerId: 1,
+        value: 3,
+        ballsOnTable: 7,
+        timestamp: now.toISOString(),
+      },
     ];
 
     const saved: GameData = {
@@ -119,7 +142,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState,
         saveGameToSupabase: vi.fn(),
-      })
+      }),
     );
 
     expect(result.current.activePlayerIndex).toBe(1); // Bob is active after Alice's miss
@@ -132,7 +155,15 @@ describe('useGameState', () => {
   test('handles re-break scenario correctly', () => {
     const now = new Date();
     const actions = [
-      { id: '1', type: 'foul', playerId: 0, value: -1, ballsOnTable: 15, reBreak: true, timestamp: now.toISOString() },
+      {
+        id: '1',
+        type: 'foul',
+        playerId: 0,
+        value: -1,
+        ballsOnTable: 15,
+        reBreak: true,
+        timestamp: now.toISOString(),
+      },
     ];
 
     const saved: GameData = {
@@ -157,7 +188,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState,
         saveGameToSupabase: vi.fn(),
-      })
+      }),
     );
 
     expect(result.current.playerNeedsReBreak).toBe(0); // Alice needs re-break
@@ -167,8 +198,22 @@ describe('useGameState', () => {
   test('advances inning when turn cycles back to first player', () => {
     const now = new Date();
     const actions = [
-      { id: '1', type: 'miss', playerId: 0, value: 0, ballsOnTable: 15, timestamp: now.toISOString() },
-      { id: '2', type: 'miss', playerId: 1, value: 0, ballsOnTable: 15, timestamp: now.toISOString() },
+      {
+        id: '1',
+        type: 'miss',
+        playerId: 0,
+        value: 0,
+        ballsOnTable: 15,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '2',
+        type: 'miss',
+        playerId: 1,
+        value: 0,
+        ballsOnTable: 15,
+        timestamp: now.toISOString(),
+      },
     ];
 
     const saved: GameData = {
@@ -193,7 +238,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState,
         saveGameToSupabase: vi.fn(),
-      })
+      }),
     );
 
     expect(result.current.currentInning).toBe(2); // Should advance to inning 2
@@ -213,7 +258,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState: () => null,
         saveGameToSupabase: vi.fn(),
-      })
+      }),
     );
 
     // Trigger a state change that would update current run
@@ -238,7 +283,7 @@ describe('useGameState', () => {
         breakingPlayerId: 0,
         getGameState: () => null,
         saveGameToSupabase,
-      })
+      }),
     );
 
     // Force a re-render

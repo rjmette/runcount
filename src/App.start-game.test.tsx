@@ -1,13 +1,13 @@
 import React from 'react';
-import { vi } from 'vitest';
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
+
 import App from './App';
 
 // Mock AuthContext to bypass Supabase
 vi.mock('./context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: () => ({
     user: null,
     loading: false,
@@ -24,7 +24,7 @@ vi.mock('./components/GameSetup', () => ({
     startGame: (
       players: string[],
       playerTargetScores: Record<string, number>,
-      breakingPlayerId: number
+      breakingPlayerId: number,
     ) => void;
   }) => (
     <button
@@ -45,9 +45,7 @@ vi.mock('./components/GameScoring', () => ({
 // Mock other heavy components to avoid side effects
 vi.mock('./components/GameStatistics', () => ({
   __esModule: true,
-  default: () => (
-    <div data-testid="game-statistics">Game Statistics Component</div>
-  ),
+  default: () => <div data-testid="game-statistics">Game Statistics Component</div>,
 }));
 
 vi.mock('./components/GameHistory', () => ({
@@ -103,9 +101,7 @@ describe('App start game flow (regression)', () => {
     // Ensure we did not hit the React hooks minified error 310
     const hasReact310 = errorSpy.mock.calls.some((args: unknown[]) => {
       const msg = args[0];
-      return (
-        typeof msg === 'string' && msg.includes('Minified React error #310')
-      );
+      return typeof msg === 'string' && msg.includes('Minified React error #310');
     });
     expect(hasReact310).toBe(false);
 

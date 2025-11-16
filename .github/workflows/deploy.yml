@@ -29,6 +29,9 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: Run ESLint
+      run: npm run lint
+      
     - name: Run tests
       env:
         VITE_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
@@ -148,4 +151,3 @@ jobs:
           echo "❌ Deployment failed"
           echo "🔍 Check the deployment logs for details"
         fi
-

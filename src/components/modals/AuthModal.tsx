@@ -1,7 +1,9 @@
 import type { FC } from 'react';
-import type { SupabaseClient } from '@supabase/supabase-js';
+
 import Auth from '../auth/Auth';
+
 import type { GameState } from '../../hooks/useGameState';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,16 +30,14 @@ export const AuthModal: FC<AuthModalProps> = ({
           ✕
         </button>
         <div className="p-4 sm:p-6 text-center bg-gray-100 dark:bg-gray-700 rounded-t-2xl">
-          <h2 className="text-lg sm:text-xl font-bold dark:text-white">
-            Authentication
-          </h2>
+          <h2 className="text-lg sm:text-xl font-bold dark:text-white">Authentication</h2>
         </div>
         <div className="p-3 sm:p-4">
           {gameState === 'scoring' || gameState === 'statistics' ? (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-lg text-sm">
               <p>
-                <strong>Note:</strong> Logging in will save your current game
-                to your account, allowing you to access it from any device.
+                <strong>Note:</strong> Logging in will save your current game to your
+                account, allowing you to access it from any device.
               </p>
             </div>
           ) : (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+
 import { useError } from '../context/ErrorContext';
 
 /**
@@ -29,18 +30,9 @@ export const useFullscreen = () => {
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener(
-        'webkitfullscreenchange',
-        handleFullscreenChange
-      );
-      document.removeEventListener(
-        'mozfullscreenchange',
-        handleFullscreenChange
-      );
-      document.removeEventListener(
-        'MSFullscreenChange',
-        handleFullscreenChange
-      );
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
   }, []);
 
@@ -84,13 +76,11 @@ export const useFullscreen = () => {
       }
     } catch (error) {
       console.warn('Fullscreen toggle failed:', error);
-      addError(
-        'Unable to toggle fullscreen. Your browser may not support this feature.'
-      );
+      addError('Unable to toggle fullscreen. Your browser may not support this feature.');
       // For iOS Safari, provide user feedback since fullscreen is very limited
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
         alert(
-          'Fullscreen not supported on this device. Try using "Add to Home Screen" for a fullscreen-like experience.'
+          'Fullscreen not supported on this device. Try using "Add to Home Screen" for a fullscreen-like experience.',
         );
       }
     }

@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+
 import { useGamePersist } from '../context/GamePersistContext';
 
 // Game states
@@ -13,9 +14,9 @@ export const useGameState = () => {
 
   const [gameState, setGameState] = useState<GameState>('setup');
   const [players, setPlayers] = useState<string[]>([]);
-  const [playerTargetScores, setPlayerTargetScores] = useState<
-    Record<string, number>
-  >({});
+  const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>(
+    {},
+  );
   const [currentGameId, setCurrentGameId] = useState<string | null>(null);
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
 
@@ -78,8 +79,8 @@ export const useGameState = () => {
       onSaveSettings: (
         players: string[],
         targetScores: Record<string, number>,
-        breakingPlayerId: number
-      ) => void
+        breakingPlayerId: number,
+      ) => void,
     ) => {
       console.log('App: Setting breaking player ID to:', breakingPlayerId);
       setPlayers(players);
@@ -88,7 +89,7 @@ export const useGameState = () => {
       onSaveSettings(players, playerTargetScores, breakingPlayerId);
       setGameState('scoring');
     },
-    []
+    [],
   );
 
   const handleFinishGame = useCallback(() => {

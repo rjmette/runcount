@@ -1,5 +1,6 @@
 import React from 'react';
-import { GameData } from '../../../types/game';
+
+import { type GameData } from '../../../types/game';
 
 interface GameListProps {
   games: GameData[];
@@ -76,10 +77,7 @@ export const GameList: React.FC<GameListProps> = ({
             <div className="mt-4">
               <div className="grid grid-cols-2 gap-4">
                 {game.players.map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex justify-between items-center"
-                  >
+                  <div key={player.id} className="flex justify-between items-center">
                     <span className="text-gray-700 dark:text-gray-300">
                       {player.name}
                     </span>

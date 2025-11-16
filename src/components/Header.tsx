@@ -1,7 +1,9 @@
 import type { FC } from 'react';
-import type { User } from '@supabase/supabase-js';
+
 import { MatchTimer } from './MatchTimer';
+
 import type { GameState } from '../hooks/useGameState';
+import type { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
   gameState: GameState;
@@ -49,9 +51,7 @@ export const Header: FC<HeaderProps> = ({
           <button
             onClick={toggleDarkMode}
             className="mr-2 p-2 rounded-full hover:bg-blue-700 dark:hover:bg-blue-800"
-            aria-label={
-              darkMode ? 'Switch to light mode' : 'Switch to dark mode'
-            }
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {darkMode ? (
               <svg

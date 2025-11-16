@@ -35,7 +35,7 @@ class MemoryStorage implements Storage {
 const defineStorage = (
   target: Record<string, unknown>,
   prop: 'localStorage' | 'sessionStorage',
-  storage: Storage
+  storage: Storage,
 ) => {
   Object.defineProperty(target, prop, {
     value: storage,
@@ -49,10 +49,22 @@ const sessionStorageShim = new MemoryStorage();
 
 if (typeof globalThis !== 'undefined') {
   defineStorage(globalThis as Record<string, unknown>, 'localStorage', localStorageShim);
-  defineStorage(globalThis as Record<string, unknown>, 'sessionStorage', sessionStorageShim);
+  defineStorage(
+    globalThis as Record<string, unknown>,
+    'sessionStorage',
+    sessionStorageShim,
+  );
 }
 
 if (typeof window !== 'undefined') {
-  defineStorage(window as unknown as Record<string, unknown>, 'localStorage', localStorageShim);
-  defineStorage(window as unknown as Record<string, unknown>, 'sessionStorage', sessionStorageShim);
+  defineStorage(
+    window as unknown as Record<string, unknown>,
+    'localStorage',
+    localStorageShim,
+  );
+  defineStorage(
+    window as unknown as Record<string, unknown>,
+    'sessionStorage',
+    sessionStorageShim,
+  );
 }

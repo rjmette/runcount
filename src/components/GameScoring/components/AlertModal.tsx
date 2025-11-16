@@ -6,11 +6,7 @@ interface AlertModalProps {
   message: string;
 }
 
-export const AlertModal: React.FC<AlertModalProps> = ({
-  isOpen,
-  onClose,
-  message,
-}) => {
+export const AlertModal: React.FC<AlertModalProps> = ({ isOpen, onClose, message }) => {
   if (!isOpen) return null;
 
   return (
