@@ -112,9 +112,9 @@ const GameSetup: React.FC<GameSetupProps> = ({
               </div>
 
               <div className="flex items-end justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
-                  <div className="flex items-baseline">
+                  <div className="flex items-baseline mb-3">
                     <input
                       type="number"
                       id="player1TargetScore"
@@ -128,8 +128,24 @@ const GameSetup: React.FC<GameSetupProps> = ({
                     />
                     <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
                   </div>
+                  <div className="flex gap-1.5">
+                    {[50, 75, 100, 125, 150].map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => setPlayer1TargetScore(score)}
+                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+                          player1TargetScore === score
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center ml-4">
                   <span className="text-white text-2xl">🎯</span>
                 </div>
               </div>
@@ -160,9 +176,9 @@ const GameSetup: React.FC<GameSetupProps> = ({
               </div>
 
               <div className="flex items-end justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Target Score</p>
-                  <div className="flex items-baseline">
+                  <div className="flex items-baseline mb-3">
                     <input
                       type="number"
                       id="player2TargetScore"
@@ -176,8 +192,24 @@ const GameSetup: React.FC<GameSetupProps> = ({
                     />
                     <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
                   </div>
+                  <div className="flex gap-1.5">
+                    {[50, 75, 100, 125, 150].map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => setPlayer2TargetScore(score)}
+                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+                          player2TargetScore === score
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center ml-4">
                   <span className="text-white text-2xl">🎯</span>
                 </div>
               </div>
