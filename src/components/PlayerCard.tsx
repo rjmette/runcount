@@ -66,19 +66,24 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               <span className="text-xl text-gray-400 dark:text-gray-500 ml-1">pts</span>
             </div>
             <div className="flex gap-1.5">
-              {COMMON_TARGET_SCORES.map((score) => (
-                <button
-                  key={score}
-                  type="button"
-                  onClick={() => onTargetScoreChange(score)}
-                  aria-label={`Set Player ${playerNumber} target score to ${score} points`}
-                  className={`px-2 py-1 text-xs rounded-lg transition-colors ${
-                    targetScore === score ? color.button : color.buttonInactive
-                  }`}
-                >
-                  {score}
-                </button>
-              ))}
+              {COMMON_TARGET_SCORES.map((score) => {
+                const isSelected = targetScore === score;
+                return (
+                  <button
+                    key={score}
+                    type="button"
+                    onClick={() => onTargetScoreChange(score)}
+                    aria-label={`Set Player ${playerNumber} target score to ${score} points`}
+                    aria-pressed={isSelected}
+                    data-state={isSelected ? 'selected' : 'unselected'}
+                    className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+                      isSelected ? color.button : color.buttonInactive
+                    }`}
+                  >
+                    {score}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className={`w-16 h-16 ${color.gradient} rounded-2xl flex items-center justify-center ml-4`}>

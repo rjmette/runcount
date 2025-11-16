@@ -4,32 +4,18 @@ This document provides guidelines for writing and running tests for the RunCount
 
 ## Running Tests
 
-To run all tests:
-```bash
-npm test
-```
+- Run the entire suite: `npm run test`
+- Run a specific file: `npm run test -- PlayerCard.test.tsx`
+- Filter by test name: `npm run test -- -t "quick-select"`
+- Watch mode for TDD loops: `npm run test:watch`
+- Open the Vitest UI for debugging: `npm run test:ui`
 
-To run a specific test file:
-```bash
-npm test -- src/components/GameSetup.test.tsx
-```
+## Tooling
 
-To run tests with a specific name pattern:
-```bash
-npm test -- -t "GameSetup Component"
-```
-
-To run tests in watch mode (automatically re-run tests when files change):
-```bash
-npm test -- --watch
-```
-
-## Testing Structure
-
-We use the following testing libraries:
-- Jest - as the test runner and assertion library
-- React Testing Library - to render and interact with React components
-- user-event - to simulate more realistic user interactions
+We rely on:
+- **Vitest** as the test runner and assertion library
+- **@testing-library/react** for rendering and semantic queries
+- **@testing-library/user-event** for realistic input simulation
 
 ## Test Types
 
@@ -46,59 +32,33 @@ Integration tests check that different parts of the application work well togeth
 
 ## Best Practices
 
-1. **Test Component Behavior, Not Implementation**
-   - Focus on testing what users would see and do
-   - Avoid testing implementation details that could change
+1. **Test behavior over implementation**
+   - Assert on roles, labels, and accessible text rather than CSS classes (`aria-pressed`, `aria-label`, etc.)
+   - Avoid `container.querySelector` and Tailwind-specific expectations; prefer `screen.getByRole` / `getByLabelText`
 
-2. **Use Data Attributes for Testing**
-   - Use `data-testid` attributes to find elements when text content or roles aren't appropriate
+2. **Prefer semantic queries**
+   - `getByRole` > `getByLabelText` > `getByText`; only drop to `getByTestId` when there is no semantic alternative
 
-3. **Mock External Dependencies**
-   - Mock Supabase calls to avoid real API requests
-   - Mock complex child components when testing parent components
+3. **Use shared factories/utilities**
+   - Import builders from `src/testing/factories.ts` to keep mock data consistent
+   - Add new helpers alongside factories when you spot duplication (e.g., render helpers, auth stubs)
 
-4. **Test Edge Cases**
-   - Test error states and boundary conditions
-   - Test with different user states (logged in, logged out)
+4. **Mock external dependencies**
+   - Stub Supabase/network calls and heavy child components to focus on the unit under test
 
-5. **Keep Tests Independent**
-   - Each test should be able to run independently of other tests
-   - Use `beforeEach` to reset state between tests
+5. **Keep tests independent**
+   - Reset mocks with `beforeEach`, avoid stateful singletons, and prefer `userEvent` for realistic input
+
+6. **Test edge cases**
+   - Cover error states, authentication flows, and scoring edge cases identified in GitHub issues
 
 ## Mocking Strategy
 
 ### Mocking Supabase
-For most tests, we mock the Supabase client to avoid real API calls:
-
-```typescript
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn().mockReturnValue({
-    auth: {
-      signIn: jest.fn(),
-      signOut: jest.fn(),
-      // Add other methods as needed
-    },
-    from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      // Add other methods as needed
-    }),
-  }),
-}));
-```
+For most tests, mock the Supabase client (or the hooks that depend on it) so no real API calls leave your machine. Vitest's `vi.mock` mirrors Jest's API for these cases.
 
 ### Mocking Authentication Context
-When testing components that use authentication:
-
-```typescript
-jest.mock('../context/AuthContext', () => ({
-  useAuth: () => ({
-    user: { id: 'test-user-id', email: 'test@example.com' },
-    loading: false,
-    signOut: jest.fn(),
-  }),
-}));
-```
+When a component depends on `useAuth`, create a lightweight mock that returns `{ user, loading, signOut: vi.fn() }` scoped to that test file. Reuse helpers if multiple tests share the same setup.
 
 ## Test Coverage
 
@@ -113,6 +73,11 @@ We aim for high coverage in critical areas like:
 - Authentication flows
 - Form validation
 
+## Shared Test Utilities
+
+- `src/testing/factories.ts` – reusable builders such as `createMockPlayer` to keep component tests focused on behavior.
+- Add new helpers (e.g., `renderWithProviders`) here so they can be imported consistently across the suite.
+
 ## Example Tests
 
 ### Basic Component Test
@@ -126,7 +91,7 @@ test('renders button with correct text', () => {
 ### Testing User Interactions
 ```typescript
 test('calls function when clicked', async () => {
-  const mockFn = jest.fn();
+  const mockFn = vi.fn();
   render(<ScoreButton label="Test" value={5} onClick={mockFn} />);
   
   await userEvent.click(screen.getByRole('button'));
@@ -137,7 +102,7 @@ test('calls function when clicked', async () => {
 ### Testing Form Submission
 ```typescript
 test('submits form with correct data', async () => {
-  const mockSubmit = jest.fn();
+  const mockSubmit = vi.fn();
   render(<GameSetup startGame={mockSubmit} />);
   
   await userEvent.type(screen.getByLabelText(/Player 1/i), 'Player One');
