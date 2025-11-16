@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface BreakFoulPenaltyModalProps {
   show: boolean;
@@ -13,6 +13,20 @@ export const BreakFoulPenaltyModal: React.FC<BreakFoulPenaltyModalProps> = ({
   onSelectPenalty,
   playerName,
 }) => {
+  // Handle ESC key to close modal
+  useEffect(() => {
+    if (!show) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [show, onClose]);
+
   if (!show) return null;
 
   return (
