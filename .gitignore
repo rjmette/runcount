@@ -15,6 +15,9 @@
 /playwright-report
 /test-results
 
+# migration/planning artifacts
+/.migration
+
 # misc
 .DS_Store
 .env*
