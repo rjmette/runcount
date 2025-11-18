@@ -1,0 +1,77 @@
+{
+  "migration_date": "2025-01-08T02:15:00Z",
+  "source": "Todoist RunCount Project",
+  "destination": "GitHub rjmette/runcount",
+  "tasks_migrated": 6,
+  "tasks_skipped": 3,
+  "mapping": [
+    {
+      "todoist_id": "8990069017",
+      "todoist_title": "One log button is disabled while playing a game it's a little weird",
+      "github_issue": 57,
+      "github_title": "Bug: Action button disabled during active gameplay",
+      "labels": ["bug", "UI/UX", "Warp"],
+      "action": "created"
+    },
+    {
+      "todoist_id": "9015546872",
+      "todoist_title": "I think we can move the balls on table indicator to a different place on the screen so I can expand the undo and inning buttons.",
+      "github_issue": 58,
+      "github_title": "Enhancement: Relocate 'Balls on Table' indicator to expand Undo/Inning buttons",
+      "labels": ["enhancement", "UI/UX", "mobile", "Warp"],
+      "action": "created"
+    },
+    {
+      "todoist_id": "9015552663",
+      "todoist_title": "The login as Google and Apple does not work.",
+      "github_issue": 59,
+      "github_title": "Critical: Google and Apple sign-in not working (Supabase OAuth)",
+      "labels": ["bug", "authentication", "priority-high", "Warp"],
+      "action": "created"
+    },
+    {
+      "todoist_id": "9015562136",
+      "todoist_title": "Copy results button is not working on mobile.",
+      "github_issue": 60,
+      "github_title": "Bug: Copy results action fails on mobile (clipboard)",
+      "labels": ["bug", "mobile", "clipboard", "Warp"],
+      "action": "created"
+    },
+    {
+      "todoist_id": "9278651423",
+      "todoist_title": "here's a screenshot from a competitor app we need to find it",
+      "github_issue": 61,
+      "github_title": "Research: Analyze competitor screenshot and feature parity",
+      "labels": ["research", "competitor-analysis", "Warp"],
+      "action": "created",
+      "has_attachment": true,
+      "attachment_url": "https://files.todoist.com/gDsJ3nAcmlLnPscIm45HRTYHpBdtrOzbdyn6L7suFeZVrUuKpYTHpryAwyBVeOl6/by/4745577/as/file.jpg"
+    },
+    {
+      "todoist_id": "9563457139",
+      "todoist_title": "Test RunCount break foul modal with 1-point vs 2-point penalty options",
+      "github_issue": 62,
+      "github_title": "QA: BreakFoulModal penalties: 1-point vs 2-point",
+      "labels": ["testing", "QA", "Warp", "due:2025-09-20"],
+      "action": "created",
+      "due_date": "2025-09-20"
+    }
+  ],
+  "skipped": [
+    {
+      "todoist_id": "9015565897",
+      "todoist_title": "Create a statistics page that plots your performance metrics over time.",
+      "reason": "Already exists as GitHub issue #29"
+    },
+    {
+      "todoist_id": "9451923177",
+      "todoist_title": "✅ Fixed brittle CSS tests in PlayerScoreCard and GameSetup components (Issues #42, #46)",
+      "reason": "Task marked as completed"
+    },
+    {
+      "todoist_id": "9451944296",
+      "todoist_title": "✅ Completed test improvements for Issues #42 & #46",
+      "reason": "Task marked as completed"
+    }
+  ]
+}

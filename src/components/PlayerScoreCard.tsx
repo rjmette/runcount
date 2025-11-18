@@ -88,6 +88,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
       <div className="grid grid-cols-4 gap-4 text-center">
         <div>
           <span
+            data-testid={`player-score-${player.id}`}
             className={`block text-6xl font-bold ${
               player.score >= targetScore
                 ? 'text-green-600 dark:text-green-500'
