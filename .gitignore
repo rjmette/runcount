@@ -11,6 +11,13 @@
 # production
 /build
 
+# playwright artifacts
+/playwright-report
+/test-results
+
+# migration/planning artifacts
+/.migration
+
 # misc
 .DS_Store
 .env*
@@ -18,4 +25,3 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-

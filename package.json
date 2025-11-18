@@ -32,6 +32,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "prepare": "husky"
   },
   "browserslist": {
@@ -47,6 +49,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/node": "^22.10.5",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
