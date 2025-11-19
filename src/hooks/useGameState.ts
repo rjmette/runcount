@@ -46,6 +46,17 @@ export const useGameState = () => {
         // Set the game ID
         setCurrentGameId(savedGame.id);
 
+        // Restore timer states
+        if (savedGame.startTime) {
+          setMatchStartTime(new Date(savedGame.startTime));
+        }
+        if (savedGame.endTime) {
+          setMatchEndTime(new Date(savedGame.endTime));
+        }
+        if (savedGame.turnStartTime) {
+          setTurnStartTime(new Date(savedGame.turnStartTime));
+        }
+
         // Redirect to scoring screen since game is in progress
         setGameState('scoring');
       } else {

@@ -75,6 +75,9 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({
       if (parsedData.endTime) {
         parsedData.endTime = new Date(parsedData.endTime);
       }
+      if (parsedData.turnStartTime) {
+        parsedData.turnStartTime = new Date(parsedData.turnStartTime);
+      }
 
       return parsedData;
     } catch (_error) {
