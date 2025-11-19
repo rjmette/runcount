@@ -17,6 +17,7 @@ interface UseGameStateProps {
     actions: GameAction[],
     completed: boolean,
     winner_id: number | null,
+    turnStartTime?: Date,
   ) => void;
 }
 
@@ -33,8 +34,6 @@ export const useGameState = ({
 
   const setActivePlayerIndex = (index: number) => {
     setActivePlayerIndexState(index);
-    // Reset turn clock when player changes
-    setTurnStartTime(new Date());
   };
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);

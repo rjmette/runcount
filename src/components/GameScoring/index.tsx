@@ -252,6 +252,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setIsUndoEnabled,
       playerNeedsReBreak,
       setMatchEndTime,
+      setTurnStartTime: _setTurnStartTime,
     });
 
   // Game history management
@@ -346,6 +347,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
     updatedPlayerData[nextPlayerIndex].innings += 1;
     setActivePlayerIndex(nextPlayerIndex);
+    const newTurnStartTime = new Date();
+    _setTurnStartTime(newTurnStartTime);
     setPlayerData(updatedPlayerData);
 
     // Clear the re-break flag since we're accepting the table
@@ -363,6 +366,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       completed: false,
       winner_id: null,
+      turnStartTime: newTurnStartTime,
     });
   }, [
     activePlayerIndex,
@@ -376,6 +380,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     actions,
     gameId,
     saveGameState,
+    _setTurnStartTime,
   ]);
 
   // Memoize require re-break handler
@@ -556,6 +561,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
     // Update the active player to match the new breaking player
     setActivePlayerIndex(newBreakingPlayerId);
+    const newTurnStartTime = new Date();
+    _setTurnStartTime(newTurnStartTime);
 
     // Update player data to ensure the new breaking player has correct innings count
     const updatedPlayerData = [...playerData];
@@ -589,6 +596,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         actions,
         completed: false,
         winner_id: null,
+        turnStartTime: newTurnStartTime,
       });
     }
 
