@@ -87,6 +87,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   matchEndTime: parentMatchEndTime,
   setMatchStartTime: parentSetMatchStartTime,
   setMatchEndTime: parentSetMatchEndTime,
+  turnStartTime: parentTurnStartTime,
+  setTurnStartTime: parentSetTurnStartTime,
   ballsOnTable: parentBallsOnTable,
   setBallsOnTable: parentSetBallsOnTable,
 }) => {
@@ -172,6 +174,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     matchStartTime,
     matchEndTime,
     setMatchEndTime,
+    turnStartTime,
+    setTurnStartTime: _setTurnStartTime,
   } = useGameState({
     players,
     playerTargetScores,
@@ -179,15 +183,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setGameId,
     breakingPlayerId,
     getGameState,
-    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+    saveGameToSupabase: async (
+      gameId,
+      players,
+      actions,
+      completed,
+      winner_id,
+      turnStartTimeOverride,
+      matchStartTimeOverride,
+    ) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+          matchStartTime: matchStartTimeOverride
+            ? matchStartTimeOverride.toISOString()
+            : matchStartTime
+              ? matchStartTime.toISOString()
+              : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          turnStartTime: turnStartTimeOverride
+            ? turnStartTimeOverride.toISOString()
+            : turnStartTime
+              ? turnStartTime.toISOString()
+              : undefined,
           gameId,
           players,
           actions,
@@ -213,13 +234,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       gameId: gameId || '',
       currentInning,
-      saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+      saveGameToSupabase: async (
+        gameId,
+        players,
+        actions,
+        completed,
+        winner_id,
+        turnStartTimeOverride,
+        matchStartTimeOverride,
+      ) => {
         try {
           await saveGameToSupabaseHelper({
             supabase,
             user,
             saveGameState,
             clearGameState,
+            matchStartTime: matchStartTimeOverride
+              ? matchStartTimeOverride.toISOString()
+              : matchStartTime
+                ? matchStartTime.toISOString()
+                : undefined,
+            matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+            turnStartTime: turnStartTimeOverride
+              ? turnStartTimeOverride.toISOString()
+              : turnStartTime
+                ? turnStartTime.toISOString()
+                : undefined,
             gameId,
             players,
             actions,
@@ -247,6 +287,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setIsUndoEnabled,
       playerNeedsReBreak,
       setMatchEndTime,
+      setTurnStartTime: _setTurnStartTime,
     });
 
   // Game history management
@@ -256,15 +297,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
     breakingPlayerId,
     actions,
     gameId: gameId || '',
-    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+    saveGameToSupabase: async (
+      gameId,
+      players,
+      actions,
+      completed,
+      winner_id,
+      turnStartTimeOverride,
+      matchStartTimeOverride,
+    ) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+          matchStartTime: matchStartTimeOverride
+            ? matchStartTimeOverride.toISOString()
+            : matchStartTime
+              ? matchStartTime.toISOString()
+              : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          turnStartTime: turnStartTimeOverride
+            ? turnStartTimeOverride.toISOString()
+            : turnStartTime
+              ? turnStartTime.toISOString()
+              : undefined,
           gameId,
           players,
           actions,
@@ -318,6 +376,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
   }, [matchEndTime, parentMatchEndTime, parentSetMatchEndTime]);
 
   useEffect(() => {
+    if (turnStartTime !== parentTurnStartTime && parentSetTurnStartTime) {
+      parentSetTurnStartTime(turnStartTime);
+    }
+  }, [turnStartTime, parentTurnStartTime, parentSetTurnStartTime]);
+
+  useEffect(() => {
     if (ballsOnTable !== parentBallsOnTable) {
       parentSetBallsOnTable(ballsOnTable);
     }
@@ -334,6 +398,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     }
     updatedPlayerData[nextPlayerIndex].innings += 1;
     setActivePlayerIndex(nextPlayerIndex);
+    const newTurnStartTime = new Date();
+    _setTurnStartTime(newTurnStartTime);
     setPlayerData(updatedPlayerData);
 
     // Clear the re-break flag since we're accepting the table
@@ -351,6 +417,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       completed: false,
       winner_id: null,
+      turnStartTime: newTurnStartTime,
     });
   }, [
     activePlayerIndex,
@@ -364,6 +431,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     actions,
     gameId,
     saveGameState,
+    _setTurnStartTime,
   ]);
 
   // Memoize require re-break handler
@@ -544,6 +612,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
     // Update the active player to match the new breaking player
     setActivePlayerIndex(newBreakingPlayerId);
+    const newTurnStartTime = new Date();
+    _setTurnStartTime(newTurnStartTime);
 
     // Update player data to ensure the new breaking player has correct innings count
     const updatedPlayerData = [...playerData];
@@ -577,6 +647,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         actions,
         completed: false,
         winner_id: null,
+        turnStartTime: newTurnStartTime,
       });
     }
 

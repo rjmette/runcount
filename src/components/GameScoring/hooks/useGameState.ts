@@ -17,6 +17,8 @@ interface UseGameStateProps {
     actions: GameAction[],
     completed: boolean,
     winner_id: number | null,
+    turnStartTime?: Date,
+    matchStartTime?: Date,
   ) => void;
 }
 
@@ -29,7 +31,11 @@ export const useGameState = ({
   getGameState,
   saveGameToSupabase,
 }: UseGameStateProps) => {
-  const [activePlayerIndex, setActivePlayerIndex] = useState(() => breakingPlayerId);
+  const [activePlayerIndex, setActivePlayerIndexState] = useState(() => breakingPlayerId);
+
+  const setActivePlayerIndex = (index: number) => {
+    setActivePlayerIndexState(index);
+  };
   const [playerData, setPlayerData] = useState<Player[]>([]);
   const [actions, setActions] = useState<GameAction[]>([]);
   const [currentInning, setCurrentInning] = useState(1);
@@ -38,8 +44,34 @@ export const useGameState = ({
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(null);
-  const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
-  const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
+  const [matchStartTime, setMatchStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId && saved.startTime) {
+      return new Date(saved.startTime);
+    }
+    return null;
+  });
+
+  const [matchEndTime, setMatchEndTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId && saved.endTime) {
+      return new Date(saved.endTime);
+    }
+    return null;
+  });
+
+  const [turnStartTime, setTurnStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId) {
+      if (saved.turnStartTime) {
+        return new Date(saved.turnStartTime);
+      }
+      if (saved.startTime) {
+        return new Date(saved.startTime);
+      }
+    }
+    return null;
+  });
 
   // Initialize game data
   const initializedRef = useRef(false);
@@ -52,14 +84,6 @@ export const useGameState = ({
       // Restore from saved game state
       setPlayerData(savedGameState.players);
       setActions(savedGameState.actions);
-
-      // Restore match timing
-      if (savedGameState.startTime) {
-        setMatchStartTime(new Date(savedGameState.startTime));
-      }
-      if (savedGameState.endTime) {
-        setMatchEndTime(new Date(savedGameState.endTime));
-      }
 
       // Calculate current state based on actions
       let activePlayer = 0;
@@ -117,6 +141,14 @@ export const useGameState = ({
             }
           }
         });
+
+        // If we didn't find a specific turn start time from saved state,
+        // we should ideally find the timestamp of the last action that changed the turn.
+        // For now, if we don't have it stored, we might just use match start time or current time
+        // if the game is active. This is a fallback.
+        if (!savedGameState.turnStartTime && savedGameState.actions.length > 0) {
+          // Fallback logic if needed
+        }
       }
 
       // Set game state
@@ -155,8 +187,17 @@ export const useGameState = ({
       const startTime = new Date();
       setMatchStartTime(startTime);
       setMatchEndTime(null);
+      setTurnStartTime(startTime);
 
-      saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
+      saveGameToSupabase(
+        newGameId,
+        initialPlayerData,
+        [],
+        false,
+        null,
+        startTime,
+        startTime,
+      );
     }
   }, []); // Empty dependency array is intentional - we only want this to run once on mount
 
@@ -183,5 +224,7 @@ export const useGameState = ({
     setMatchStartTime,
     matchEndTime,
     setMatchEndTime,
+    turnStartTime,
+    setTurnStartTime,
   };
 };

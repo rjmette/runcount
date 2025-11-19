@@ -49,6 +49,8 @@ describe('GameScoring integration', () => {
         matchEndTime={null}
         setMatchStartTime={() => {}}
         setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
         ballsOnTable={15}
         setBallsOnTable={() => {}}
       />,

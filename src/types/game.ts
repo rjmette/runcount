@@ -40,6 +40,7 @@ export interface GameData {
   deleted?: boolean; // Flag for soft deletion
   startTime?: Date | string; // When the match timer started
   endTime?: Date | string; // When the match ended
+  turnStartTime?: Date | string; // When the current turn started
 }
 
 export interface GameSetupProps {
@@ -68,6 +69,8 @@ export interface GameScoringProps {
   setMatchEndTime: (time: Date | null) => void;
   ballsOnTable: number;
   setBallsOnTable: (count: number) => void;
+  turnStartTime: Date | null;
+  setTurnStartTime: (time: Date | null) => void;
 }
 
 export interface GameStatisticsProps {

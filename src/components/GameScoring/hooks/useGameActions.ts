@@ -16,12 +16,14 @@ interface UseGameActionsProps {
     actions: GameAction[],
     completed: boolean,
     winner_id: number | null,
+    turnStartTime?: Date,
   ) => void;
   setPlayerData: (data: Player[]) => void;
   setActions: (actions: GameAction[]) => void;
   setBallsOnTable: (count: number) => void;
   setCurrentRun: (run: number) => void;
   setActivePlayerIndex: (index: number) => void;
+  setTurnStartTime: (time: Date | null) => void;
   setCurrentInning: (inning: number) => void;
   setGameWinner: (winner: Player | null) => void;
   setShowEndGameModal: (show: boolean) => void;
@@ -51,6 +53,7 @@ export const useGameActions = ({
   setBallsOnTable,
   setCurrentRun,
   setActivePlayerIndex,
+  setTurnStartTime,
   setCurrentInning,
   setGameWinner,
   setShowEndGameModal,
@@ -235,12 +238,15 @@ export const useGameActions = ({
 
     // Only switch players if it's not a break foul or a three-foul situation
     // For break fouls, we'll let the UI handle it after the incoming player makes their choice
+    let newTurnStartTime: Date | undefined;
     if (!isOpeningBreak && !shouldApplyThreeFoulPenalty) {
       if (nextPlayerIndex === 0) {
         setCurrentInning(currentInning + 1);
       }
       updatedPlayerData[nextPlayerIndex].innings += 1;
       setActivePlayerIndex(nextPlayerIndex);
+      newTurnStartTime = new Date();
+      setTurnStartTime(newTurnStartTime);
     }
 
     setPlayerData(updatedPlayerData);
@@ -257,9 +263,17 @@ export const useGameActions = ({
         [...actions, newAction],
         true,
         winner.id,
+        newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+      saveGameToSupabase(
+        gameId,
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null,
+        newTurnStartTime,
+      );
     }
 
     return { needsBOTInput: false };
@@ -312,6 +326,8 @@ export const useGameActions = ({
     }
     updatedPlayerData[nextPlayerIndex].innings += 1;
     setActivePlayerIndex(nextPlayerIndex);
+    const newTurnStartTime = new Date();
+    setTurnStartTime(newTurnStartTime);
 
     setPlayerData(updatedPlayerData);
 
@@ -327,9 +343,17 @@ export const useGameActions = ({
         [...actions, newAction],
         true,
         winner.id,
+        newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+      saveGameToSupabase(
+        gameId,
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null,
+        newTurnStartTime,
+      );
     }
 
     return { needsBOTInput: false };
@@ -382,6 +406,8 @@ export const useGameActions = ({
     }
     updatedPlayerData[nextPlayerIndex].innings += 1;
     setActivePlayerIndex(nextPlayerIndex);
+    const newTurnStartTime = new Date();
+    setTurnStartTime(newTurnStartTime);
 
     setPlayerData(updatedPlayerData);
 
@@ -397,9 +423,17 @@ export const useGameActions = ({
         [...actions, newAction],
         true,
         winner.id,
+        newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+      saveGameToSupabase(
+        gameId,
+        updatedPlayerData,
+        [...actions, newAction],
+        false,
+        null,
+        newTurnStartTime,
+      );
     }
 
     return { needsBOTInput: false };

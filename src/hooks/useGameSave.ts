@@ -9,6 +9,7 @@ type UseGameSaveArgs = {
   clearGameState: () => void;
   matchStartTime?: string;
   matchEndTime?: string;
+  turnStartTime?: string;
 };
 
 type WinnerId = number | string | null;
@@ -25,6 +26,7 @@ export const saveGameToSupabaseHelper = async (options: {
   clearGameState: () => void;
   matchStartTime?: string;
   matchEndTime?: string;
+  turnStartTime?: string;
   gameId: string;
   players: Player[];
   actions: GameAction[];
@@ -38,6 +40,7 @@ export const saveGameToSupabaseHelper = async (options: {
     clearGameState,
     matchStartTime,
     matchEndTime,
+    turnStartTime,
     gameId,
     players,
     actions,
@@ -57,6 +60,7 @@ export const saveGameToSupabaseHelper = async (options: {
       winner_id: winnerId,
       startTime: matchStartTime,
       endTime: matchEndTime,
+      turnStartTime: turnStartTime,
     });
   }
 
@@ -73,6 +77,7 @@ export const saveGameToSupabaseHelper = async (options: {
         winner_id: winnerId,
         startTime: matchStartTime,
         endTime: matchEndTime,
+        turnStartTime: turnStartTime,
       }),
     );
   } catch (err) {
@@ -107,6 +112,9 @@ export const saveGameToSupabaseHelper = async (options: {
     }
     if (matchEndTime) {
       payload.endTime = matchEndTime;
+    }
+    if (turnStartTime) {
+      payload.turnStartTime = turnStartTime;
     }
 
     const { error } = await supabase.from('games').upsert(payload);

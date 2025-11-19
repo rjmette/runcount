@@ -73,6 +73,8 @@ const AppContent: FC = () => {
     setMatchEndTime,
     ballsOnTable,
     setBallsOnTable,
+    turnStartTime,
+    setTurnStartTime,
     handleStartGame: handleStartGameBase,
     handleFinishGame,
     handleStartNewGame,
@@ -161,6 +163,7 @@ const AppContent: FC = () => {
         isFullScreen={isFullScreen}
         matchStartTime={matchStartTime}
         matchEndTime={matchEndTime}
+        turnStartTime={turnStartTime}
         ballsOnTable={ballsOnTable}
         toggleDarkMode={toggleDarkMode}
         toggleFullscreen={toggleFullscreen}
@@ -188,6 +191,8 @@ const AppContent: FC = () => {
           matchEndTime={matchEndTime}
           setMatchStartTime={setMatchStartTime}
           setMatchEndTime={setMatchEndTime}
+          turnStartTime={turnStartTime}
+          setTurnStartTime={setTurnStartTime}
           ballsOnTable={ballsOnTable}
           setBallsOnTable={setBallsOnTable}
           onFinishGame={handleFinishGame}
