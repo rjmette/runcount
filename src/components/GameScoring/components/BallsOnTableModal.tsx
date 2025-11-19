@@ -8,6 +8,13 @@ interface BallsOnTableModalProps {
   action: 'newrack' | 'foul' | 'safety' | 'miss' | null;
 }
 
+const GRID_SIZE_MAP: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+};
+
 export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   isOpen,
   onClose,
@@ -18,23 +25,22 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   if (!isOpen || !action) return null;
 
   const isRackAction = action === 'newrack';
-  const maxAvailableBalls = Math.max(0, currentBallsOnTable);
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    typeof currentBallsOnTable === 'number' &&
+    currentBallsOnTable < 0
+  ) {
+    console.warn('BallsOnTableModal received negative currentBallsOnTable value');
+  }
+  const maxAvailableBalls = currentBallsOnTable < 0 ? 0 : currentBallsOnTable;
+
   const availableValues = useMemo(() => {
     return isRackAction
       ? [0, 1]
       : Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
   }, [isRackAction, maxAvailableBalls]);
 
-  const gridClass =
-    availableValues.length <= 1
-      ? 'grid-cols-1'
-      : availableValues.length === 2
-        ? 'grid-cols-2'
-        : availableValues.length === 3
-          ? 'grid-cols-3'
-          : availableValues.length === 4
-            ? 'grid-cols-4'
-            : 'grid-cols-5';
+  const gridClass = GRID_SIZE_MAP[availableValues.length] ?? 'grid-cols-5';
 
   const rangeDescription = isRackAction
     ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${currentBallsOnTable}`
@@ -56,7 +62,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
         <div className="mb-6">
           <p className="mb-4 text-gray-600 dark:text-gray-300">{rangeDescription}</p>
 
-          <div className={`grid ${gridClass} gap-2`}>
+          <div className={`grid ${gridClass} gap-2`} data-testid="bot-grid">
             {availableValues.map((num) => (
               <button
                 key={num}
