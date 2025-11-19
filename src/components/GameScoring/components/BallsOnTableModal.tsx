@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface BallsOnTableModalProps {
   isOpen: boolean;
@@ -15,13 +15,26 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   currentBallsOnTable,
   action,
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !action) return null;
 
   const isRackAction = action === 'newrack';
   const maxAvailableBalls = Math.max(0, currentBallsOnTable);
-  const availableValues = isRackAction
-    ? [0, 1]
-    : Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
+  const availableValues = useMemo(() => {
+    return isRackAction
+      ? [0, 1]
+      : Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
+  }, [isRackAction, maxAvailableBalls]);
+
+  const gridClass =
+    availableValues.length <= 1
+      ? 'grid-cols-1'
+      : availableValues.length === 2
+        ? 'grid-cols-2'
+        : availableValues.length === 3
+          ? 'grid-cols-3'
+          : availableValues.length === 4
+            ? 'grid-cols-4'
+            : 'grid-cols-5';
 
   const rangeDescription = isRackAction
     ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${currentBallsOnTable}`
@@ -43,7 +56,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
         <div className="mb-6">
           <p className="mb-4 text-gray-600 dark:text-gray-300">{rangeDescription}</p>
 
-          <div className="grid grid-cols-5 gap-2">
+          <div className={`grid ${gridClass} gap-2`}>
             {availableValues.map((num) => (
               <button
                 key={num}
