@@ -12,57 +12,80 @@ export type GameState = 'setup' | 'scoring' | 'statistics' | 'history' | 'profil
 export const useGameState = () => {
   const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
-  const [gameState, setGameState] = useState<GameState>('setup');
-  const [players, setPlayers] = useState<string[]>([]);
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const saved = getGameState();
+    return saved && !saved.completed ? 'scoring' : 'setup';
+  });
+
+  const [players, setPlayers] = useState<string[]>(() => {
+    const saved = getGameState();
+    if (saved && !saved.completed) {
+      return saved.players.map((p) => p.name);
+    }
+    return [];
+  });
+
   const [playerTargetScores, setPlayerTargetScores] = useState<Record<string, number>>(
-    {},
+    () => {
+      const saved = getGameState();
+      if (saved && !saved.completed) {
+        const targets: Record<string, number> = {};
+        saved.players.forEach((p) => {
+          targets[p.name] = p.targetScore;
+        });
+        return targets;
+      }
+      return {};
+    },
   );
-  const [currentGameId, setCurrentGameId] = useState<string | null>(null);
+
+  const [currentGameId, setCurrentGameId] = useState<string | null>(() => {
+    const saved = getGameState();
+    return saved && !saved.completed ? saved.id : null;
+  });
+
   const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
 
   // Timer state for header display during scoring
-  const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
-  const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
-  const [turnStartTime, setTurnStartTime] = useState<Date | null>(null);
+  const [matchStartTime, setMatchStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && !saved.completed && saved.startTime) {
+      return new Date(saved.startTime);
+    }
+    return null;
+  });
+
+  const [matchEndTime, setMatchEndTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && !saved.completed && saved.endTime) {
+      return new Date(saved.endTime);
+    }
+    return null;
+  });
+
+  const [turnStartTime, setTurnStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && !saved.completed) {
+      if (saved.turnStartTime) {
+        return new Date(saved.turnStartTime);
+      }
+      // Fallback to match start time if active
+      if (saved.startTime) {
+        return new Date(saved.startTime);
+      }
+    }
+    return null;
+  });
+
   const [ballsOnTable, setBallsOnTable] = useState<number>(15);
 
   // Check for saved game on initial load
   useEffect(() => {
     if (hasActiveGame) {
       const savedGame = getGameState();
-      if (savedGame && !savedGame.completed) {
-        // Only load games that are actually in progress
-        // Set player names from the saved game
-        const playerNames = savedGame.players.map((player) => player.name);
-        setPlayers(playerNames);
-
-        // Set target scores from the saved game
-        const targetScores: Record<string, number> = {};
-        savedGame.players.forEach((player) => {
-          targetScores[player.name] = player.targetScore;
-        });
-        setPlayerTargetScores(targetScores);
-
-        // Set the game ID
-        setCurrentGameId(savedGame.id);
-
-        // Restore timer states
-        if (savedGame.startTime) {
-          setMatchStartTime(new Date(savedGame.startTime));
-        }
-        if (savedGame.endTime) {
-          setMatchEndTime(new Date(savedGame.endTime));
-        }
-        if (savedGame.turnStartTime) {
-          setTurnStartTime(new Date(savedGame.turnStartTime));
-        }
-
-        // Redirect to scoring screen since game is in progress
-        setGameState('scoring');
-      } else {
+      if (!savedGame || savedGame.completed) {
         // If the saved game is completed or corrupted, clear it and stay on setup
         if (savedGame?.completed) {
-          // Clear completed games from active storage
           clearGameState();
         }
         setGameState('setup');

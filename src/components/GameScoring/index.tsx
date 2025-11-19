@@ -183,16 +183,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setGameId,
     breakingPlayerId,
     getGameState,
-    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+    saveGameToSupabase: async (
+      gameId,
+      players,
+      actions,
+      completed,
+      winner_id,
+      turnStartTimeOverride,
+      matchStartTimeOverride,
+    ) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+          matchStartTime: matchStartTimeOverride
+            ? matchStartTimeOverride.toISOString()
+            : matchStartTime
+              ? matchStartTime.toISOString()
+              : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
+          turnStartTime: turnStartTimeOverride
+            ? turnStartTimeOverride.toISOString()
+            : turnStartTime
+              ? turnStartTime.toISOString()
+              : undefined,
           gameId,
           players,
           actions,
@@ -218,13 +234,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       gameId: gameId || '',
       currentInning,
-      saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+      saveGameToSupabase: async (
+        gameId,
+        players,
+        actions,
+        completed,
+        winner_id,
+        turnStartTimeOverride,
+        matchStartTimeOverride,
+      ) => {
         try {
           await saveGameToSupabaseHelper({
             supabase,
             user,
             saveGameState,
             clearGameState,
+            matchStartTime: matchStartTimeOverride
+              ? matchStartTimeOverride.toISOString()
+              : matchStartTime
+                ? matchStartTime.toISOString()
+                : undefined,
+            matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+            turnStartTime: turnStartTimeOverride
+              ? turnStartTimeOverride.toISOString()
+              : turnStartTime
+                ? turnStartTime.toISOString()
+                : undefined,
             gameId,
             players,
             actions,
@@ -262,16 +297,32 @@ const GameScoring: React.FC<GameScoringProps> = ({
     breakingPlayerId,
     actions,
     gameId: gameId || '',
-    saveGameToSupabase: async (gameId, players, actions, completed, winner_id) => {
+    saveGameToSupabase: async (
+      gameId,
+      players,
+      actions,
+      completed,
+      winner_id,
+      turnStartTimeOverride,
+      matchStartTimeOverride,
+    ) => {
       try {
         await saveGameToSupabaseHelper({
           supabase,
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+          matchStartTime: matchStartTimeOverride
+            ? matchStartTimeOverride.toISOString()
+            : matchStartTime
+              ? matchStartTime.toISOString()
+              : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
+          turnStartTime: turnStartTimeOverride
+            ? turnStartTimeOverride.toISOString()
+            : turnStartTime
+              ? turnStartTime.toISOString()
+              : undefined,
           gameId,
           players,
           actions,

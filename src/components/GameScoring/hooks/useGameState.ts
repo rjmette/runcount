@@ -18,6 +18,7 @@ interface UseGameStateProps {
     completed: boolean,
     winner_id: number | null,
     turnStartTime?: Date,
+    matchStartTime?: Date,
   ) => void;
 }
 
@@ -43,9 +44,34 @@ export const useGameState = ({
   const [gameWinner, setGameWinner] = useState<Player | null>(null);
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [playerNeedsReBreak, setPlayerNeedsReBreak] = useState<number | null>(null);
-  const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
-  const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
-  const [turnStartTime, setTurnStartTime] = useState<Date | null>(null);
+  const [matchStartTime, setMatchStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId && saved.startTime) {
+      return new Date(saved.startTime);
+    }
+    return null;
+  });
+
+  const [matchEndTime, setMatchEndTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId && saved.endTime) {
+      return new Date(saved.endTime);
+    }
+    return null;
+  });
+
+  const [turnStartTime, setTurnStartTime] = useState<Date | null>(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId) {
+      if (saved.turnStartTime) {
+        return new Date(saved.turnStartTime);
+      }
+      if (saved.startTime) {
+        return new Date(saved.startTime);
+      }
+    }
+    return null;
+  });
 
   // Initialize game data
   const initializedRef = useRef(false);
@@ -58,21 +84,6 @@ export const useGameState = ({
       // Restore from saved game state
       setPlayerData(savedGameState.players);
       setActions(savedGameState.actions);
-
-      // Restore match timing
-      if (savedGameState.startTime) {
-        setMatchStartTime(new Date(savedGameState.startTime));
-      }
-      if (savedGameState.endTime) {
-        setMatchEndTime(new Date(savedGameState.endTime));
-      }
-
-      // Restore turn start time or default to match start time
-      if (savedGameState.turnStartTime) {
-        setTurnStartTime(new Date(savedGameState.turnStartTime));
-      } else if (savedGameState.startTime) {
-        setTurnStartTime(new Date(savedGameState.startTime));
-      }
 
       // Calculate current state based on actions
       let activePlayer = 0;
@@ -178,7 +189,15 @@ export const useGameState = ({
       setMatchEndTime(null);
       setTurnStartTime(startTime);
 
-      saveGameToSupabase(newGameId, initialPlayerData, [], false, null);
+      saveGameToSupabase(
+        newGameId,
+        initialPlayerData,
+        [],
+        false,
+        null,
+        startTime,
+        startTime,
+      );
     }
   }, []); // Empty dependency array is intentional - we only want this to run once on mount
 

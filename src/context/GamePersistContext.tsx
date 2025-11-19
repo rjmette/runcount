@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 import { type GameData, type GameSettings } from '../types/game';
 
@@ -19,31 +19,25 @@ export const GAME_SETTINGS_STORAGE_KEY = 'runcount_game_settings';
 export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [hasActiveGame, setHasActiveGame] = useState<boolean>(false);
-
-  // Check if there's an active game on init
-  useEffect(() => {
-    const storedGame = localStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
-    if (storedGame) {
-      try {
+  const [hasActiveGame, setHasActiveGame] = useState<boolean>(() => {
+    try {
+      const storedGame = localStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
+      if (storedGame) {
         const parsedData = JSON.parse(storedGame) as GameData;
-        // Only consider it an active game if it's not completed
-        setHasActiveGame(!parsedData.completed);
-
-        // If it's completed, clean it up
+        // Clean up if completed
         if (parsedData.completed) {
           localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+          return false;
         }
-      } catch (_error) {
-        // If parsing fails, clear the corrupted data
-        console.warn('Clearing invalid stored game data', _error);
-        localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
-        setHasActiveGame(false);
+        return true;
       }
-    } else {
-      setHasActiveGame(false);
+    } catch (_error) {
+      // If parsing fails, clear the corrupted data
+      console.warn('Clearing invalid stored game data during init', _error);
+      localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
     }
-  }, []);
+    return false;
+  });
 
   const saveGameState = (gameData: GameData) => {
     try {
