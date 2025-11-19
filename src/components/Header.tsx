@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 
 import { MatchTimer } from './MatchTimer';
+import { TurnTimer } from './TurnTimer';
 
 import type { GameState } from '../hooks/useGameState';
 import type { User } from '@supabase/supabase-js';
@@ -12,6 +13,7 @@ interface HeaderProps {
   isFullScreen: boolean;
   matchStartTime: Date | null;
   matchEndTime: Date | null;
+  turnStartTime?: Date | null;
   ballsOnTable: number;
   toggleDarkMode: () => void;
   toggleFullscreen: () => void;
@@ -26,6 +28,7 @@ export const Header: FC<HeaderProps> = ({
   isFullScreen,
   matchStartTime,
   matchEndTime,
+  turnStartTime,
   ballsOnTable,
   toggleDarkMode,
   toggleFullscreen,
@@ -37,12 +40,17 @@ export const Header: FC<HeaderProps> = ({
       <div className="flex justify-between items-center">
         <div>
           {gameState === 'scoring' ? (
-            <MatchTimer
-              startTime={matchStartTime}
-              endTime={matchEndTime}
-              isRunning={!matchEndTime}
-              ballsOnTable={ballsOnTable}
-            />
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+              <MatchTimer
+                startTime={matchStartTime}
+                endTime={matchEndTime}
+                isRunning={!matchEndTime}
+                ballsOnTable={ballsOnTable}
+              />
+              {turnStartTime && (
+                <TurnTimer startTime={turnStartTime} isRunning={!matchEndTime} />
+              )}
+            </div>
           ) : (
             <h1 className="text-xl font-bold">RunCount</h1>
           )}

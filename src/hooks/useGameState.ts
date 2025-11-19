@@ -23,6 +23,7 @@ export const useGameState = () => {
   // Timer state for header display during scoring
   const [matchStartTime, setMatchStartTime] = useState<Date | null>(null);
   const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
+  const [turnStartTime, setTurnStartTime] = useState<Date | null>(null);
   const [ballsOnTable, setBallsOnTable] = useState<number>(15);
 
   // Check for saved game on initial load
@@ -121,6 +122,8 @@ export const useGameState = () => {
     setMatchStartTime,
     matchEndTime,
     setMatchEndTime,
+    turnStartTime,
+    setTurnStartTime,
     ballsOnTable,
     setBallsOnTable,
     handleStartGame,

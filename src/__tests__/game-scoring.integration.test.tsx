@@ -43,6 +43,8 @@ describe('Game Scoring Integration Tests', () => {
     matchEndTime: null,
     setMatchStartTime: vi.fn(),
     setMatchEndTime: vi.fn(),
+    turnStartTime: null,
+    setTurnStartTime: vi.fn(),
     ballsOnTable: 15,
     setBallsOnTable: vi.fn(),
   };

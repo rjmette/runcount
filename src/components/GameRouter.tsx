@@ -33,6 +33,8 @@ interface GameRouterProps {
   matchEndTime: Date | null;
   setMatchStartTime: (time: Date | null) => void;
   setMatchEndTime: (time: Date | null) => void;
+  turnStartTime: Date | null;
+  setTurnStartTime: (time: Date | null) => void;
   ballsOnTable: number;
   setBallsOnTable: (balls: number) => void;
   onFinishGame: () => void;
@@ -65,6 +67,8 @@ export const GameRouter: FC<GameRouterProps> = ({
   matchEndTime,
   setMatchStartTime,
   setMatchEndTime,
+  turnStartTime,
+  setTurnStartTime,
   ballsOnTable,
   setBallsOnTable,
   onFinishGame,
@@ -98,6 +102,8 @@ export const GameRouter: FC<GameRouterProps> = ({
           matchEndTime={matchEndTime}
           setMatchStartTime={setMatchStartTime}
           setMatchEndTime={setMatchEndTime}
+          turnStartTime={turnStartTime}
+          setTurnStartTime={setTurnStartTime}
           ballsOnTable={ballsOnTable}
           setBallsOnTable={setBallsOnTable}
         />

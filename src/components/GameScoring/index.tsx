@@ -87,6 +87,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   matchEndTime: parentMatchEndTime,
   setMatchStartTime: parentSetMatchStartTime,
   setMatchEndTime: parentSetMatchEndTime,
+  turnStartTime: parentTurnStartTime,
+  setTurnStartTime: parentSetTurnStartTime,
   ballsOnTable: parentBallsOnTable,
   setBallsOnTable: parentSetBallsOnTable,
 }) => {
@@ -172,6 +174,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     matchStartTime,
     matchEndTime,
     setMatchEndTime,
+    turnStartTime,
+    setTurnStartTime: _setTurnStartTime,
   } = useGameState({
     players,
     playerTargetScores,
@@ -188,6 +192,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           clearGameState,
           matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
           gameId,
           players,
           actions,
@@ -265,6 +270,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           clearGameState,
           matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
           matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
           gameId,
           players,
           actions,
@@ -316,6 +322,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
       parentSetMatchEndTime(matchEndTime);
     }
   }, [matchEndTime, parentMatchEndTime, parentSetMatchEndTime]);
+
+  useEffect(() => {
+    if (turnStartTime !== parentTurnStartTime && parentSetTurnStartTime) {
+      parentSetTurnStartTime(turnStartTime);
+    }
+  }, [turnStartTime, parentTurnStartTime, parentSetTurnStartTime]);
 
   useEffect(() => {
     if (ballsOnTable !== parentBallsOnTable) {
