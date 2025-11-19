@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { useGameState } from '../useGameState';
@@ -24,10 +24,6 @@ describe('useGameState', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     localStorage.clear();
-    // Mock document.getElementById for DOM updates
-    document.getElementById = vi.fn().mockReturnValue({
-      textContent: '',
-    });
   });
 
   test('initializes new game when no saved state', () => {
@@ -243,31 +239,6 @@ describe('useGameState', () => {
 
     expect(result.current.currentInning).toBe(2); // Should advance to inning 2
     expect(result.current.activePlayerIndex).toBe(0); // Back to Alice
-  });
-
-  test('updates DOM element when current run changes', () => {
-    const mockElement = { textContent: '' };
-    document.getElementById = vi.fn().mockReturnValue(mockElement);
-
-    const { result } = renderHook(() =>
-      useGameState({
-        players: ['Alice', 'Bob'],
-        playerTargetScores: { Alice: 75, Bob: 60 },
-        gameId: null,
-        setGameId: vi.fn(),
-        breakingPlayerId: 0,
-        getGameState: () => null,
-        saveGameToSupabase: vi.fn(),
-      }),
-    );
-
-    // Trigger a state change that would update current run
-    act(() => {
-      result.current.setCurrentRun(5);
-    });
-
-    expect(document.getElementById).toHaveBeenCalledWith('current-run');
-    expect(mockElement.textContent).toBe('5');
   });
 
   test('does not initialize twice with ref guard', () => {

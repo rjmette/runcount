@@ -223,4 +223,46 @@ describe('PlayerScoreCard Component', () => {
     // Check for BPI (should be 0.00 when innings is 0)
     expect(screen.getByText('0.00')).toBeInTheDocument();
   });
+
+  test('shows two-foul indicator only when consecutive fouls reach two', () => {
+    const playerWithTwoConsecutive = createMockPlayer({
+      fouls: 5,
+      consecutiveFouls: 2,
+    });
+
+    render(
+      <PlayerScoreCard
+        player={playerWithTwoConsecutive}
+        isActive={false}
+        onAddScore={mockHandlers.onAddScore}
+        onAddFoul={mockHandlers.onAddFoul}
+        onAddSafety={mockHandlers.onAddSafety}
+        onAddMiss={mockHandlers.onAddMiss}
+        targetScore={75}
+      />,
+    );
+
+    expect(screen.getByText('2 Fouls')).toBeInTheDocument();
+  });
+
+  test('hides two-foul indicator when player commits a clean inning after fouls', () => {
+    const playerWithCleanInning = createMockPlayer({
+      fouls: 4,
+      consecutiveFouls: 1,
+    });
+
+    render(
+      <PlayerScoreCard
+        player={playerWithCleanInning}
+        isActive={false}
+        onAddScore={mockHandlers.onAddScore}
+        onAddFoul={mockHandlers.onAddFoul}
+        onAddSafety={mockHandlers.onAddSafety}
+        onAddMiss={mockHandlers.onAddMiss}
+        targetScore={75}
+      />,
+    );
+
+    expect(screen.queryByText('2 Fouls')).not.toBeInTheDocument();
+  });
 });

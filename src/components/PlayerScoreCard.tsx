@@ -77,7 +77,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
               Re-Break
             </span>
           )}
-          {player.fouls === 2 && (
+          {player.consecutiveFouls >= 2 && (
             <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs">
               2 Fouls
             </span>

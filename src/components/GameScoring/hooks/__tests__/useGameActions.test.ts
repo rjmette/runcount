@@ -217,6 +217,34 @@ describe('useGameActions', () => {
     );
   });
 
+  test('handleAddFoul allows manual override to regular foul when player was on two', () => {
+    const { result, players } = setup();
+    players[0].consecutiveFouls = 2;
+
+    act(() => {
+      result.current.handleAddFoul(14, undefined, {
+        manualConsecutiveDecision: 'regular',
+      });
+    });
+
+    expect(players[0].score).toBe(-1);
+    expect(players[0].consecutiveFouls).toBe(1);
+  });
+
+  test('handleAddFoul forces manual three-foul penalty when requested', () => {
+    const { result, players, mocks } = setup();
+
+    act(() => {
+      result.current.handleAddFoul(14, undefined, {
+        manualConsecutiveDecision: 'threeFoul',
+      });
+    });
+
+    expect(players[0].consecutiveFouls).toBe(0);
+    expect(mocks.setPlayerNeedsReBreak).toHaveBeenCalledWith(players[0].id);
+    expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
+  });
+
   test('handleAddSafety switches player and adds safety count', () => {
     const { result, players, mocks } = setup();
 
