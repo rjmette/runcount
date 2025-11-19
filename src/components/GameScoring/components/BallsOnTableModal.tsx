@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface BallsOnTableModalProps {
   isOpen: boolean;
@@ -8,6 +8,13 @@ interface BallsOnTableModalProps {
   action: 'newrack' | 'foul' | 'safety' | 'miss' | null;
 }
 
+const GRID_SIZE_MAP: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+};
+
 export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   isOpen,
   onClose,
@@ -15,7 +22,29 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   currentBallsOnTable,
   action,
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !action) return null;
+
+  const isRackAction = action === 'newrack';
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    typeof currentBallsOnTable === 'number' &&
+    currentBallsOnTable < 0
+  ) {
+    console.warn('BallsOnTableModal received negative currentBallsOnTable value');
+  }
+  const maxAvailableBalls = currentBallsOnTable < 0 ? 0 : currentBallsOnTable;
+
+  const availableValues = useMemo(() => {
+    return isRackAction
+      ? [0, 1]
+      : Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
+  }, [isRackAction, maxAvailableBalls]);
+
+  const gridClass = GRID_SIZE_MAP[availableValues.length] ?? 'grid-cols-5';
+
+  const rangeDescription = isRackAction
+    ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${currentBallsOnTable}`
+    : `Please enter the number of balls currently on the table (0-${maxAvailableBalls}).`;
 
   return (
     <div
@@ -31,37 +60,18 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
         </h3>
 
         <div className="mb-6">
-          <p className="mb-4 text-gray-600 dark:text-gray-300">
-            {action === 'newrack'
-              ? `How many balls are left on the table before racking? (0 or 1) Current balls on table: ${currentBallsOnTable}`
-              : `Please enter the number of balls currently on the table (2-${currentBallsOnTable}):`}
-          </p>
+          <p className="mb-4 text-gray-600 dark:text-gray-300">{rangeDescription}</p>
 
-          <div className="grid grid-cols-5 gap-2">
-            {action === 'newrack'
-              ? // For new rack, only allow 0 or 1 balls
-                [0, 1].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => onSubmit(num)}
-                    className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 font-medium text-2xl rounded-md"
-                  >
-                    {num}
-                  </button>
-                ))
-              : // For other actions, create an array from 2 to current ballsOnTable
-                Array.from(
-                  { length: Math.max(0, currentBallsOnTable - 1) },
-                  (_, i) => i + 2,
-                ).map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => onSubmit(num)}
-                    className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 font-medium text-2xl rounded-md"
-                  >
-                    {num}
-                  </button>
-                ))}
+          <div className={`grid ${gridClass} gap-2`} data-testid="bot-grid">
+            {availableValues.map((num) => (
+              <button
+                key={num}
+                onClick={() => onSubmit(num)}
+                className="px-5 py-6 bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900 dark:hover:bg-blue-800 dark:text-blue-200 font-medium text-2xl rounded-md"
+              >
+                {num}
+              </button>
+            ))}
           </div>
         </div>
 

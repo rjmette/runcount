@@ -37,6 +37,7 @@
 ## Issue Tracking & Workflow
 
 - Run `gh issue list` from the repo root before starting work to stay aligned with priority and labels.
+- Always use the GitHub CLI (`gh`) for issue lookups and other GitHub interactions.
 - Create a fresh branch per issue (`git checkout -b feature/issue-64-turn-clock`) and keep commits scoped to that ticket.
 
 ## Commit & Pull Request Guidelines
