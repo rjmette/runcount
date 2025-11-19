@@ -40,7 +40,8 @@ export const ConsecutiveFoulPenaltyModal: React.FC<ConsecutiveFoulPenaltyModalPr
           >
             16 Pt. Foul
             <p className="text-xs font-normal mt-1 text-gray-600 dark:text-gray-300">
-              Apply the 15-point penalty and require a full re-break.
+              Apply the 1 + 15 point swing (standard foul plus three-foul penalty) and
+              require a full re-break.
             </p>
           </button>
         </div>

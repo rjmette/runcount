@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useReducer } from 'react';
 
 import { useError } from '../../context/ErrorContext';
 import { useGamePersist } from '../../context/GamePersistContext';
@@ -17,6 +17,62 @@ import { EndGameModal } from './components/EndGameModal';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGameState } from './hooks/useGameState';
+
+type BotAction = 'newrack' | 'foul' | 'safety' | 'miss' | null;
+
+interface FoulFlowState {
+  botAction: BotAction;
+  selectedBreakPenalty: 1 | 2 | null;
+  pendingConsecutiveFoulBotsValue: number | null;
+  showBreakPenaltyModal: boolean;
+  showConsecutivePenaltyModal: boolean;
+}
+
+type FoulFlowAction =
+  | { type: 'setAction'; action: BotAction }
+  | { type: 'openBreakPenalty' }
+  | { type: 'closeBreakPenalty' }
+  | { type: 'selectBreakPenalty'; penalty: 1 | 2 }
+  | { type: 'openConsecutivePenalty'; botsValue: number }
+  | { type: 'closeConsecutivePenalty' }
+  | { type: 'reset' };
+
+const initialFoulFlowState: FoulFlowState = {
+  botAction: null,
+  selectedBreakPenalty: null,
+  pendingConsecutiveFoulBotsValue: null,
+  showBreakPenaltyModal: false,
+  showConsecutivePenaltyModal: false,
+};
+
+const foulFlowReducer = (state: FoulFlowState, action: FoulFlowAction): FoulFlowState => {
+  switch (action.type) {
+    case 'setAction':
+      return { ...state, botAction: action.action };
+    case 'openBreakPenalty':
+      return { ...state, showBreakPenaltyModal: true };
+    case 'closeBreakPenalty':
+      return { ...state, showBreakPenaltyModal: false };
+    case 'selectBreakPenalty':
+      return { ...state, selectedBreakPenalty: action.penalty };
+    case 'openConsecutivePenalty':
+      return {
+        ...state,
+        showConsecutivePenaltyModal: true,
+        pendingConsecutiveFoulBotsValue: action.botsValue,
+      };
+    case 'closeConsecutivePenalty':
+      return {
+        ...state,
+        showConsecutivePenaltyModal: false,
+        pendingConsecutiveFoulBotsValue: null,
+      };
+    case 'reset':
+      return { ...initialFoulFlowState };
+    default:
+      return state;
+  }
+};
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -42,19 +98,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
-  const [showBreakFoulPenaltyModal, setShowBreakFoulPenaltyModal] = useState(false);
-  const [showConsecutiveFoulPenaltyModal, setShowConsecutiveFoulPenaltyModal] =
-    useState(false);
+  const [foulFlowState, dispatchFoulFlow] = useReducer(
+    foulFlowReducer,
+    initialFoulFlowState,
+  );
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showBreakDialog, setShowBreakDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [botAction, setBotAction] = useState<
-    'newrack' | 'foul' | 'safety' | 'miss' | null
-  >(null);
-  const [selectedFoulPenalty, setSelectedFoulPenalty] = useState<1 | 2 | null>(null);
-  const [pendingConsecutiveFoulBotsValue, setPendingConsecutiveFoulBotsValue] = useState<
-    number | null
-  >(null);
   const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
     useState<number>(breakingPlayerId);
 
@@ -409,11 +459,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   // Handle action button clicks
   const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
-    setBotAction(action);
+    dispatchFoulFlow({ type: 'setAction', action });
 
     // If it's a foul on a break shot, show penalty selection modal first
     if (action === 'foul' && isBreakShot) {
-      setShowBreakFoulPenaltyModal(true);
+      dispatchFoulFlow({ type: 'openBreakPenalty' });
     } else {
       setShowBOTModal(true);
     }
@@ -421,39 +471,37 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   // Handle break foul penalty selection
   const handleBreakFoulPenaltySelect = (penalty: 1 | 2) => {
-    setSelectedFoulPenalty(penalty);
-    setShowBreakFoulPenaltyModal(false);
+    dispatchFoulFlow({ type: 'selectBreakPenalty', penalty });
+    dispatchFoulFlow({ type: 'closeBreakPenalty' });
     setShowBOTModal(true);
   };
 
   // Handle canceling the break foul penalty modal
   const handleCancelBreakFoulPenalty = () => {
-    setShowBreakFoulPenaltyModal(false);
+    dispatchFoulFlow({ type: 'closeBreakPenalty' });
     resetBotActionState();
   };
 
   const resetBotActionState = () => {
-    setBotAction(null);
-    setSelectedFoulPenalty(null);
+    dispatchFoulFlow({ type: 'reset' });
   };
 
   const handleConsecutivePenaltySelect = (penalty: 'regular' | 'threeFoul') => {
-    if (pendingConsecutiveFoulBotsValue === null) {
+    const botsValue = foulFlowState.pendingConsecutiveFoulBotsValue;
+    if (botsValue === null) {
       return;
     }
 
-    handleAddFoul(pendingConsecutiveFoulBotsValue, undefined, {
+    handleAddFoul(botsValue, undefined, {
       manualConsecutiveDecision: penalty,
     });
 
-    setShowConsecutiveFoulPenaltyModal(false);
-    setPendingConsecutiveFoulBotsValue(null);
+    dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
     resetBotActionState();
   };
 
   const handleCancelConsecutivePenalty = () => {
-    setShowConsecutiveFoulPenaltyModal(false);
-    setPendingConsecutiveFoulBotsValue(null);
+    dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
     resetBotActionState();
   };
 
@@ -464,6 +512,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
       (actions.length === 0 && currentInning === 1) ||
       playerNeedsReBreak === playerData[activePlayerIndex]?.id;
 
+    const { botAction, selectedBreakPenalty } = foulFlowState;
+
     if (botAction === 'newrack') {
       handleAddScore(0, botsValue);
       resetBotActionState();
@@ -473,12 +523,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
         playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
         playerData[activePlayerIndex].consecutiveFouls >= 2
       ) {
-        setPendingConsecutiveFoulBotsValue(botsValue);
-        setShowConsecutiveFoulPenaltyModal(true);
+        dispatchFoulFlow({ type: 'openConsecutivePenalty', botsValue });
         return;
       }
 
-      handleAddFoul(botsValue, selectedFoulPenalty ?? undefined);
+      handleAddFoul(botsValue, selectedBreakPenalty ?? undefined);
       resetBotActionState();
     } else if (botAction === 'safety') {
       handleAddSafety(botsValue);
@@ -641,13 +690,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
             incomingPlayer={playerData[(activePlayerIndex + 1) % playerData.length]}
           />
           <BreakFoulPenaltyModal
-            show={showBreakFoulPenaltyModal}
+            show={foulFlowState.showBreakPenaltyModal}
             onClose={handleCancelBreakFoulPenalty}
             onSelectPenalty={handleBreakFoulPenaltySelect}
             playerName={playerData[activePlayerIndex]?.name || ''}
           />
           <ConsecutiveFoulPenaltyModal
-            isOpen={showConsecutiveFoulPenaltyModal}
+            isOpen={foulFlowState.showConsecutivePenaltyModal}
             playerName={playerData[activePlayerIndex]?.name || ''}
             onSelectPenalty={handleConsecutivePenaltySelect}
             onCancel={handleCancelConsecutivePenalty}
@@ -670,7 +719,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         onClose={() => setShowBOTModal(false)}
         onSubmit={handleBOTSubmit}
         currentBallsOnTable={ballsOnTable}
-        action={botAction}
+        action={foulFlowState.botAction}
       />
 
       <AlertModal

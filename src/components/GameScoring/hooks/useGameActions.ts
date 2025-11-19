@@ -1,5 +1,7 @@
 import { type Player, type GameAction } from '../../../types/game';
 
+const THREE_FOUL_PENALTY = 15;
+
 interface UseGameActionsProps {
   playerData: Player[];
   activePlayerIndex: number;
@@ -173,7 +175,7 @@ export const useGameActions = ({
       updatedPlayerData[activePlayerIndex].score += penaltyValue;
 
       // Then apply the additional 15-point penalty for three consecutive fouls
-      updatedPlayerData[activePlayerIndex].score -= 15;
+      updatedPlayerData[activePlayerIndex].score -= THREE_FOUL_PENALTY;
       updatedPlayerData[activePlayerIndex].consecutiveFouls = 0;
       setBallsOnTable(15);
       setPlayerNeedsReBreak(updatedPlayerData[activePlayerIndex].id);
@@ -184,9 +186,9 @@ export const useGameActions = ({
           ? `${playerName} has been assessed a manual three-foul penalty. `
           : `${playerName} has committed three consecutive fouls! `;
       setAlertMessage(
-        `${prefix}${actualPenalty + 15}-point penalty applied (${actualPenalty} for ${
+        `${prefix}${actualPenalty + THREE_FOUL_PENALTY}-point penalty applied (${actualPenalty} for ${
           isOpeningBreak ? 'break ' : ''
-        }foul + 15 for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`,
+        }foul + ${THREE_FOUL_PENALTY} for three consecutive fouls). ${playerName} must re-break all 15 balls under opening break requirements.`,
       );
       setShowAlertModal(true);
     }
