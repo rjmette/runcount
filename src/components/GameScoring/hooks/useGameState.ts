@@ -160,24 +160,6 @@ export const useGameState = ({
     }
   }, []); // Empty dependency array is intentional - we only want this to run once on mount
 
-  // Update the current run display in the DOM
-  useEffect(() => {
-    const currentRunElement = document.getElementById('current-run');
-    if (currentRunElement) {
-      currentRunElement.textContent = String(currentRun);
-    }
-  }, [
-    currentRun,
-    activePlayerIndex,
-    breakingPlayerId,
-    gameId,
-    getGameState,
-    playerTargetScores,
-    players,
-    saveGameToSupabase,
-    setGameId,
-  ]);
-
   return {
     activePlayerIndex,
     setActivePlayerIndex,

@@ -12,6 +12,7 @@ import { AlertModal } from './components/AlertModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
 import { BreakFoulModal } from './components/BreakFoulModal';
 import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
+import { ConsecutiveFoulPenaltyModal } from './components/ConsecutiveFoulPenaltyModal';
 import { EndGameModal } from './components/EndGameModal';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
@@ -42,6 +43,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
   const [showBreakFoulPenaltyModal, setShowBreakFoulPenaltyModal] = useState(false);
+  const [showConsecutiveFoulPenaltyModal, setShowConsecutiveFoulPenaltyModal] =
+    useState(false);
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showBreakDialog, setShowBreakDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
@@ -49,6 +52,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
     'newrack' | 'foul' | 'safety' | 'miss' | null
   >(null);
   const [selectedFoulPenalty, setSelectedFoulPenalty] = useState<1 | 2 | null>(null);
+  const [pendingConsecutiveFoulBotsValue, setPendingConsecutiveFoulBotsValue] = useState<
+    number | null
+  >(null);
   const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
     useState<number>(breakingPlayerId);
 
@@ -423,25 +429,64 @@ const GameScoring: React.FC<GameScoringProps> = ({
   // Handle canceling the break foul penalty modal
   const handleCancelBreakFoulPenalty = () => {
     setShowBreakFoulPenaltyModal(false);
+    resetBotActionState();
+  };
+
+  const resetBotActionState = () => {
     setBotAction(null);
     setSelectedFoulPenalty(null);
+  };
+
+  const handleConsecutivePenaltySelect = (penalty: 'regular' | 'threeFoul') => {
+    if (pendingConsecutiveFoulBotsValue === null) {
+      return;
+    }
+
+    handleAddFoul(pendingConsecutiveFoulBotsValue, undefined, {
+      manualConsecutiveDecision: penalty,
+    });
+
+    setShowConsecutiveFoulPenaltyModal(false);
+    setPendingConsecutiveFoulBotsValue(null);
+    resetBotActionState();
+  };
+
+  const handleCancelConsecutivePenalty = () => {
+    setShowConsecutiveFoulPenaltyModal(false);
+    setPendingConsecutiveFoulBotsValue(null);
+    resetBotActionState();
   };
 
   const handleBOTSubmit = (botsValue: number) => {
     setShowBOTModal(false);
 
+    const isBreakShotContext =
+      (actions.length === 0 && currentInning === 1) ||
+      playerNeedsReBreak === playerData[activePlayerIndex]?.id;
+
     if (botAction === 'newrack') {
       handleAddScore(0, botsValue);
+      resetBotActionState();
     } else if (botAction === 'foul') {
+      if (
+        !isBreakShotContext &&
+        playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
+        playerData[activePlayerIndex].consecutiveFouls >= 2
+      ) {
+        setPendingConsecutiveFoulBotsValue(botsValue);
+        setShowConsecutiveFoulPenaltyModal(true);
+        return;
+      }
+
       handleAddFoul(botsValue, selectedFoulPenalty ?? undefined);
+      resetBotActionState();
     } else if (botAction === 'safety') {
       handleAddSafety(botsValue);
+      resetBotActionState();
     } else if (botAction === 'miss') {
       handleAddMiss(botsValue);
+      resetBotActionState();
     }
-
-    setBotAction(null);
-    setSelectedFoulPenalty(null);
   };
 
   // Handle changing the breaking player
@@ -600,6 +645,12 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onClose={handleCancelBreakFoulPenalty}
             onSelectPenalty={handleBreakFoulPenaltySelect}
             playerName={playerData[activePlayerIndex]?.name || ''}
+          />
+          <ConsecutiveFoulPenaltyModal
+            isOpen={showConsecutiveFoulPenaltyModal}
+            playerName={playerData[activePlayerIndex]?.name || ''}
+            onSelectPenalty={handleConsecutivePenaltySelect}
+            onCancel={handleCancelConsecutivePenalty}
           />
         </>
       )}
