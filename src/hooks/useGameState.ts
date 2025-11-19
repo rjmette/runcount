@@ -76,7 +76,6 @@ export const useGameState = () => {
     }
     return null;
   });
-
   const [ballsOnTable, setBallsOnTable] = useState<number>(15);
 
   // Check for saved game on initial load

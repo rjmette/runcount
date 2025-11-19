@@ -198,7 +198,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           user,
           saveGameState,
           clearGameState,
-          matchStartTime: matchStartTimeOverride
+            matchStartTime: matchStartTimeOverride
             ? matchStartTimeOverride.toISOString()
             : matchStartTime
               ? matchStartTime.toISOString()
@@ -317,12 +317,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
             : matchStartTime
               ? matchStartTime.toISOString()
               : undefined,
-          matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-          turnStartTime: turnStartTimeOverride
-            ? turnStartTimeOverride.toISOString()
-            : turnStartTime
-              ? turnStartTime.toISOString()
-              : undefined,
+            matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
+          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
           gameId,
           players,
           actions,
