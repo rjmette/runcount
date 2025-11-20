@@ -21,7 +21,7 @@ import { useTheme } from './hooks/useTheme';
 import './App.css';
 
 // Initialize Supabase client - Replace with your actual Supabase project details
-const supabaseUrl = 'https://mipvwpynhcadvhknjpdq.supabase.co';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 

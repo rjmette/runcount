@@ -56,8 +56,8 @@ npm install
    - Set up authentication providers (email, social logins)
    - Create a `.env.local` file in the project root with your Supabase credentials:
      ```
-     REACT_APP_SUPABASE_URL=your_supabase_url
-     REACT_APP_SUPABASE_KEY=your_supabase_anon_key
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_KEY=your_supabase_anon_key
      ```
 
 4. Start the development server
