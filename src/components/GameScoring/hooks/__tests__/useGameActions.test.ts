@@ -61,6 +61,7 @@ describe('useGameActions', () => {
     const setAlertMessage = vi.fn();
     const setIsUndoEnabled = vi.fn();
     const setMatchEndTime = vi.fn();
+    const setTurnStartTime = vi.fn();
 
     const props = {
       playerData: players,
@@ -85,6 +86,7 @@ describe('useGameActions', () => {
       setIsUndoEnabled,
       playerNeedsReBreak: null,
       setMatchEndTime,
+      setTurnStartTime,
       ...overrides,
     } as any;
 
@@ -107,6 +109,7 @@ describe('useGameActions', () => {
         setShowEndGameModal,
         setPlayerNeedsReBreak,
         setMatchEndTime,
+        setTurnStartTime,
       },
     };
   }
@@ -185,7 +188,7 @@ describe('useGameActions', () => {
 
   test('handleAddFoul applies regular foul penalty (-1 point)', () => {
     const { result, players } = setup({
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Not first action
+      actions: [{ type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Not first action
     });
 
     act(() => {
@@ -295,7 +298,7 @@ describe('useGameActions', () => {
 
   test('triggers game end when player reaches target score via safety', () => {
     const { result, players, mocks } = setup({
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Has prior score actions
+      actions: [{ type: 'score', playerId: 0, value: 5, timestamp: new Date() }], // Has prior score actions
     });
     players[0].score = 9; // Set to 9, will add 1 ball pocketed to reach 10
 
@@ -324,7 +327,7 @@ describe('useGameActions', () => {
   test('adds only balls pocketed when prior score actions exist', () => {
     const { result, players } = setup({
       currentRun: 3,
-      actions: [{ id: '1', type: 'score', playerId: 0, value: 2, timestamp: new Date() }],
+      actions: [{ type: 'score', playerId: 0, value: 2, timestamp: new Date() }],
     });
 
     act(() => {
