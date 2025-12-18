@@ -15,6 +15,7 @@ GitHub → GitHub Actions → AWS S3 → CloudFront → runcount.rbios.net
 ## Infrastructure Details
 
 ### AWS Resources
+
 - **S3 Bucket**: `runcountapp` (us-east-1)
 - **CloudFront Distribution**: `E3FN1GEXG15HYW`
 - **Custom Domain**: `runcount.rbios.net`
@@ -22,13 +23,15 @@ GitHub → GitHub Actions → AWS S3 → CloudFront → runcount.rbios.net
 - **Route53 Hosted Zone**: `Z041460211TNUBYCOAMFZ` (rbios.net)
 
 ### URLs
+
 - **Production**: https://runcount.rbios.net
-- **CloudFront Direct**: https://d6jbf9ol2zu6i.cloudfront.net  
+- **CloudFront Direct**: https://d6jbf9ol2zu6i.cloudfront.net
 - **S3 Website**: http://runcountapp.s3-website-us-east-1.amazonaws.com
 
 ## Deployment Process
 
 ### Automatic Deployment
+
 Every push to `main` branch triggers:
 
 1. **Test Phase** (38s average)
@@ -46,6 +49,7 @@ Every push to `main` branch triggers:
    - Display deployment summary with status
 
 ### Manual Deployment
+
 ```bash
 # Trigger deployment manually
 gh workflow run deploy.yml
@@ -60,6 +64,7 @@ gh run view [RUN_ID]
 ## Configuration Files
 
 ### GitHub Actions Workflow
+
 - **Location**: `.github/workflows/deploy.yml`
 - **Environment Variables**:
   - `AWS_REGION`: us-east-1
@@ -67,12 +72,14 @@ gh run view [RUN_ID]
   - `CLOUDFRONT_DISTRIBUTION_ID`: E3FN1GEXG15HYW
 
 ### Required GitHub Secrets
+
 - `AWS_ACCESS_KEY_ID`: AWS access key for deployment
 - `AWS_SECRET_ACCESS_KEY`: AWS secret key for deployment
 - `REACT_APP_SUPABASE_KEY`: Supabase anon key for production build
 - `REACT_APP_SUPABASE_URL`: Supabase project URL for production build
 
 ### CloudFront Configuration
+
 - **Config File**: `scripts/cloudfront-distribution-config.json`
 - **Origin**: S3 website endpoint (not S3 bucket directly)
 - **Cache Behavior**: Redirect HTTP to HTTPS
@@ -84,17 +91,22 @@ gh run view [RUN_ID]
 ### Common Issues
 
 #### 1. Deployment Fails with AWS Credentials Error
+
 ```
 Error: Credentials could not be loaded
 ```
+
 **Solution**: Verify GitHub repository secrets are set:
+
 - Go to repository Settings → Secrets and variables → Actions
 - Ensure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are configured
 
 #### 2. CloudFront Not Updating
+
 **Issue**: Changes deployed but not visible on runcount.rbios.net
 
 **Solutions**:
+
 ```bash
 # Manual invalidation
 aws cloudfront create-invalidation \
@@ -108,9 +120,11 @@ aws cloudfront list-invalidations \
 ```
 
 #### 3. SSL Certificate Issues
+
 **Issue**: Browser shows certificate warnings
 
-**Check**: 
+**Check**:
+
 ```bash
 # Verify certificate status
 aws acm describe-certificate \
@@ -119,9 +133,11 @@ aws acm describe-certificate \
 ```
 
 #### 4. DNS Resolution Problems
+
 **Issue**: runcount.rbios.net not resolving
 
 **Check**:
+
 ```bash
 # Verify Route53 record
 aws route53 list-resource-record-sets \
@@ -134,15 +150,18 @@ dig runcount.rbios.net
 ```
 
 #### 5. Build Failures
+
 **Issue**: Tests or build fail in GitHub Actions
 
 **Common Causes**:
+
 - ESLint errors (warnings treated as errors in CI)
 - Missing dependencies
 - TypeScript compilation errors
 - Test failures
 
 **Solutions**:
+
 ```bash
 # Run locally to reproduce
 npm test -- --watchAll=false
@@ -157,6 +176,7 @@ npm run lint --fix
 ### Monitoring
 
 #### Check CloudFront Status
+
 ```bash
 aws cloudfront get-distribution \
   --id E3FN1GEXG15HYW \
@@ -164,11 +184,13 @@ aws cloudfront get-distribution \
 ```
 
 #### View Recent Deployments
+
 ```bash
 gh run list --workflow="deploy.yml" --limit 10
 ```
 
 #### S3 Bucket Status
+
 ```bash
 aws s3 ls s3://runcountapp
 aws s3api get-bucket-website --bucket runcountapp
@@ -177,27 +199,32 @@ aws s3api get-bucket-website --bucket runcountapp
 ## Security
 
 ### S3 Bucket Policy
+
 - Public read access for static files
 - Bucket policy allows `s3:GetObject` for all users
 - No direct S3 write access from public
 
 ### CloudFront Security
+
 - HTTPS redirect enforced
 - TLS 1.2+ minimum protocol
 - Origin access via S3 website endpoint (not bucket)
 
 ### Route53 Configuration
+
 - A record alias pointing to CloudFront
 - DNS validation for SSL certificate
 
 ## Performance
 
 ### CloudFront Caching
+
 - **Default TTL**: 86400 seconds (24 hours)
 - **Maximum TTL**: 31536000 seconds (1 year)
 - **index.html**: Cache-busting with max-age=0
 
 ### Build Optimization
+
 - React production build with minification
 - Code splitting enabled
 - Asset optimization via Create React App
@@ -205,12 +232,14 @@ aws s3api get-bucket-website --bucket runcountapp
 ## Maintenance
 
 ### Regular Tasks
+
 1. **Monitor SSL certificate expiration** (auto-renewed by ACM)
 2. **Review CloudFront costs** via AWS Cost Explorer
 3. **Update dependencies** regularly for security
 4. **Monitor deployment success rate** via GitHub Actions
 
 ### Backup Strategy
+
 - **Source Code**: Git repository with complete history
 - **S3 Versioning**: Consider enabling for additional protection
 - **Infrastructure as Code**: All AWS resources documented in scripts
@@ -218,10 +247,10 @@ aws s3api get-bucket-website --bucket runcountapp
 ## Contact
 
 For deployment issues, check:
+
 1. GitHub Actions logs
 2. AWS CloudWatch logs
 3. CloudFront distribution status
 4. Route53 health checks
 
 **Infrastructure Owner**: Ryan Mette (rjmette)
-

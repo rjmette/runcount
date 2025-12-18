@@ -13,6 +13,7 @@ This document provides guidelines for writing and running tests for the RunCount
 ## Tooling
 
 We rely on:
+
 - **Vitest** as the test runner and assertion library
 - **@testing-library/react** for rendering and semantic queries
 - **@testing-library/user-event** for realistic input simulation
@@ -20,13 +21,17 @@ We rely on:
 ## Test Types
 
 ### Unit Tests
+
 Unit tests focus on testing individual components or functions in isolation. Examples include:
+
 - Testing the ScoreButton component renders correctly and handles clicks
 - Testing that the GameSetup component validates form inputs properly
 - Testing utility functions
 
 ### Integration Tests
+
 Integration tests check that different parts of the application work well together. Examples include:
+
 - Testing that the App component correctly manages game state
 - Testing that authentication flows work correctly
 
@@ -55,9 +60,11 @@ Integration tests check that different parts of the application work well togeth
 ## Mocking Strategy
 
 ### Mocking Supabase
+
 For most tests, mock the Supabase client (or the hooks that depend on it) so no real API calls leave your machine. Vitest's `vi.mock` mirrors Jest's API for these cases.
 
 ### Mocking Authentication Context
+
 When a component depends on `useAuth`, create a lightweight mock that returns `{ user, loading, signOut: vi.fn() }` scoped to that test file. Reuse helpers if multiple tests share the same setup.
 
 ## Test Coverage
@@ -69,6 +76,7 @@ npm test -- --coverage
 ```
 
 We aim for high coverage in critical areas like:
+
 - Game scoring logic
 - Authentication flows
 - Form validation
@@ -81,6 +89,7 @@ We aim for high coverage in critical areas like:
 ## Example Tests
 
 ### Basic Component Test
+
 ```typescript
 test('renders button with correct text', () => {
   render(<ScoreButton label="Test" value={5} onClick={() => {}} />);
@@ -89,27 +98,29 @@ test('renders button with correct text', () => {
 ```
 
 ### Testing User Interactions
+
 ```typescript
 test('calls function when clicked', async () => {
   const mockFn = vi.fn();
   render(<ScoreButton label="Test" value={5} onClick={mockFn} />);
-  
+
   await userEvent.click(screen.getByRole('button'));
   expect(mockFn).toHaveBeenCalledWith(5);
 });
 ```
 
 ### Testing Form Submission
+
 ```typescript
 test('submits form with correct data', async () => {
   const mockSubmit = vi.fn();
   render(<GameSetup startGame={mockSubmit} />);
-  
+
   await userEvent.type(screen.getByLabelText(/Player 1/i), 'Player One');
   await userEvent.type(screen.getByLabelText(/Player 2/i), 'Player Two');
-  
+
   await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
-  
+
   expect(mockSubmit).toHaveBeenCalled();
 });
 ```

@@ -1,4 +1,4 @@
-import { ConsoleMessage, expect, test as base } from '@playwright/test';
+import { type ConsoleMessage, expect, test as base } from '@playwright/test';
 
 const test = base.extend({
   page: async ({ page }, use) => {
@@ -16,9 +16,7 @@ const test = base.extend({
     page.off('console', handleConsole);
 
     if (consoleMessages.length > 0) {
-      throw new Error(
-        `Console warnings/errors detected:\n${consoleMessages.join('\n')}`,
-      );
+      throw new Error(`Console warnings/errors detected:\n${consoleMessages.join('\n')}`);
     }
   },
 });

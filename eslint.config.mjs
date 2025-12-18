@@ -136,4 +136,13 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    files: ['postcss.config.js', 'scripts/cloudfront-distribution-config.json'],
+    languageOptions: {
+      globals: {
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
+  },
 );

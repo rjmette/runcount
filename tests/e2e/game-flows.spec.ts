@@ -1,5 +1,12 @@
 import { expect, test } from '../setup';
-import { acknowledgeAlert, commitFoul, completeRack, recordMiss, startNewGame } from './helpers';
+
+import {
+  acknowledgeAlert,
+  commitFoul,
+  completeRack,
+  recordMiss,
+  startNewGame,
+} from './helpers';
 
 test.describe('Straight pool core flows', () => {
   test('starts a new game and renders the scoring dashboard', async ({ page }) => {

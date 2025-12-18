@@ -7,6 +7,7 @@ This document outlines the testing best practices used in the RunCount project t
 ### 1. Test User Behavior, Not Implementation Details
 
 ❌ **Avoid**: Testing CSS classes, internal state, or implementation details
+
 ```typescript
 // Bad - Brittle and tied to implementation
 expect(button).toHaveClass('bg-blue-600');
@@ -14,6 +15,7 @@ expect(component.state.isActive).toBe(true);
 ```
 
 ✅ **Prefer**: Testing user-visible behavior and accessibility
+
 ```typescript
 // Good - Tests what users actually experience
 expect(button).toHaveAttribute('aria-pressed', 'true');
@@ -30,18 +32,20 @@ Always prefer queries that match how users and assistive technologies interact w
 4. `getByTestId()` - Last resort when semantic queries don't work
 
 ❌ **Avoid**: CSS selectors and implementation-specific queries
+
 ```typescript
 // Bad
-container.querySelector('.player-card')
-getByClassName(container, 'bg-blue-600')
+container.querySelector('.player-card');
+getByClassName(container, 'bg-blue-600');
 ```
 
 ✅ **Prefer**: Semantic queries
+
 ```typescript
 // Good
-screen.getByRole('button', { name: /Start Game/i })
-screen.getByLabelText('Player 1 Name')
-screen.getByRole('progressbar')
+screen.getByRole('button', { name: /Start Game/i });
+screen.getByLabelText('Player 1 Name');
+screen.getByRole('progressbar');
 ```
 
 ### 3. Add Accessibility Attributes for Better Testing
@@ -66,12 +70,14 @@ expect(progressBar).toHaveAttribute('aria-valuenow', '50');
 ## Test Types and Organization
 
 ### Unit Tests
+
 - Test individual components in isolation
 - Mock dependencies and external services
 - Focus on component API and user interactions
 - File pattern: `ComponentName.test.tsx`
 
 ### Integration Tests
+
 - Test complete user workflows
 - Test component interactions
 - Test error scenarios and recovery
@@ -186,9 +192,9 @@ fireEvent.change(input, { target: { value: 'Alice' } });
 test('should handle errors gracefully', async () => {
   // Mock error condition
   mockSupabase.from = () => ({
-    upsert: vi.fn().mockResolvedValue({ 
-      data: null, 
-      error: new Error('Network error') 
+    upsert: vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error('Network error'),
     }),
   });
 
@@ -236,7 +242,7 @@ afterAll(() => {
 screen.getByRole('button', { name: /Start Game/i });
 
 // Less efficient - Multiple queries
-screen.getAllByRole('button').find(btn => btn.textContent?.includes('Start Game'));
+screen.getAllByRole('button').find((btn) => btn.textContent?.includes('Start Game'));
 ```
 
 ## Common Anti-Patterns to Avoid
@@ -281,21 +287,25 @@ test('should handle game completion');
 ## Running Tests
 
 ### Single Test Files
+
 ```bash
 npm test src/components/PlayerScoreCard.test.tsx
 ```
 
 ### Pattern Matching
+
 ```bash
 npm test -- -t "specific test name"
 ```
 
 ### Watch Mode
+
 ```bash
 npm test
 ```
 
 ### Coverage
+
 ```bash
 npm run test:coverage
 ```
@@ -303,6 +313,7 @@ npm run test:coverage
 ## Integration with CI/CD
 
 Tests are automatically run on:
+
 - Pull requests
 - Pushes to main branch
 - Before deployment

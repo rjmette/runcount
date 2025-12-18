@@ -31,6 +31,7 @@ npx playwright test game-flows.spec.ts
 Starts a new game with optional configuration.
 
 **Options:**
+
 - `playerOne` (string, default: 'Alice') - Player 1 name
 - `playerTwo` (string, default: 'Bob') - Player 2 name
 - `playerOneTarget` (number, default: 50) - Player 1 target score
@@ -38,13 +39,14 @@ Starts a new game with optional configuration.
 - `breakingPlayerIndex` (0 | 1, default: 0) - Which player breaks
 
 **Example:**
+
 ```typescript
 await startNewGame(page, {
   playerOne: 'Alice',
   playerTwo: 'Bob',
   playerOneTarget: 30,
   playerTwoTarget: 30,
-  breakingPlayerIndex: 0
+  breakingPlayerIndex: 0,
 });
 ```
 
@@ -53,9 +55,11 @@ await startNewGame(page, {
 Selects a value from the "Balls on Table" modal.
 
 **Parameters:**
+
 - `value` (number) - Number of balls remaining (0-15)
 
 **Example:**
+
 ```typescript
 await selectBallsOnTableValue(page, 1);
 ```
@@ -65,9 +69,11 @@ await selectBallsOnTableValue(page, 1);
 Completes a rack by clicking the Rack button and selecting balls remaining.
 
 **Parameters:**
+
 - `ballsRemaining` (number, default: 1) - Balls left on table
 
 **Example:**
+
 ```typescript
 await completeRack(page, 1); // Complete rack with 1 ball left
 ```
@@ -77,9 +83,11 @@ await completeRack(page, 1); // Complete rack with 1 ball left
 Records a miss shot and selects balls remaining.
 
 **Parameters:**
+
 - `ballsRemaining` (number, default: 15) - Balls left on table
 
 **Example:**
+
 ```typescript
 await recordMiss(page, 15);
 ```
@@ -89,10 +97,12 @@ await recordMiss(page, 15);
 Commits a foul with optional break penalty specification.
 
 **Options:**
+
 - `ballsRemaining` (number, default: 15) - Balls left on table
 - `breakPenalty` (1 | 2) - Break foul penalty (1 = scratch, 2 = illegal break)
 
 **Examples:**
+
 ```typescript
 // Standard foul
 await commitFoul(page, { ballsRemaining: 15 });
@@ -106,9 +116,11 @@ await commitFoul(page, { breakPenalty: 2, ballsRemaining: 15 });
 Dismisses an alert modal, optionally verifying its message.
 
 **Parameters:**
+
 - `message` (string | RegExp, optional) - Expected message text or pattern
 
 **Examples:**
+
 ```typescript
 // Just dismiss
 await acknowledgeAlert(page);
@@ -139,6 +151,7 @@ All tests automatically fail if any `console.error` or `console.warning` is emit
 ## CI/CD
 
 Tests run automatically in CI with:
+
 - Chromium browser only (configurable in `playwright.config.ts`)
 - 2 retries on failure
 - Video recording on failure
