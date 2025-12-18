@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
+import { useError } from '../context/ErrorContext';
 import {
   type GameStatisticsProps,
   type GameData,
   type GameAction,
   type Player,
 } from '../types/game';
+import { copyWithFeedback } from '../utils/copyToClipboard';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
@@ -22,6 +24,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [gameData, setGameData] = useState<GameData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { addError } = useError();
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -266,7 +269,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   const copyMatchResults = async () => {
     const formattedText = formatGameResultsForEmail;
-    const { copyWithFeedback } = await import('../utils/copyToClipboard');
 
     await copyWithFeedback(
       formattedText,
@@ -276,6 +278,9 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       },
       (error) => {
         console.error('Failed to copy text:', error);
+        addError(
+          'Failed to copy results to clipboard. Please try again or copy manually.',
+        );
       },
     );
   };
@@ -355,7 +360,9 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         completed={gameData.completed}
         date={gameData.date}
         matchLength={matchLength}
-        calculatePlayerStats={(player) => calculateStats([player], gameData.actions)[0]}
+        calculatePlayerStats={(player: Player, actions: GameAction[]) =>
+          calculateStats([player], actions)[0]
+        }
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
         copySuccess={copySuccess}

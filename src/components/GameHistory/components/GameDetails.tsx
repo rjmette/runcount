@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 
+import { useError } from '../../../context/ErrorContext';
 import { type GameData } from '../../../types/game';
+import { copyWithFeedback } from '../../../utils/copyToClipboard';
 import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
 import { GameStatusPanel } from '../../shared/GameStatusPanel';
@@ -27,6 +29,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
   const [copySuccess, setCopySuccess] = useState(false);
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
+  const { addError } = useError();
 
   // Calculate match length
   const startTime = new Date(game.date);
@@ -74,7 +77,6 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
 
   const copyMatchResults = async () => {
     const formattedText = formatGameResultsForEmail();
-    const { copyWithFeedback } = await import('../../../utils/copyToClipboard');
 
     await copyWithFeedback(
       formattedText,
@@ -84,6 +86,9 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
       },
       (error) => {
         console.error('Failed to copy text:', error);
+        addError(
+          'Failed to copy results to clipboard. Please try again or copy manually.',
+        );
       },
     );
   };
