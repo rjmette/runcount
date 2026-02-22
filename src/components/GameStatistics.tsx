@@ -11,8 +11,7 @@ import { copyWithFeedback } from '../utils/copyToClipboard';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
-import { GameStatusPanel } from './shared/GameStatusPanel';
-import { PerformanceMetricsPanel } from './shared/PerformanceMetricsPanel';
+import { GameSummaryPanel } from './shared/GameSummaryPanel';
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
@@ -335,26 +334,17 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
-        <div className="flex space-x-4">
-          {user && (
-            <button
-              onClick={viewHistory}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
-            >
-              View History
-            </button>
-          )}
+        {user && (
           <button
-            onClick={startNewGame}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+            onClick={viewHistory}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
           >
-            New Game
+            View History
           </button>
-        </div>
+        )}
       </div>
 
-      {/* Game Status Panel */}
-      <GameStatusPanel
+      <GameSummaryPanel
         players={gameData.players}
         winnerId={gameData.winner_id}
         completed={gameData.completed}
@@ -363,10 +353,12 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         calculatePlayerStats={(player: Player, actions: GameAction[]) =>
           calculateStats([player], actions)[0]
         }
+        actions={gameData.actions}
+        tooltipContent={tooltipContent}
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
+        onShowDescriptions={() => setShowDescriptionsModal(true)}
         copySuccess={copySuccess}
-        actions={gameData.actions}
       />
 
       {/* Innings Modal */}
@@ -378,16 +370,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
           players={gameData.players}
         />
       )}
-
-      {/* Performance Metrics Panel */}
-      <PerformanceMetricsPanel
-        players={gameData.players}
-        actions={gameData.actions}
-        winnerId={gameData.winner_id}
-        calculatePlayerStats={(player) => calculateStats([player], gameData.actions)[0]}
-        tooltipContent={tooltipContent}
-        onShowDescriptions={() => setShowDescriptionsModal(true)}
-      />
 
       {/* Stat Descriptions Modal */}
       <StatDescriptionsModal

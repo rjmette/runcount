@@ -18,14 +18,8 @@ vi.mock('../GameStatistics/components/StatDescriptionsModal', () => ({
   ),
 }));
 
-vi.mock('../shared/GameStatusPanel', () => ({
-  GameStatusPanel: () => <div data-testid="game-status-panel">Game Status Panel</div>,
-}));
-
-vi.mock('../shared/PerformanceMetricsPanel', () => ({
-  PerformanceMetricsPanel: () => (
-    <div data-testid="performance-metrics-panel">Performance Metrics Panel</div>
-  ),
+vi.mock('../shared/GameSummaryPanel', () => ({
+  GameSummaryPanel: () => <div data-testid="game-summary-panel">Game Summary Panel</div>,
 }));
 
 // Mock localStorage
@@ -149,8 +143,7 @@ describe('GameStatistics Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('game-status-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('performance-metrics-panel')).toBeInTheDocument();
+      expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
     });
   });
 
@@ -187,7 +180,6 @@ describe('GameStatistics Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('New Game')).toBeInTheDocument();
       expect(screen.getByText('View History')).toBeInTheDocument();
     });
   });
