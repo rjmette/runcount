@@ -8,6 +8,9 @@ export interface ColorScheme {
   gradient: string;
   button: string;
   buttonInactive: string;
+  borderActive: string;
+  bgLight: string;
+  text: string;
 }
 
 export const PLAYER_COLOR_SCHEMES: Record<'blue' | 'green', ColorScheme> = {
@@ -18,6 +21,9 @@ export const PLAYER_COLOR_SCHEMES: Record<'blue' | 'green', ColorScheme> = {
     button: 'bg-blue-500 text-white',
     buttonInactive:
       'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
+    borderActive: 'border-blue-500',
+    bgLight: 'bg-blue-50 dark:bg-blue-900/20',
+    text: 'text-blue-600 dark:text-blue-400',
   },
   green: {
     badge: 'bg-green-100 dark:bg-green-900',
@@ -26,5 +32,8 @@ export const PLAYER_COLOR_SCHEMES: Record<'blue' | 'green', ColorScheme> = {
     button: 'bg-green-500 text-white',
     buttonInactive:
       'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
+    borderActive: 'border-green-500',
+    bgLight: 'bg-green-50 dark:bg-green-900/20',
+    text: 'text-green-600 dark:text-green-400',
   },
 };
