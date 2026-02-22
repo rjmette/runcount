@@ -6,7 +6,9 @@ import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
 import { type GameScoringProps } from '../../types/game';
 import BreakDialog from '../BreakDialog';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
+import { MatchTimer } from '../MatchTimer';
 import PlayerScoreCard from '../PlayerScoreCard';
+import { TurnTimer } from '../TurnTimer';
 
 import { AlertModal } from './components/AlertModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
@@ -665,7 +667,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onShowHistory={() => setShowHistoryModal(true)}
             targetScore={player.targetScore}
             needsReBreak={playerNeedsReBreak === player.id}
-            currentInning={currentInning}
+            isInitialBreak={currentInning === 1 && actions.length === 0}
             onBreakClick={() => setShowBreakDialog(true)}
           />
         ))}
@@ -744,6 +746,19 @@ const GameScoring: React.FC<GameScoringProps> = ({
             New Game
           </button>
         </div>
+      </div>
+
+      {/* Timers at bottom */}
+      <div className="flex justify-center items-center gap-2 mt-4">
+        <MatchTimer
+          startTime={matchStartTime}
+          endTime={matchEndTime}
+          isRunning={!matchEndTime}
+          ballsOnTable={ballsOnTable}
+        />
+        {turnStartTime && (
+          <TurnTimer startTime={turnStartTime} isRunning={!matchEndTime} />
+        )}
       </div>
 
       {playerData.length > 0 && (
