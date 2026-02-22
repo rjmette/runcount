@@ -41,17 +41,15 @@ describe('GameSetup Component', () => {
 
     expect(screen.getByRole('button', { name: /Start Game/i })).toBeInTheDocument();
 
-    // Check default values for numeric inputs using their IDs
+    // Check default values for numeric inputs
     expect(screen.getByDisplayValue(75)).toBeInTheDocument(); // Player 1 target score
     expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
 
     // Check breaking player selection (Player 1 should be default)
-    const breakingButtons = screen.getAllByRole('button', {
-      pressed: true,
-      name: /Select .* breaking player/i,
+    const player1Card = screen.getByRole('button', {
+      name: /Player 1.*breaking/i,
     });
-    expect(breakingButtons).toHaveLength(1);
-    expect(breakingButtons[0]).toHaveAttribute('aria-pressed', 'true');
+    expect(player1Card).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('displays error when submitting with empty player names', async () => {
@@ -105,7 +103,7 @@ describe('GameSetup Component', () => {
     await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
     await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
-    // Set invalid target score - use ID selector instead of label
+    // Set invalid target score
     const player1TargetScore = screen.getByDisplayValue(75);
     await userEvent.clear(player1TargetScore);
     await userEvent.type(player1TargetScore, '0');
@@ -166,11 +164,11 @@ describe('GameSetup Component', () => {
     await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
     await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
-    // Select Player 2 as the breaking player - find by player name text in button
-    const player2Button = screen.getByRole('button', {
-      name: /Select .*Player Two.* breaking player/i,
+    // Select Player 2 as the breaking player by clicking the player card
+    const player2Card = screen.getByRole('button', {
+      name: /Player 2 - tap to select/i,
     });
-    fireEvent.click(player2Button);
+    fireEvent.click(player2Card);
 
     // Submit form
     fireEvent.click(screen.getByRole('button', { name: /Start Game/i }));
@@ -207,17 +205,17 @@ describe('GameSetup Component', () => {
     expect(screen.getByDisplayValue(125)).toBeInTheDocument(); // John's target score
     expect(screen.getByDisplayValue(100)).toBeInTheDocument(); // Mike's target score
 
-    // Check that Mike (Player 2) is selected as breaking
-    const player2BreakBtn = screen.getByRole('button', {
-      name: /Select .*Mike.* breaking player/i,
+    // Check that Player 2 is selected as breaking (aria-pressed=true)
+    const player2Card = screen.getByRole('button', {
+      name: /Player 2.*breaking/i,
     });
-    expect(player2BreakBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(player2Card).toHaveAttribute('aria-pressed', 'true');
 
-    // Check that Player 1 is no longer selected
-    const player1BreakBtn = screen.getByRole('button', {
-      name: /Select .*John.* breaking player/i,
+    // Check that Player 1 is not selected
+    const player1Card = screen.getByRole('button', {
+      name: /Player 1 - tap to select/i,
     });
-    expect(player1BreakBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(player1Card).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('target score inputs work correctly', async () => {
@@ -227,27 +225,27 @@ describe('GameSetup Component', () => {
       </GamePersistProvider>,
     );
 
-    // Find the score inputs by their placeholders
-    const player1ScoreInput = screen.getByDisplayValue(75);
-    const player2ScoreInput = screen.getByDisplayValue(60);
+    // Find the score inputs by their values
+    const player1ScoreInput = screen.getByDisplayValue('75');
+    const player2ScoreInput = screen.getByDisplayValue('60');
 
     // Initial values should be 75 and 60
-    expect(player1ScoreInput).toHaveValue(75);
-    expect(player2ScoreInput).toHaveValue(60);
+    expect(player1ScoreInput).toHaveValue('75');
+    expect(player2ScoreInput).toHaveValue('60');
 
     // Test direct input for player 1
     await userEvent.clear(player1ScoreInput);
     await userEvent.type(player1ScoreInput, '83');
-    expect(player1ScoreInput).toHaveValue(83);
+    expect(player1ScoreInput).toHaveValue('83');
 
     // Test direct input for player 2
     await userEvent.clear(player2ScoreInput);
     await userEvent.type(player2ScoreInput, '47');
-    expect(player2ScoreInput).toHaveValue(47);
+    expect(player2ScoreInput).toHaveValue('47');
 
     // Test minimum value validation (should accept any positive number)
     await userEvent.clear(player1ScoreInput);
     await userEvent.type(player1ScoreInput, '1');
-    expect(player1ScoreInput).toHaveValue(1);
+    expect(player1ScoreInput).toHaveValue('1');
   });
 });

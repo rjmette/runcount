@@ -218,17 +218,17 @@ describe('Error Recovery Integration Tests', () => {
     await userEvent.clear(player2Input);
     await userEvent.type(player2Input, 'Bob');
 
-    // Rapid button clicks on breaking player selection
-    const player1BreakBtn = screen.getByRole('button', {
-      name: /Select .*Alice.* breaking player/i,
+    // Rapid clicks on breaking player selection cards
+    const player1Card = screen.getByRole('button', {
+      name: /Player 1.*tap to select/i,
     });
-    const player2BreakBtn = screen.getByRole('button', {
-      name: /Select .*Bob.* breaking player/i,
+    const player2Card = screen.getByRole('button', {
+      name: /Player 2.*tap to select/i,
     });
 
-    await userEvent.click(player2BreakBtn);
-    await userEvent.click(player1BreakBtn);
-    await userEvent.click(player2BreakBtn);
+    await userEvent.click(player2Card);
+    await userEvent.click(player1Card);
+    await userEvent.click(player2Card);
 
     // Start game
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
