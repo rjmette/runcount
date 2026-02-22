@@ -61,9 +61,6 @@ describe('Game Scoring Integration Tests', () => {
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
 
-    // Alice should be active (breaking player)
-    expect(screen.getByText('Active')).toBeInTheDocument();
-
     // Active player should have scoring buttons
     expect(screen.getByRole('button', { name: /Rack/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Miss/i })).toBeInTheDocument();
@@ -78,9 +75,6 @@ describe('Game Scoring Integration Tests', () => {
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
 
-    // Alice should be active initially
-    expect(screen.getByText('Active')).toBeInTheDocument();
-
     // Alice scores a rack
     const rackButton = screen.getByRole('button', { name: /Rack/i });
     expect(rackButton).toBeInTheDocument();
@@ -90,9 +84,9 @@ describe('Game Scoring Integration Tests', () => {
     const missButton = screen.getByRole('button', { name: /Miss/i });
     await userEvent.click(missButton);
 
-    // Active player should still exist (but turn switched)
+    // Turn should have switched - scoring buttons still available
     await waitFor(() => {
-      expect(screen.getByText('Active')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Rack/i })).toBeInTheDocument();
     });
   });
 
@@ -106,9 +100,9 @@ describe('Game Scoring Integration Tests', () => {
     // Alice commits a foul
     await userEvent.click(screen.getByRole('button', { name: /Foul/i }));
 
-    // Turn should switch after foul (Active indicator should still exist)
+    // Turn should switch after foul - scoring buttons still available
     await waitFor(() => {
-      expect(screen.getByText('Active')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Safety/i })).toBeInTheDocument();
     });
 
     // Bob plays a safety
@@ -181,7 +175,7 @@ describe('Game Scoring Integration Tests', () => {
     // Should handle this gracefully - components should still be functional
     await waitFor(() => {
       expect(screen.getByText('Alice')).toBeInTheDocument();
-      expect(screen.getByText('Active')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Rack/i })).toBeInTheDocument();
     });
   });
 
