@@ -59,15 +59,15 @@ describe('BallsOnTableModal', () => {
     expect(onSubmit).toHaveBeenCalledWith(3);
   });
 
-  it('applies grid columns based on available values', () => {
+  it('always uses 4-column grid layout', () => {
     const { rerender } = render(
       <BallsOnTableModal {...baseProps} currentBallsOnTable={2} action="miss" />,
     );
 
-    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-3');
+    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-4');
 
     rerender(<BallsOnTableModal {...baseProps} currentBallsOnTable={10} action="miss" />);
-    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-5');
+    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-4');
   });
 
   it('has dialog accessibility attributes', () => {
