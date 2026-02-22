@@ -26,12 +26,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with a timeout to prevent hanging when Supabase is unreachable
     const getInitialSession = async () => {
       try {
         setLoading(true);
 
-        const { data } = await supabase.auth.getSession();
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth session request timed out')), 5000),
+        );
+        const { data } = await Promise.race([supabase.auth.getSession(), timeout]);
         setSession(data.session);
         setUser(data.session?.user || null);
       } catch (error) {
