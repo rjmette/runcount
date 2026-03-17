@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { type Player, type GameAction } from '../../../types/game';
+import { RelativeTime } from '../../shared/RelativeTime';
 
 interface GameHistoryModalProps {
   isOpen: boolean;
@@ -152,11 +153,7 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
                       </td>
                       <td className="px-4 py-2">{inning.endAction.ballsOnTable}</td>
                       <td className="px-4 py-2">
-                        {inning.endTime.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
+                        <RelativeTime date={inning.endTime} />
                       </td>
                     </tr>
                   );
