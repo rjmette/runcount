@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",
     "@capacitor/splash-screen": "^8.0.1",
@@ -57,7 +58,6 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.1.0",
     "@playwright/test": "^1.56.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/node": "^22.10.5",
