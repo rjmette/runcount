@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Build web app
-        run: npm run build
+        run: VITE_BASE=./ npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
