@@ -6,7 +6,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/runcount/',
+  base: process.env.VITE_BASE ?? '/runcount/',
   plugins: [
     react(),
     nodePolyfills({
