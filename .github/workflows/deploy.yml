@@ -32,12 +32,29 @@ jobs:
     - name: Run ESLint
       run: npm run lint
       
-    - name: Run tests
+    - name: Run tests with coverage
       env:
         VITE_SUPABASE_KEY: "test-dummy-key-for-ci-testing"
         VITE_SUPABASE_URL: "https://test.supabase.co"
-      run: npm test
-      
+      run: npx vitest run --coverage
+
+    - name: Post coverage summary
+      if: always()
+      run: |
+        if [ -f coverage/coverage-summary.json ]; then
+          echo "## Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const data = require('./coverage/coverage-summary.json').total;
+            const fmt = (v) => v.pct + '%';
+            console.log('Statements: ' + fmt(data.statements));
+            console.log('Branches:   ' + fmt(data.branches));
+            console.log('Functions:  ' + fmt(data.functions));
+            console.log('Lines:      ' + fmt(data.lines));
+          " >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+
     - name: Build project
       run: npm run build
 
@@ -63,6 +80,7 @@ jobs:
       env:
         VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
       run: npm run build
       
     - name: Configure AWS credentials

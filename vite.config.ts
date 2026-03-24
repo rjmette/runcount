@@ -56,7 +56,7 @@ export default defineConfig({
     exclude: ['tests/**', 'node_modules/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
+      reporter: ['text', 'lcov', 'json-summary'],
       reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
@@ -65,6 +65,12 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/setupTests.ts',
       ],
+      thresholds: {
+        statements: 30,
+        branches: 30,
+        functions: 30,
+        lines: 30,
+      },
     },
   },
 });
