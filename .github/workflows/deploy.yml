@@ -81,6 +81,7 @@ jobs:
         VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+        VITE_BASE: /
       run: npm run build
       
     - name: Configure AWS credentials
