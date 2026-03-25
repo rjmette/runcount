@@ -97,7 +97,7 @@ describe('GameStatistics Component', () => {
     localStorage.clear();
   });
 
-  test('renders loading state initially', () => {
+  test('renders loading state initially', async () => {
     render(
       <GameStatistics
         gameId="game-1"
@@ -111,6 +111,10 @@ describe('GameStatistics Component', () => {
     expect(
       screen.getByRole('status', { name: 'Loading game statistics...' }),
     ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
   });
 
   test('shows error when no game ID provided', async () => {
