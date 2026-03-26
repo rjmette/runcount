@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
 import GameScoring from '..';
@@ -60,5 +61,38 @@ describe('GameScoring integration', () => {
     await waitFor(() => {
       expect(screen.getAllByTestId('player-card').length).toBe(2);
     });
+  });
+
+  test('logs Player 2 as the acting player when Player 2 breaks', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={1}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '15' }));
+    await userEvent.click(screen.getByRole('button', { name: /Innings/i }));
+
+    const rows = await screen.findAllByRole('row');
+    const firstDataRow = rows[1];
+
+    expect(within(firstDataRow).getByText('Bob')).toBeInTheDocument();
+    expect(within(firstDataRow).getByText('Miss')).toBeInTheDocument();
   });
 });

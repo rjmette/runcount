@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { type Player, type GameAction } from '../../../types/game';
+import { calculateInningActions } from '../../GameHistory/utils/calculations';
 import { RelativeTime } from '../../shared/RelativeTime';
 
 interface GameHistoryModalProps {
@@ -18,73 +19,7 @@ export const GameHistoryModal: React.FC<GameHistoryModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Group actions by innings
-  const inningActions: Array<{
-    inningNumber: number;
-    playerId: number;
-    endAction: GameAction;
-    pointsInInning: number;
-    endTime: Date;
-    currentScore: number;
-  }> = [];
-
-  let currentInningNumber = 1;
-  let currentPlayerId = playerData[0]?.id;
-  let currentRun = 0;
-
-  // Track cumulative scores for each player
-  const playerScores: Record<number, number> = {};
-  playerData.forEach((player) => {
-    playerScores[player.id] = 0;
-  });
-
-  // Process actions to create inning-based history
-  actions.forEach((action, idx) => {
-    if (action.type === 'score') {
-      // For score actions (regular balls or new rack), just add to inning points
-      currentRun += action.value;
-    } else if (['miss', 'safety', 'foul'].includes(action.type)) {
-      // For turn-ending actions (miss, safety, foul), calculate points
-      // This includes the current run up to this point
-
-      // Calculate balls pocketed in this final shot (if any)
-      const prevAction = idx > 0 ? actions[idx - 1] : null;
-      const prevBOT = prevAction?.ballsOnTable ?? 15;
-      const ballsPocketedOnFinalShot = Math.max(0, prevBOT - (action.ballsOnTable || 0));
-
-      // If it's a foul, subtract 1 point for the penalty
-      const pointsInAction =
-        action.type === 'foul'
-          ? currentRun + ballsPocketedOnFinalShot - 1
-          : currentRun + ballsPocketedOnFinalShot;
-
-      // Update player's total score
-      playerScores[currentPlayerId] += pointsInAction;
-
-      // Add the inning to our array
-      inningActions.push({
-        inningNumber: currentInningNumber,
-        playerId: currentPlayerId,
-        endAction: action,
-        pointsInInning: pointsInAction,
-        endTime: new Date(action.timestamp),
-        currentScore: playerScores[currentPlayerId],
-      });
-
-      // Update for next inning
-      const nextPlayerId = playerData.find((p) => p.id !== currentPlayerId)?.id;
-      if (nextPlayerId !== undefined) {
-        currentPlayerId = nextPlayerId;
-        if (currentPlayerId === playerData[0]?.id) {
-          // If we're back to the first player, increment inning number
-          currentInningNumber++;
-        }
-      }
-
-      // Reset points for next inning
-      currentRun = 0;
-    }
-  });
+  const inningActions = calculateInningActions(actions, playerData);
 
   // Sort innings in descending order (most recent first)
   const sortedInnings = [...inningActions].sort((a, b) => {

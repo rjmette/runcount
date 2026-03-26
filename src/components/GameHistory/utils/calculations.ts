@@ -15,7 +15,8 @@ export const calculateInningActions = (
 ): InningAction[] => {
   const inningActions: InningAction[] = [];
   let currentInningNumber = 1;
-  let currentPlayerId = players[0]?.id;
+  let startingPlayerId = actions[0]?.playerId ?? players[0]?.id;
+  let previousTerminalPlayerId: number | null = null;
   let currentRun = 0;
 
   // Track cumulative scores for each player
@@ -43,28 +44,32 @@ export const calculateInningActions = (
           ? currentRun + ballsPocketedOnFinalShot - 1
           : currentRun + ballsPocketedOnFinalShot;
 
+      if (startingPlayerId === undefined) {
+        startingPlayerId = action.playerId;
+      }
+
+      if (
+        inningActions.length > 0 &&
+        action.playerId === startingPlayerId &&
+        previousTerminalPlayerId !== null &&
+        previousTerminalPlayerId !== startingPlayerId
+      ) {
+        currentInningNumber++;
+      }
+
       // Update player's total score
-      playerScores[currentPlayerId] += pointsInAction;
+      playerScores[action.playerId] += pointsInAction;
 
       // Add the inning to our array
       inningActions.push({
         inningNumber: currentInningNumber,
-        playerId: currentPlayerId,
+        playerId: action.playerId,
         endAction: action,
         pointsInInning: pointsInAction,
         endTime: new Date(action.timestamp),
-        currentScore: playerScores[currentPlayerId],
+        currentScore: playerScores[action.playerId],
       });
-
-      // Update for next inning
-      const nextPlayerId = players.find((p) => p.id !== currentPlayerId)?.id;
-      if (nextPlayerId !== undefined) {
-        currentPlayerId = nextPlayerId;
-        if (currentPlayerId === players[0]?.id) {
-          // If we're back to the first player, increment inning number
-          currentInningNumber++;
-        }
-      }
+      previousTerminalPlayerId = action.playerId;
 
       // Reset points for next inning
       currentRun = 0;
