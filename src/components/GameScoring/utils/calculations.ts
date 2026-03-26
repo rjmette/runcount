@@ -1,49 +1,8 @@
 import { type Player, type GameAction } from '../../../types/game';
+import { calculatePlayerStats as calculateSharedPlayerStats } from '../../shared/stats';
 
-export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
-  // Calculate safety efficiency
-  let successfulSafeties = 0;
-  const totalSafeties = player.safeties;
-
-  // A safety is successful if the next action by opponent is a foul or miss
-  for (let i = 0; i < actions.length - 1; i++) {
-    const currentAction = actions[i];
-    const nextAction = actions[i + 1];
-
-    // If current action is a safety by this player
-    if (currentAction.type === 'safety' && currentAction.playerId === player.id) {
-      // Get next player ID
-      const nextPlayerId = nextAction.playerId;
-
-      // If next action is by a different player (opponent)
-      if (nextPlayerId !== player.id) {
-        // Check if next action is a foul or miss (successful safety)
-        if (nextAction.type === 'foul' || nextAction.type === 'miss') {
-          successfulSafeties++;
-        }
-      }
-    }
-  }
-
-  // Calculate safety efficiency percentage
-  const safetyEfficiency =
-    totalSafeties > 0 ? Math.round((successfulSafeties / totalSafeties) * 100) : 0;
-
-  // Calculate shooting percentage
-  const shotsTaken = player.score + player.missedShots + player.safeties + player.fouls;
-  const shootingPercentage =
-    shotsTaken > 0 ? Math.round((player.score / shotsTaken) * 100) : 0;
-
-  // Calculate BPI (Balls Per Inning)
-  const bpi = player.innings > 0 ? (player.score / player.innings).toFixed(2) : '0.00';
-
-  return {
-    shootingPercentage,
-    safetyEfficiency,
-    successfulSafeties,
-    bpi,
-  };
-};
+export const calculatePlayerStats = (player: Player, actions: GameAction[]) =>
+  calculateSharedPlayerStats(player, actions);
 
 export const calculateGameDuration = (actions: GameAction[]): string => {
   if (actions.length === 0) return 'N/A';
