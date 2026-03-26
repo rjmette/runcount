@@ -178,13 +178,31 @@ describe('useGameActions', () => {
     const { result, players } = setup();
 
     act(() => {
-      result.current.handleAddFoul(14, 2);
+      result.current.handleAddFoul(15, 2);
     });
 
-    // Break foul with 2-point penalty: adds balls pocketed (1) then subtracts 2-point penalty = -1 total
-    expect(players[0].score).toBe(-1); // 1 ball pocketed - 2 break foul penalty = -1
+    expect(players[0].score).toBe(-2);
     expect(players[0].fouls).toBe(1);
     expect(players[0].consecutiveFouls).toBe(1);
+  });
+
+  test('handleAddFoul records opening-break fouls distinctly and keeps the breaker active', () => {
+    const testHarness = setup();
+
+    act(() => {
+      testHarness.result.current.handleAddFoul(15, 2);
+    });
+
+    expect(testHarness.actions).toHaveLength(1);
+    expect(testHarness.actions[0]).toMatchObject({
+      type: 'foul',
+      playerId: 0,
+      value: -2,
+      isBreakFoul: true,
+      reBreak: false,
+      ballsOnTable: 15,
+    });
+    expect(testHarness.mocks.setActivePlayerIndex).not.toHaveBeenCalled();
   });
 
   test('handleAddFoul applies regular foul penalty (-1 point)', () => {

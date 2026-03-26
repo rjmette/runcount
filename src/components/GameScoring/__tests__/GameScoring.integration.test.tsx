@@ -96,6 +96,78 @@ describe('GameScoring integration', () => {
     expect(within(firstDataRow).getByText('Miss')).toBeInTheDocument();
   });
 
+  test('shows the break-foul penalty chooser only on the opening break', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Foul$/i }));
+
+    expect(await screen.findByText('Break Foul Penalty')).toBeInTheDocument();
+    expect(screen.queryByTestId('balls-on-table-modal')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+
+    await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '15' }));
+
+    await userEvent.click(screen.getByRole('button', { name: /^Foul$/i }));
+
+    expect(await screen.findByTestId('balls-on-table-modal')).toBeInTheDocument();
+    expect(screen.queryByText('Break Foul Penalty')).not.toBeInTheDocument();
+  });
+
+  test('supports the illegal-break flow on the opening shot', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Foul$/i }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: /Illegal Break \(-2 points\)/i }),
+    );
+    await userEvent.click(await screen.findByRole('button', { name: '15' }));
+
+    expect(await screen.findByText('Foul on the Break')).toBeInTheDocument();
+    expect(
+      screen.getByText('Alice has fouled on the opening break.'),
+    ).toBeInTheDocument();
+  });
+
   test('resets live BOT display to 15 after a table-clearing miss', async () => {
     render(
       <GameScoring
