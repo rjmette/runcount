@@ -56,7 +56,7 @@ describe('Error Recovery Integration Tests', () => {
     await waitFor(() => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
-        { Alice: 75, Bob: 60 },
+        { Alice: 100, Bob: 100 },
         0,
       );
     });
@@ -106,7 +106,7 @@ describe('Error Recovery Integration Tests', () => {
     await waitFor(() => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
-        { Alice: 75, Bob: 60 },
+        { Alice: 100, Bob: 100 },
         0,
       );
     });
@@ -141,7 +141,7 @@ describe('Error Recovery Integration Tests', () => {
     await waitFor(() => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
-        { Alice: 75, Bob: 60 },
+        { Alice: 100, Bob: 100 },
         0,
       );
     });
@@ -190,7 +190,7 @@ describe('Error Recovery Integration Tests', () => {
     await waitFor(() => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
-        { Alice: 50, Bob: 60 },
+        { Alice: 50, Bob: 100 },
         0,
       );
     });
@@ -237,7 +237,7 @@ describe('Error Recovery Integration Tests', () => {
     await waitFor(() => {
       expect(mockStartGame).toHaveBeenCalledWith(
         ['Alice', 'Bob'],
-        { Alice: 75, Bob: 60 },
+        { Alice: 100, Bob: 100 },
         1, // Player 2 (index 1) should be breaking
       );
     });

@@ -42,8 +42,8 @@ describe('GameSetup Component', () => {
     expect(screen.getByRole('button', { name: /Start Game/i })).toBeInTheDocument();
 
     // Check default values for numeric inputs
-    expect(screen.getByDisplayValue(75)).toBeInTheDocument(); // Player 1 target score
-    expect(screen.getByDisplayValue(60)).toBeInTheDocument(); // Player 2 target score
+    const targetScoreInputs = screen.getAllByDisplayValue(100);
+    expect(targetScoreInputs).toHaveLength(2);
 
     // Check breaking player selection (Player 1 should be default)
     const player1Card = screen.getByRole('button', {
@@ -104,7 +104,7 @@ describe('GameSetup Component', () => {
     await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
     // Set invalid target score
-    const player1TargetScore = screen.getByDisplayValue(75);
+    const player1TargetScore = screen.getAllByDisplayValue(100)[0];
     await userEvent.clear(player1TargetScore);
     await userEvent.type(player1TargetScore, '0');
 
@@ -132,11 +132,11 @@ describe('GameSetup Component', () => {
     await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
 
     // Change target scores
-    const player1TargetScore = screen.getByDisplayValue(75);
+    const player1TargetScore = screen.getAllByDisplayValue(100)[0];
     await userEvent.clear(player1TargetScore);
     await userEvent.type(player1TargetScore, '100');
 
-    const player2TargetScore = screen.getByDisplayValue(60);
+    const player2TargetScore = screen.getAllByDisplayValue(100)[1];
     await userEvent.clear(player2TargetScore);
     await userEvent.type(player2TargetScore, '75');
 
@@ -176,7 +176,7 @@ describe('GameSetup Component', () => {
     // Check that startGame was called with correct parameters including breaking player
     expect(mockStartGame).toHaveBeenCalledWith(
       ['Player One', 'Player Two'],
-      { 'Player One': 75, 'Player Two': 60 },
+      { 'Player One': 100, 'Player Two': 100 },
       1, // Player 2 (index 1) is breaking
     );
   });
@@ -226,12 +226,11 @@ describe('GameSetup Component', () => {
     );
 
     // Find the score inputs by their values
-    const player1ScoreInput = screen.getByDisplayValue('75');
-    const player2ScoreInput = screen.getByDisplayValue('60');
+    const [player1ScoreInput, player2ScoreInput] = screen.getAllByDisplayValue('100');
 
-    // Initial values should be 75 and 60
-    expect(player1ScoreInput).toHaveValue('75');
-    expect(player2ScoreInput).toHaveValue('60');
+    // Initial values should both default to 100
+    expect(player1ScoreInput).toHaveValue('100');
+    expect(player2ScoreInput).toHaveValue('100');
 
     // Test direct input for player 1
     await userEvent.clear(player1ScoreInput);
