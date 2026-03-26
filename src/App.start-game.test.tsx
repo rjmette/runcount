@@ -25,11 +25,12 @@ vi.mock('./components/GameSetup', () => ({
       players: string[],
       playerTargetScores: Record<string, number>,
       breakingPlayerId: number,
+      shotClockSeconds: number | null,
     ) => void;
   }) => (
     <button
       data-testid="start-game"
-      onClick={() => startGame(['Alice', 'Bob'], { Alice: 75, Bob: 60 }, 0)}
+      onClick={() => startGame(['Alice', 'Bob'], { Alice: 75, Bob: 60 }, 0, 35)}
     >
       Start Game (Test)
     </button>

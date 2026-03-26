@@ -39,6 +39,7 @@ describe('Game Scoring Integration Tests', () => {
     supabase: mockSupabase as any,
     user: null,
     breakingPlayerId: 0,
+    shotClockSeconds: 15,
     matchStartTime: null,
     matchEndTime: null,
     setMatchStartTime: vi.fn(),

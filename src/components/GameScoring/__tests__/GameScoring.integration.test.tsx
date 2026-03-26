@@ -46,6 +46,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -74,6 +75,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={1}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -107,6 +109,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -145,6 +148,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -179,6 +183,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -212,6 +217,7 @@ describe('GameScoring integration', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}
@@ -231,5 +237,61 @@ describe('GameScoring integration', () => {
         within(screen.getByTestId('match-timer-bot')).getByText('15'),
       ).toBeInTheDocument();
     });
+  });
+
+  test('shows shot clock disabled state when the clock is turned off', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={null}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    expect(await screen.findByTestId('turn-timer-disabled')).toHaveTextContent(
+      'Shot Clock Off',
+    );
+  });
+
+  test('shows the configured shot clock duration when enabled', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={35}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    expect(
+      await screen.findByLabelText('Shot clock set to 35 seconds'),
+    ).toHaveTextContent('35s');
   });
 });

@@ -97,6 +97,7 @@ describe('GameScoring consecutive foul flow', () => {
         supabase={supabase}
         user={null}
         breakingPlayerId={0}
+        shotClockSeconds={15}
         matchStartTime={null}
         matchEndTime={null}
         setMatchStartTime={() => {}}

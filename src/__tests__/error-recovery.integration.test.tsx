@@ -58,6 +58,7 @@ describe('Error Recovery Integration Tests', () => {
         ['Alice', 'Bob'],
         { Alice: 100, Bob: 100 },
         0,
+        15,
       );
     });
   });
@@ -108,6 +109,7 @@ describe('Error Recovery Integration Tests', () => {
         ['Alice', 'Bob'],
         { Alice: 100, Bob: 100 },
         0,
+        15,
       );
     });
   });
@@ -143,6 +145,7 @@ describe('Error Recovery Integration Tests', () => {
         ['Alice', 'Bob'],
         { Alice: 100, Bob: 100 },
         0,
+        15,
       );
     });
 
@@ -192,6 +195,7 @@ describe('Error Recovery Integration Tests', () => {
         ['Alice', 'Bob'],
         { Alice: 50, Bob: 100 },
         0,
+        15,
       );
     });
   });
@@ -239,6 +243,7 @@ describe('Error Recovery Integration Tests', () => {
         ['Alice', 'Bob'],
         { Alice: 100, Bob: 100 },
         1, // Player 2 (index 1) should be breaking
+        15,
       );
     });
   });

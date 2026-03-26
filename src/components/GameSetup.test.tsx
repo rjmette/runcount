@@ -45,6 +45,10 @@ describe('GameSetup Component', () => {
     // Check default values for numeric inputs
     const targetScoreInputs = screen.getAllByDisplayValue(100);
     expect(targetScoreInputs).toHaveLength(2);
+    expect(screen.getByRole('button', { name: '15s' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
 
     // Check breaking player selection (Player 1 should be default)
     const player1Card = screen.getByRole('button', {
@@ -151,6 +155,7 @@ describe('GameSetup Component', () => {
       ['Player One', 'Player Two'],
       { 'Player One': 100, 'Player Two': 75 },
       0, // Player 1 (index 0) is breaking
+      15,
     );
   });
 
@@ -179,6 +184,27 @@ describe('GameSetup Component', () => {
       ['Player One', 'Player Two'],
       { 'Player One': 100, 'Player Two': 100 },
       1, // Player 2 (index 1) is breaking
+      15,
+    );
+  });
+
+  test('passes the selected shot clock into startGame', async () => {
+    render(
+      <GamePersistProvider>
+        <GameSetup startGame={mockStartGame} />
+      </GamePersistProvider>,
+    );
+
+    await userEvent.type(screen.getByLabelText('Player 1 name'), 'Player One');
+    await userEvent.type(screen.getByLabelText('Player 2 name'), 'Player Two');
+    await userEvent.click(screen.getByRole('button', { name: '35s' }));
+    fireEvent.click(screen.getByRole('button', { name: /Start Game/i }));
+
+    expect(mockStartGame).toHaveBeenCalledWith(
+      ['Player One', 'Player Two'],
+      { 'Player One': 100, 'Player Two': 100 },
+      0,
+      35,
     );
   });
 
@@ -186,6 +212,7 @@ describe('GameSetup Component', () => {
     const lastPlayers = ['John', 'Mike'];
     const lastPlayerTargetScores = { John: 125, Mike: 100 };
     const lastBreakingPlayerId = 1; // Mike was breaking
+    const lastShotClockSeconds = 35;
 
     render(
       <GamePersistProvider>
@@ -194,6 +221,7 @@ describe('GameSetup Component', () => {
           lastPlayers={lastPlayers}
           lastPlayerTargetScores={lastPlayerTargetScores}
           lastBreakingPlayerId={lastBreakingPlayerId}
+          lastShotClockSeconds={lastShotClockSeconds}
         />
       </GamePersistProvider>,
     );
@@ -217,6 +245,11 @@ describe('GameSetup Component', () => {
       name: /Player 1 - tap to select/i,
     });
     expect(player1Card).toHaveAttribute('aria-pressed', 'false');
+
+    expect(screen.getByRole('button', { name: '35s' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   test('target score inputs work correctly', async () => {

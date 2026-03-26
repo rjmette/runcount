@@ -58,7 +58,12 @@ const AppContent: FC = () => {
     setLastPlayerTargetScores,
     lastBreakingPlayerId,
     setLastBreakingPlayerId,
+    lastShotClockSeconds,
+    setLastShotClockSeconds,
   } = useGameSettings();
+  const [shotClockSeconds, setShotClockSeconds] = useState<number | null>(
+    lastShotClockSeconds,
+  );
   const {
     gameState,
     setGameState,
@@ -81,6 +86,10 @@ const AppContent: FC = () => {
     handleViewHistory,
     handleGoToSetup,
   } = useGameState();
+
+  useEffect(() => {
+    setShotClockSeconds(lastShotClockSeconds);
+  }, [lastShotClockSeconds]);
 
   // Modal state
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -115,11 +124,14 @@ const AppContent: FC = () => {
       players: string[],
       playerTargetScores: Record<string, number>,
       breakingPlayerId: number,
+      nextShotClockSeconds: number | null,
     ) => {
+      setShotClockSeconds(nextShotClockSeconds);
       handleStartGameBase(players, playerTargetScores, breakingPlayerId, (p, t, b) => {
         setLastPlayers(p);
         setLastPlayerTargetScores(t);
         setLastBreakingPlayerId(b);
+        setLastShotClockSeconds(nextShotClockSeconds);
       });
     },
     [
@@ -127,6 +139,7 @@ const AppContent: FC = () => {
       setLastPlayers,
       setLastPlayerTargetScores,
       setLastBreakingPlayerId,
+      setLastShotClockSeconds,
     ],
   );
 
@@ -176,12 +189,14 @@ const AppContent: FC = () => {
           lastPlayers={lastPlayers}
           lastPlayerTargetScores={lastPlayerTargetScores}
           lastBreakingPlayerId={lastBreakingPlayerId}
+          lastShotClockSeconds={lastShotClockSeconds}
           onStartGame={handleStartGame}
           players={players}
           playerTargetScores={playerTargetScores}
           gameId={currentGameId}
           setGameId={setCurrentGameId}
           breakingPlayerId={breakingPlayerId}
+          shotClockSeconds={shotClockSeconds}
           matchStartTime={matchStartTime}
           matchEndTime={matchEndTime}
           setMatchStartTime={setMatchStartTime}

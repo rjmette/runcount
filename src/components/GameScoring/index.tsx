@@ -90,6 +90,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   supabase,
   user,
   breakingPlayerId = 0,
+  shotClockSeconds,
   matchStartTime: parentMatchStartTime,
   matchEndTime: parentMatchEndTime,
   setMatchStartTime: parentSetMatchStartTime,
@@ -763,9 +764,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
           isRunning={!matchEndTime}
           ballsOnTable={ballsOnTable}
         />
-        {turnStartTime && (
-          <TurnTimer startTime={turnStartTime} isRunning={!matchEndTime} />
-        )}
+        <TurnTimer
+          startTime={turnStartTime}
+          isRunning={!matchEndTime}
+          shotClockSeconds={shotClockSeconds}
+        />
       </div>
 
       {playerData.length > 0 && (

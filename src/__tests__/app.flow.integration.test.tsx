@@ -25,7 +25,7 @@ vi.mock('../components/GameSetup', () => ({
   default: ({ startGame }: { startGame: any }) => (
     <button
       data-testid="start-game"
-      onClick={() => startGame(['A', 'B'], { A: 5, B: 5 }, 0)}
+      onClick={() => startGame(['A', 'B'], { A: 5, B: 5 }, 0, null)}
     >
       Start
     </button>
