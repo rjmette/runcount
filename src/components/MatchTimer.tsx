@@ -4,11 +4,10 @@ interface MatchTimerProps {
   startTime: Date | string | null;
   endTime?: Date | string | null;
   isRunning?: boolean;
-  ballsOnTable?: number;
 }
 
 export const MatchTimer: React.FC<MatchTimerProps> = memo(
-  ({ startTime, endTime, isRunning = true, ballsOnTable }) => {
+  ({ startTime, endTime, isRunning = true }) => {
     const [elapsedTime, setElapsedTime] = useState<string>('00:00:00');
 
     useEffect(() => {
@@ -59,19 +58,6 @@ export const MatchTimer: React.FC<MatchTimerProps> = memo(
         <span className="text-sm sm:text-lg font-mono font-bold text-gray-800 dark:text-gray-200">
           {elapsedTime}
         </span>
-        {ballsOnTable !== undefined && (
-          <div
-            className="flex items-center gap-0.5 sm:gap-1 bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm"
-            data-testid="match-timer-bot"
-            aria-label={`Balls on Table: ${ballsOnTable}`}
-            title="BOT = Balls on Table"
-          >
-            <span className="text-gray-600 dark:text-gray-300">BOT:</span>
-            <span className="font-semibold text-blue-700 dark:text-blue-300">
-              {ballsOnTable}
-            </span>
-          </div>
-        )}
       </div>
     );
   },

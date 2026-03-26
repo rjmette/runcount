@@ -672,12 +672,29 @@ const GameScoring: React.FC<GameScoringProps> = ({
         ))}
       </div>
 
+      <div className="flex justify-center mt-4">
+        <div
+          className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm shadow-sm dark:border-blue-800 dark:bg-blue-950/60"
+          data-testid="bot-indicator"
+          aria-label={`Balls on Table: ${ballsOnTable}`}
+          title="BOT = Balls on Table"
+        >
+          <span className="font-medium uppercase tracking-wide text-blue-700 dark:text-blue-200">
+            BOT
+          </span>
+          <span className="text-xs text-blue-600 dark:text-blue-300">Balls on Table</span>
+          <span className="rounded-full bg-white px-2.5 py-0.5 text-base font-bold text-blue-700 shadow-sm dark:bg-blue-900 dark:text-blue-100">
+            {ballsOnTable}
+          </span>
+        </div>
+      </div>
+
       {/* Action buttons moved below player cards */}
       <div className="flex justify-center items-center mt-4">
-        <div className="flex flex-col space-y-3 min-[360px]:flex-row min-[360px]:space-y-0 min-[360px]:space-x-2">
+        <div className="grid w-full max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="w-28 px-2 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
+            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
             title="View game innings"
           >
             <svg
@@ -700,7 +717,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`w-28 px-2 py-2 rounded flex items-center justify-center gap-1 text-sm font-medium ${
+            className={`min-h-12 rounded px-3 py-3 flex items-center justify-center gap-2 text-sm font-medium shadow-sm ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -726,7 +743,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="w-28 px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
+            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -747,7 +764,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowHelpModal(true)}
-            className="w-28 px-2 py-2 rounded bg-slate-600 text-white hover:bg-slate-700 flex items-center justify-center gap-1 text-sm font-medium"
+            className="min-h-12 rounded bg-slate-600 px-3 py-3 text-sm font-medium text-white hover:bg-slate-700 flex items-center justify-center gap-2 shadow-sm"
             title="Show straight pool help"
           >
             <span className="text-base font-bold leading-none">?</span>
@@ -762,7 +779,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           startTime={matchStartTime}
           endTime={matchEndTime}
           isRunning={!matchEndTime}
-          ballsOnTable={ballsOnTable}
         />
         <TurnTimer
           startTime={turnStartTime}

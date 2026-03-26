@@ -234,9 +234,39 @@ describe('GameScoring integration', () => {
 
     await waitFor(() => {
       expect(
-        within(screen.getByTestId('match-timer-bot')).getByText('15'),
+        within(screen.getByTestId('bot-indicator')).getByText('15'),
       ).toBeInTheDocument();
     });
+  });
+
+  test('shows BOT in a dedicated status strip above the action buttons', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={15}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId('bot-indicator')).toHaveAttribute(
+      'aria-label',
+      'Balls on Table: 15',
+    );
+    expect(screen.queryByTestId('match-timer-bot')).not.toBeInTheDocument();
   });
 
   test('shows shot clock disabled state when the clock is turned off', async () => {
