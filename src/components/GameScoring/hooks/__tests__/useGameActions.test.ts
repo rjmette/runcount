@@ -248,6 +248,27 @@ describe('useGameActions', () => {
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
   });
 
+  test('handleAddFoul applies manual three-foul penalty to the overridden active player', () => {
+    const { result, players, mocks } = setup({
+      activePlayerIndex: 1,
+      currentInning: 2,
+      actions: [{ type: 'miss', playerId: 0, value: 0, timestamp: new Date() }],
+    });
+    players[1].consecutiveFouls = 2;
+
+    act(() => {
+      result.current.handleAddFoul(15, undefined, {
+        manualConsecutiveDecision: 'threeFoul',
+        playerIdOverride: 1,
+      });
+    });
+
+    expect(players[0].score).toBe(0);
+    expect(players[1].score).toBe(-16);
+    expect(players[1].consecutiveFouls).toBe(0);
+    expect(mocks.setPlayerNeedsReBreak).toHaveBeenCalledWith(players[1].id);
+  });
+
   test('handleAddSafety switches player and adds safety count', () => {
     const { result, players, mocks } = setup();
 

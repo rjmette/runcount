@@ -26,6 +26,7 @@ interface FoulFlowState {
   botAction: BotAction;
   selectedBreakPenalty: 1 | 2 | null;
   pendingConsecutiveFoulBotsValue: number | null;
+  pendingConsecutiveFoulPlayerId: number | null;
   showBreakPenaltyModal: boolean;
   showConsecutivePenaltyModal: boolean;
 }
@@ -35,7 +36,7 @@ type FoulFlowAction =
   | { type: 'openBreakPenalty' }
   | { type: 'closeBreakPenalty' }
   | { type: 'selectBreakPenalty'; penalty: 1 | 2 }
-  | { type: 'openConsecutivePenalty'; botsValue: number }
+  | { type: 'openConsecutivePenalty'; botsValue: number; playerId: number }
   | { type: 'closeConsecutivePenalty' }
   | { type: 'reset' };
 
@@ -43,6 +44,7 @@ const initialFoulFlowState: FoulFlowState = {
   botAction: null,
   selectedBreakPenalty: null,
   pendingConsecutiveFoulBotsValue: null,
+  pendingConsecutiveFoulPlayerId: null,
   showBreakPenaltyModal: false,
   showConsecutivePenaltyModal: false,
 };
@@ -62,12 +64,14 @@ const foulFlowReducer = (state: FoulFlowState, action: FoulFlowAction): FoulFlow
         ...state,
         showConsecutivePenaltyModal: true,
         pendingConsecutiveFoulBotsValue: action.botsValue,
+        pendingConsecutiveFoulPlayerId: action.playerId,
       };
     case 'closeConsecutivePenalty':
       return {
         ...state,
         showConsecutivePenaltyModal: false,
         pendingConsecutiveFoulBotsValue: null,
+        pendingConsecutiveFoulPlayerId: null,
       };
     case 'reset':
       return { ...initialFoulFlowState };
@@ -476,45 +480,31 @@ const GameScoring: React.FC<GameScoringProps> = ({
   ]);
 
   const handleEndGame = () => {
-    if (!gameWinner && gameId) {
-      // Clear the active game state since we're ending the game
-      clearGameState();
+    if (gameId) {
+      const endTime = new Date();
 
-      // Make sure to also update Supabase directly
-      if (user) {
-        try {
-          const now = new Date();
-          const payload = {
-            id: gameId,
-            date: now.toISOString(),
-            players: playerData,
-            actions,
-            completed: true,
-            winner_id: null,
-            owner_id: user.id,
-            deleted: false, // Explicitly set deleted to false
-          };
-
-          supabase
-            .from('games')
-            .upsert(payload)
-            .then(({ error }) => {
-              if (error) {
-                console.error('Error updating completed game in Supabase:', error);
-                addError(
-                  'Unable to finalize your game in the cloud. It will attempt again shortly.',
-                );
-              }
-            });
-        } catch (err) {
-          console.error('Error updating completed game in Supabase:', err);
-          addError('A network error occurred while finalizing your game.');
-        }
+      if (!gameWinner) {
+        setMatchEndTime(endTime);
       }
+
+      void saveGameToSupabaseHelper({
+        supabase,
+        user,
+        saveGameState,
+        clearGameState,
+        matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+        matchEndTime: (gameWinner ? matchEndTime : endTime)?.toISOString(),
+        turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
+        gameId,
+        players: playerData,
+        actions,
+        completed: true,
+        winner_id: gameWinner?.id ?? null,
+      });
     } else {
-      // Make sure to clear active game state from localStorage
       clearGameState();
     }
+
     finishGame();
   };
 
@@ -554,12 +544,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   const handleConsecutivePenaltySelect = (penalty: 'regular' | 'threeFoul') => {
     const botsValue = foulFlowState.pendingConsecutiveFoulBotsValue;
+    const playerId = foulFlowState.pendingConsecutiveFoulPlayerId;
     if (botsValue === null) {
       return;
     }
 
     handleAddFoul(botsValue, undefined, {
       manualConsecutiveDecision: penalty,
+      playerIdOverride: playerId ?? undefined,
     });
 
     dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
@@ -589,7 +581,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
         playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
         playerData[activePlayerIndex].consecutiveFouls >= 2
       ) {
-        dispatchFoulFlow({ type: 'openConsecutivePenalty', botsValue });
+        dispatchFoulFlow({
+          type: 'openConsecutivePenalty',
+          botsValue,
+          playerId: playerData[activePlayerIndex].id,
+        });
         return;
       }
 
@@ -779,7 +775,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
           />
           <ConsecutiveFoulPenaltyModal
             isOpen={foulFlowState.showConsecutivePenaltyModal}
-            playerName={playerData[activePlayerIndex]?.name || ''}
+            playerName={
+              playerData.find(
+                (player) => player.id === foulFlowState.pendingConsecutiveFoulPlayerId,
+              )?.name || ''
+            }
             onSelectPenalty={handleConsecutivePenaltySelect}
             onCancel={handleCancelConsecutivePenalty}
           />
