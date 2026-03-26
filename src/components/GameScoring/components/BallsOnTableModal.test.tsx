@@ -43,6 +43,13 @@ describe('BallsOnTableModal', () => {
     expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
   });
 
+  it('limits rack flow to 0 only when no balls remain on the table', () => {
+    render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={0} />);
+
+    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+  });
+
   it('calls onClose when cancel is pressed', () => {
     const onClose = vi.fn();
     render(<BallsOnTableModal {...baseProps} onClose={onClose} action="miss" />);

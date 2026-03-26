@@ -28,9 +28,11 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   const maxAvailableBalls = currentBallsOnTable < 0 ? 0 : currentBallsOnTable;
 
   const availableValues = useMemo(() => {
-    return isRackAction
-      ? [0, 1]
-      : Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
+    if (isRackAction) {
+      return maxAvailableBalls === 0 ? [0] : [0, 1];
+    }
+
+    return Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
   }, [isRackAction, maxAvailableBalls]);
 
   return (

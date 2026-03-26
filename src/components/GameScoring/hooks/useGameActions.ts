@@ -65,6 +65,8 @@ export const useGameActions = ({
   playerNeedsReBreak,
   setMatchEndTime,
 }: UseGameActionsProps) => {
+  const resolveNextTableState = (botsValue: number) => (botsValue === 0 ? 15 : botsValue);
+
   const handleAddScore = (score: number, botsValue?: number) => {
     if (botsValue === undefined) {
       return { needsBOTInput: true, action: 'newrack' };
@@ -146,7 +148,7 @@ export const useGameActions = ({
     };
 
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
-    setBallsOnTable(botsValue);
+    setBallsOnTable(resolveNextTableState(botsValue));
     setActions([...actions, newAction]);
     setIsUndoEnabled(true);
 
@@ -303,7 +305,7 @@ export const useGameActions = ({
     }
 
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
-    setBallsOnTable(botsValue);
+    setBallsOnTable(resolveNextTableState(botsValue));
     setActions([...actions, newAction]);
     setIsUndoEnabled(true);
 
@@ -383,7 +385,7 @@ export const useGameActions = ({
     }
 
     const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
-    setBallsOnTable(botsValue);
+    setBallsOnTable(resolveNextTableState(botsValue));
     setActions([...actions, newAction]);
     setIsUndoEnabled(true);
 

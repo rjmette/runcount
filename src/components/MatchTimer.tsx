@@ -60,7 +60,10 @@ export const MatchTimer: React.FC<MatchTimerProps> = memo(
           {elapsedTime}
         </span>
         {ballsOnTable !== undefined && (
-          <div className="flex items-center gap-0.5 sm:gap-1 bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm">
+          <div
+            className="flex items-center gap-0.5 sm:gap-1 bg-blue-100 dark:bg-blue-900 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm"
+            data-testid="match-timer-bot"
+          >
             <span className="text-gray-600 dark:text-gray-300">BOT:</span>
             <span className="font-semibold text-blue-700 dark:text-blue-300">
               {ballsOnTable}

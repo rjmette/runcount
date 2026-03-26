@@ -95,4 +95,36 @@ describe('GameScoring integration', () => {
     expect(within(firstDataRow).getByText('Bob')).toBeInTheDocument();
     expect(within(firstDataRow).getByText('Miss')).toBeInTheDocument();
   });
+
+  test('resets live BOT display to 15 after a table-clearing miss', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '0' }));
+
+    await waitFor(() => {
+      expect(
+        within(screen.getByTestId('match-timer-bot')).getByText('15'),
+      ).toBeInTheDocument();
+    });
+  });
 });

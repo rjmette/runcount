@@ -48,9 +48,9 @@ describe('useGameActions', () => {
     const setActions = (a: GameAction[]) => {
       actions = a;
     };
-    const setBallsOnTable = (n: number) => {
+    const setBallsOnTable = vi.fn((n: number) => {
       ballsOnTable = n;
-    };
+    });
     const setCurrentRun = vi.fn();
     const setActivePlayerIndex = vi.fn();
     const setCurrentInning = vi.fn();
@@ -100,6 +100,7 @@ describe('useGameActions', () => {
         return actions;
       },
       mocks: {
+        setBallsOnTable,
         setCurrentRun,
         setActivePlayerIndex,
         setCurrentInning,
@@ -293,6 +294,39 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(0);
     expect(mocks.setActivePlayerIndex).toHaveBeenCalledWith(1); // switch to player 1
     expect(mocks.setCurrentRun).toHaveBeenCalledWith(0); // reset run
+  });
+
+  test('resets BOT to 15 after a miss clears the table', () => {
+    const { result, mocks } = setup();
+
+    act(() => {
+      result.current.handleAddMiss(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
+  });
+
+  test('resets BOT to 15 after a safety clears the table', () => {
+    const { result, mocks } = setup();
+
+    act(() => {
+      result.current.handleAddSafety(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
+  });
+
+  test('resets BOT to 15 after a foul clears the table', () => {
+    const { result, mocks } = setup({
+      currentInning: 2,
+      actions: [{ type: 'miss', playerId: 1, value: 0, timestamp: new Date() }],
+    });
+
+    act(() => {
+      result.current.handleAddFoul(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
   });
 
   test('advances inning when cycling back to first player', () => {
