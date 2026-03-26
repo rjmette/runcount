@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import { getAuthCallbackUrl } from '../../utils/authRedirect';
+
 interface LoginProps {
   supabase: SupabaseClient;
   onSuccess?: () => void;
@@ -52,7 +54,7 @@ const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: getAuthCallbackUrl(),
         },
       });
 

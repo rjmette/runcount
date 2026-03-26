@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { type SupabaseClient, type User, type Session } from '@supabase/supabase-js';
 
+import { isAuthCallbackPath, normalizeAuthCallbackPath } from '../utils/authRedirect';
+
 import { useError } from './ErrorContext';
 
 interface AuthContextType {
@@ -26,10 +28,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const surfaceAuthCallbackError = () => {
+      if (!isAuthCallbackPath()) {
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const errorDescription = params.get('error_description') || params.get('error');
+
+      if (errorDescription) {
+        addError(decodeURIComponent(errorDescription.replace(/\+/g, ' ')));
+        window.history.replaceState({}, document.title, '/');
+      }
+    };
+
     // Get initial session with a timeout to prevent hanging when Supabase is unreachable
     const getInitialSession = async () => {
       try {
         setLoading(true);
+        surfaceAuthCallbackError();
 
         const timeout = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('Auth session request timed out')), 5000),
@@ -37,6 +54,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }
         const { data } = await Promise.race([supabase.auth.getSession(), timeout]);
         setSession(data.session);
         setUser(data.session?.user || null);
+        if (data.session) {
+          normalizeAuthCallbackPath();
+        }
       } catch (error) {
         console.error('Error getting initial session:', error);
         addError('Unable to restore your session. You may need to log in again.');
@@ -48,9 +68,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }
     getInitialSession();
 
     // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user || null);
+      if (event === 'SIGNED_IN' && session) {
+        normalizeAuthCallbackPath();
+      }
       setLoading(false);
     });
 
@@ -58,7 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ supabase, children }
       // Clean up subscription
       authListener.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [addError, supabase]);
 
   const signOut = async () => {
     try {

@@ -58,7 +58,7 @@ describe('Login', () => {
     expect(await screen.findByText('Invalid login credentials')).toBeInTheDocument();
   });
 
-  test('starts Google OAuth with the current origin as the redirect target', async () => {
+  test('starts Google OAuth with the auth callback as the redirect target', async () => {
     render(<Login supabase={supabase} />);
 
     fireEvent.click(screen.getByRole('button', { name: /^google$/i }));
@@ -67,7 +67,7 @@ describe('Login', () => {
       expect(signInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
     });
