@@ -34,6 +34,7 @@ describe('GameSetup Component', () => {
 
     // Check for title and form elements
     expect(screen.getByText('New Game')).toBeInTheDocument();
+    expect(screen.getByText('14.1 Straight Pool scorer')).toBeInTheDocument();
 
     // Check inputs using aria-labels
     expect(screen.getByLabelText('Player 1 name')).toBeInTheDocument();

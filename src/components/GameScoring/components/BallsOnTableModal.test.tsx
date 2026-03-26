@@ -84,4 +84,12 @@ describe('BallsOnTableModal', () => {
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAttribute('aria-labelledby', 'balls-on-table-title');
   });
+
+  it('explains how BOT scoring works', () => {
+    render(<BallsOnTableModal {...baseProps} action="miss" />);
+
+    expect(
+      screen.getByText(/RunCount uses this count to calculate the run that just ended/i),
+    ).toBeInTheDocument();
+  });
 });

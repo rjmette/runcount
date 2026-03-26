@@ -16,6 +16,7 @@ import { BreakFoulModal } from './components/BreakFoulModal';
 import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
 import { ConsecutiveFoulPenaltyModal } from './components/ConsecutiveFoulPenaltyModal';
 import { EndGameModal } from './components/EndGameModal';
+import { GameHelpModal } from './components/GameHelpModal';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGameState } from './hooks/useGameState';
@@ -106,6 +107,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [foulFlowState, dispatchFoulFlow] = useReducer(
     foulFlowReducer,
     initialFoulFlowState,
@@ -741,6 +743,15 @@ const GameScoring: React.FC<GameScoringProps> = ({
             </svg>
             New Game
           </button>
+
+          <button
+            onClick={() => setShowHelpModal(true)}
+            className="w-28 px-2 py-2 rounded bg-slate-600 text-white hover:bg-slate-700 flex items-center justify-center gap-1 text-sm font-medium"
+            title="Show straight pool help"
+          >
+            <span className="text-base font-bold leading-none">?</span>
+            Help
+          </button>
         </div>
       </div>
 
@@ -809,6 +820,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
         onClose={() => setShowAlertModal(false)}
         message={alertMessage}
       />
+
+      <GameHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
 
       <BreakDialog
         isOpen={showBreakDialog}

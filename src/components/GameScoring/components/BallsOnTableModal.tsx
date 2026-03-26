@@ -47,6 +47,10 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
         <h3 id="balls-on-table-title" className="text-xl font-bold mb-4">
           Balls on table?
         </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          Enter how many object balls remain. RunCount uses this count to calculate the
+          run that just ended.
+        </p>
 
         <div className="grid grid-cols-4 gap-3 mb-6" data-testid="bot-grid">
           {availableValues.map((num) => (

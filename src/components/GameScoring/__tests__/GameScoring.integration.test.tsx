@@ -168,6 +168,39 @@ describe('GameScoring integration', () => {
     ).toBeInTheDocument();
   });
 
+  test('opens in-game help with straight pool guidance', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 5, Bob: 5 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        supabase={supabase}
+        user={null}
+        breakingPlayerId={0}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /\?\s*Help/i }));
+
+    expect(await screen.findByText('14.1 Straight Pool Help')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Balls on Table\. When a turn ends, enter how many object balls remain/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Balls Per Inning/i)).toBeInTheDocument();
+  });
+
   test('resets live BOT display to 15 after a table-clearing miss', async () => {
     render(
       <GameScoring

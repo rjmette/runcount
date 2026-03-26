@@ -80,6 +80,9 @@ const GameSetup: React.FC<GameSetupProps> = ({
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
             New Game
           </h1>
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            14.1 Straight Pool scorer
+          </p>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Tap a player to select who breaks
           </p>
