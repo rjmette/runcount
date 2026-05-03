@@ -53,7 +53,7 @@ export default defineConfig({
       VITE_SUPABASE_URL: 'https://test.supabase.co',
       VITE_SUPABASE_KEY: 'test-dummy-key-for-ci-testing',
     },
-    exclude: ['tests/**', 'node_modules/**', '**/node_modules/**'],
+    exclude: ['.claude/**', 'tests/**', 'node_modules/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'json-summary'],
