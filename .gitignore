@@ -18,6 +18,7 @@
 
 # migration/planning artifacts
 /.migration
+/.claude
 
 # misc
 .DS_Store
