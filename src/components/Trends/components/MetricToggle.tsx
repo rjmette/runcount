@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { CSSProperties, FC } from 'react';
 
 import type { TrendMetric } from '../utils/trendsData';
 
@@ -27,22 +27,28 @@ export const MetricToggle: FC<MetricToggleProps> = ({
     >
       {metrics.map((metric) => {
         const isActive = visibleMetrics.includes(metric.key);
+        const style: CSSProperties = {
+          borderColor: metric.color,
+          backgroundColor: isActive ? metric.color : undefined,
+        };
+        const stateClasses = isActive
+          ? 'text-white shadow-sm'
+          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 opacity-60 hover:opacity-100';
         return (
           <button
             key={metric.key}
             type="button"
             onClick={() => onToggle(metric.key)}
             aria-pressed={isActive}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors border ${
-              isActive
-                ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
-            }`}
+            style={style}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 transition-all ${stateClasses}`}
           >
             <span
               aria-hidden
               className="inline-block w-2 h-2 rounded-full mr-2 align-middle"
-              style={{ backgroundColor: metric.color }}
+              style={{
+                backgroundColor: isActive ? '#ffffff' : metric.color,
+              }}
             />
             {metric.label}
           </button>

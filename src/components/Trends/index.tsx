@@ -5,10 +5,24 @@ import { type SupabaseClient, type User } from '@supabase/supabase-js';
 import { MetricToggle, type MetricDefinition } from './components/MetricToggle';
 import { PlayerSelector } from './components/PlayerSelector';
 import { SummaryCards } from './components/SummaryCards';
-import { TrendChart } from './components/TrendChart';
+import { TrendChart, type TrendSeries } from './components/TrendChart';
 import { useTrendsData } from './hooks/useTrendsData';
 
 import type { TrendMetric } from './utils/trendsData';
+
+const METRIC_DECIMALS: Record<TrendMetric, number> = {
+  bpi: 2,
+  shootingPercentage: 0,
+  highRun: 0,
+  safetyEfficiency: 0,
+};
+
+const METRIC_UNITS: Record<TrendMetric, string> = {
+  bpi: '',
+  shootingPercentage: '%',
+  highRun: '',
+  safetyEfficiency: '%',
+};
 
 interface TrendsPageProps {
   supabase: SupabaseClient;
@@ -51,8 +65,17 @@ const TrendsPage: FC<TrendsPageProps> = ({ supabase, user, onStartNewGame }) => 
     );
   };
 
-  const visibleMetricDefinitions = useMemo(
-    () => METRIC_DEFINITIONS.filter((metric) => visibleMetrics.includes(metric.key)),
+  const visibleSeries = useMemo<TrendSeries[]>(
+    () =>
+      METRIC_DEFINITIONS.filter((metric) => visibleMetrics.includes(metric.key)).map(
+        (metric) => ({
+          key: metric.key,
+          label: metric.label,
+          color: metric.color,
+          decimals: METRIC_DECIMALS[metric.key],
+          unit: METRIC_UNITS[metric.key],
+        }),
+      ),
     [visibleMetrics],
   );
 
@@ -132,37 +155,17 @@ const TrendsPage: FC<TrendsPageProps> = ({ supabase, user, onStartNewGame }) => 
                 hasEnoughForTrends={trendPoints.length >= TRENDS_DELTA_MIN_GAMES}
               />
 
-              {trendPoints.length < TRENDS_REQUIRED_GAMES && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing data from {trendPoints.length} completed game
-                  {trendPoints.length === 1 ? '' : 's'}. Play a few more for richer
-                  trends.
-                </p>
-              )}
-
-              {visibleMetricDefinitions.length === 0 ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                  Select a metric above to see its trend.
+              {trendPoints.length < TRENDS_REQUIRED_GAMES ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-700 dark:text-gray-300">
+                  <p className="text-sm">
+                    Need at least {TRENDS_REQUIRED_GAMES} games to chart trends.
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {trendPoints.length} of {TRENDS_REQUIRED_GAMES} so far — keep playing.
+                  </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {visibleMetricDefinitions.map((metric) => (
-                    <TrendChart
-                      key={metric.key}
-                      title={metric.label}
-                      color={metric.color}
-                      metric={metric.key}
-                      data={trendPoints}
-                      decimals={metric.key === 'bpi' ? 2 : 0}
-                      unit={
-                        metric.key === 'shootingPercentage' ||
-                        metric.key === 'safetyEfficiency'
-                          ? '%'
-                          : ''
-                      }
-                    />
-                  ))}
-                </div>
+                <TrendChart data={trendPoints} series={visibleSeries} />
               )}
             </>
           )}

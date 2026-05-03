@@ -7,7 +7,9 @@ import TrendsPage from '../index';
 
 vi.mock('recharts', () => ({
   CartesianGrid: () => null,
-  Line: () => null,
+  Line: ({ dataKey }: { dataKey?: string }) => (
+    <div data-testid={`recharts-line-${dataKey}`} />
+  ),
   LineChart: ({ children }: { children?: React.ReactNode }) => (
     <div data-testid="recharts-linechart">{children}</div>
   ),
@@ -83,7 +85,7 @@ describe('TrendsPage', () => {
     expect(screen.getByText(/No completed games yet/i)).toBeInTheDocument();
   });
 
-  test('renders metric toggles and chart for the selected player', () => {
+  test('hides chart and shows minimum-games message when below threshold', () => {
     vi.spyOn(GameHistoryHook, 'useGameHistory').mockReturnValue({
       games: [
         buildGame({ id: 'g-1', date: '2026-04-01T12:00:00.000Z' }),
@@ -100,13 +102,13 @@ describe('TrendsPage', () => {
     expect(playerSelect.value).toBe('alice');
 
     expect(screen.getByText('Average BPI')).toBeInTheDocument();
-    expect(screen.getByText('Win rate')).toBeInTheDocument();
-
-    const charts = screen.getAllByTestId('recharts-linechart');
-    expect(charts.length).toBeGreaterThan(0);
+    expect(
+      screen.getByText(/Need at least 3 games to chart trends/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('recharts-linechart')).not.toBeInTheDocument();
   });
 
-  test('toggling a metric off removes its chart', () => {
+  test('renders one chart with all four series above the threshold', () => {
     vi.spyOn(GameHistoryHook, 'useGameHistory').mockReturnValue({
       games: [
         buildGame({ id: 'g-1', date: '2026-04-01T12:00:00.000Z' }),
@@ -120,12 +122,41 @@ describe('TrendsPage', () => {
 
     renderPage();
 
-    const initialCharts = screen.getAllByTestId('recharts-linechart');
-    expect(initialCharts.length).toBe(4);
+    expect(screen.getAllByTestId('recharts-linechart')).toHaveLength(1);
+    expect(screen.getByText(/Performance over time/i)).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-bpi')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-shootingPercentage')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-highRun')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-safetyEfficiency')).toBeInTheDocument();
+  });
+
+  test('toggling a metric off hides only that series', () => {
+    vi.spyOn(GameHistoryHook, 'useGameHistory').mockReturnValue({
+      games: [
+        buildGame({ id: 'g-1', date: '2026-04-01T12:00:00.000Z' }),
+        buildGame({ id: 'g-2', date: '2026-04-05T12:00:00.000Z' }),
+        buildGame({ id: 'g-3', date: '2026-04-10T12:00:00.000Z' }),
+      ],
+      loading: false,
+      error: '',
+      deleteGame: vi.fn(),
+    } as any);
+
+    renderPage();
+
+    expect(screen.getByTestId('recharts-line-bpi')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /BPI/ }));
 
-    const remainingCharts = screen.getAllByTestId('recharts-linechart');
-    expect(remainingCharts.length).toBe(3);
+    expect(screen.queryByTestId('recharts-line-bpi')).not.toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-shootingPercentage')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-highRun')).toBeInTheDocument();
+    expect(screen.getByTestId('recharts-line-safetyEfficiency')).toBeInTheDocument();
+    expect(screen.getAllByTestId('recharts-linechart')).toHaveLength(1);
+
+    expect(screen.getByRole('button', { name: /BPI/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 });
