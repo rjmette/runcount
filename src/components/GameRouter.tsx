@@ -140,7 +140,14 @@ export const GameRouter: FC<GameRouterProps> = ({
     case 'trends':
       return <TrendsPage supabase={supabase} user={user} onStartNewGame={onGoToSetup} />;
     case 'profile':
-      return <UserProfile supabase={supabase} user={user!} onSignOut={onSignOut} />;
+      return (
+        <UserProfile
+          supabase={supabase}
+          user={user!}
+          onSignOut={onSignOut}
+          showPageTitle
+        />
+      );
     default:
       return <GameSetup startGame={onStartGame} />;
   }
