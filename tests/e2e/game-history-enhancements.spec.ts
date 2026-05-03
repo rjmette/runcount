@@ -56,8 +56,8 @@ test.describe('Game history enhancements', () => {
     await page.goto('/');
     await page.evaluate(() => window.dispatchEvent(new Event('switchToHistory')));
 
-    await expect(page.getByRole('heading', { name: /Game History \(3\)/ })).toBeVisible();
-    await expect(page.getByText('Showing 3 of 3 games')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Game History' })).toBeVisible();
+    await expect(page.getByText('(3)')).toBeVisible();
     await expect(page.getByRole('button', { name: /View Trends/ })).toBeVisible();
 
     await page.getByLabel('From', { exact: true }).fill('2026-04-01');
@@ -72,7 +72,7 @@ test.describe('Game history enhancements', () => {
     await page.getByLabel('Opponent', { exact: true }).fill('');
     await page.getByLabel('Sort', { exact: true }).selectOption('total-score-desc');
 
-    const visibleGameCards = page.locator('.cursor-pointer').filter({
+    const visibleGameCards = page.getByTestId('game-list-item').filter({
       hasText: /Alice|Bob|Charlie/,
     });
     await expect(visibleGameCards.first()).toContainText('Charlie');

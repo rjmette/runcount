@@ -78,14 +78,27 @@ test.describe('Straight pool core flows', () => {
     await startNewGame(page, { playerOneTarget: 10, playerTwoTarget: 10 });
 
     await completeRack(page, 1);
-    await page.getByRole('button', { name: /^New Game$/ }).click();
-    await expect(page.getByText('End Game?')).toBeVisible();
+    // The scoring screen utility row has an "End Game" button that opens the
+    // confirm modal, which itself has an "End Game" confirm button — `.first()`
+    // targets the row button.
+    await page
+      .getByRole('button', { name: /^End Game$/ })
+      .first()
+      .click();
+    await expect(page.getByRole('heading', { name: 'End Game?' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'End Game' }).click();
+    // Now the modal is open, click the modal's confirm button (last match).
+    await page
+      .getByRole('button', { name: /^End Game$/ })
+      .last()
+      .click();
 
-    await expect(page.getByRole('heading', { name: 'Game Statistics' })).toBeVisible();
-    // Post-game, the user navigates to a fresh game via the nav tab
-    await page.getByRole('navigation').getByRole('button', { name: 'New Game' }).click();
+    // Stats screen uses a "Game Result" kicker + contextual headline rather
+    // than a generic "Game Statistics" heading.
+    await expect(page.getByTestId('game-summary-panel')).toBeVisible();
+    // The nav bar is hidden for unauthenticated users; the Stats screen has
+    // its own "Start New Game" CTA below the summary panel.
+    await page.getByRole('button', { name: /Start New Game/i }).click();
 
     await expect(page.getByRole('heading', { name: 'New Game' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Start Game' })).toBeVisible();
