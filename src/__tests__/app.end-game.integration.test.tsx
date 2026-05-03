@@ -90,7 +90,8 @@ describe('App end-game flow', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
-    await screen.findByRole('button', { name: /New Game/i });
+    // Wait for the scoring screen to mount: the End Game button is part of the utility row.
+    await screen.findByRole('button', { name: /^End Game$/i });
   };
 
   test('continues from the win screen without hitting the error boundary', async () => {
@@ -101,9 +102,11 @@ describe('App end-game flow', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Continue/i }));
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /Game Statistics/i }),
-      ).toBeInTheDocument();
+      // The Statistics screen renders the GameSummaryPanel and a contextual
+      // 'Game Result' label; the prior 'Game Statistics' h2 was replaced by a
+      // result headline (e.g. "<Player> wins").
+      expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
+      expect(screen.getByText(/Game Result/i)).toBeInTheDocument();
       expect(screen.getByText('Completed')).toBeInTheDocument();
       expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
     });
@@ -112,14 +115,18 @@ describe('App end-game flow', () => {
   test('ends a game manually without hitting the error boundary', async () => {
     await startGame();
 
-    await userEvent.click(screen.getByRole('button', { name: /New Game/i }));
-    await userEvent.click(screen.getByRole('button', { name: /^End Game$/i }));
+    // Open the End Game modal from the utility row, then confirm in the modal.
+    // (`getAllByRole` because both the row button and the modal confirm button match.)
+    const endGameButtons = screen.getAllByRole('button', { name: /^End Game$/i });
+    await userEvent.click(endGameButtons[0]);
+    const confirmButtons = await screen.findAllByRole('button', { name: /^End Game$/i });
+    await userEvent.click(confirmButtons[confirmButtons.length - 1]);
 
     await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { name: /Game Statistics/i }),
-      ).toBeInTheDocument();
-      expect(screen.getByText('Completed')).toBeInTheDocument();
+      // Manual end without anyone reaching target -> status is 'Ended', not 'Completed'.
+      expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
+      expect(screen.getByText(/Game Result/i)).toBeInTheDocument();
+      expect(screen.getByText('Ended')).toBeInTheDocument();
       expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
     });
   });

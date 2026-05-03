@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 import { createMockPlayer } from '../testing/factories';
 
@@ -8,28 +8,8 @@ import PlayerScoreCard from './PlayerScoreCard';
 
 // No longer need helper function - use semantic queries instead
 
-// Mock the ScoreButton component to simplify testing
-vi.mock('./ScoreButton', () => ({
-  default: function mockScoreButton(props: any) {
-    // Handle both string and non-string labels safely
-    let labelStr: string;
-    if (typeof props.label === 'string') {
-      labelStr = props.label;
-    } else if (React.isValidElement(props.label)) {
-      // For complex React elements like the Rack button, extract text content
-      labelStr = 'rack'; // Default to 'rack' for the complex button
-    } else {
-      labelStr = String(props.label);
-    }
-    const testId = `score-button-${labelStr.toLowerCase().replace(/\s+/g, '-')}`;
-
-    return (
-      <button onClick={() => props.onClick(props.value)} data-testid={testId}>
-        {props.label}
-      </button>
-    );
-  },
-}));
+// PlayerScoreCard no longer renders action buttons (those moved to GameScoring's
+// active-player action zone), so no ScoreButton mock is needed here.
 
 describe('PlayerScoreCard Component', () => {
   // Sample player data for testing
@@ -125,7 +105,7 @@ describe('PlayerScoreCard Component', () => {
     );
   });
 
-  test('shows active styling when isActive is true', () => {
+  test('marks the active card with aria-current', () => {
     render(
       <PlayerScoreCard
         player={mockPlayer}
@@ -138,33 +118,10 @@ describe('PlayerScoreCard Component', () => {
       />,
     );
 
-    // Score buttons should be visible when active (using the mock test IDs)
-    expect(screen.getByTestId('score-button-miss')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-foul')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-safety')).toBeInTheDocument();
-    expect(screen.getByTestId('score-button-rack')).toBeInTheDocument();
+    expect(screen.getByTestId('player-card')).toHaveAttribute('aria-current', 'true');
   });
 
-  test('does not show score buttons when not active', () => {
-    render(
-      <PlayerScoreCard
-        player={mockPlayer}
-        isActive={false}
-        onAddScore={mockHandlers.onAddScore}
-        onAddFoul={mockHandlers.onAddFoul}
-        onAddSafety={mockHandlers.onAddSafety}
-        onAddMiss={mockHandlers.onAddMiss}
-        targetScore={75}
-      />,
-    );
-
-    // Score buttons should not be visible when inactive
-    expect(screen.queryByTestId('score-button-miss')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('score-button-foul-(-1)')).not.toBeInTheDocument();
-    // etc.
-  });
-
-  test('calls the appropriate functions when buttons are clicked', () => {
+  test('does not render in-card action buttons (they live in GameScoring now)', () => {
     render(
       <PlayerScoreCard
         player={mockPlayer}
@@ -173,26 +130,16 @@ describe('PlayerScoreCard Component', () => {
         onAddFoul={mockHandlers.onAddFoul}
         onAddSafety={mockHandlers.onAddSafety}
         onAddMiss={mockHandlers.onAddMiss}
-        onShowHistory={mockHandlers.onShowHistory}
         targetScore={75}
       />,
     );
 
-    // Click on Miss button - the component calls onAddMiss() without parameters
-    fireEvent.click(screen.getByTestId('score-button-miss'));
-    expect(mockHandlers.onAddMiss).toHaveBeenCalledTimes(1);
-
-    // Click on Foul button - the component calls onAddFoul() without parameters
-    fireEvent.click(screen.getByTestId('score-button-foul'));
-    expect(mockHandlers.onAddFoul).toHaveBeenCalledTimes(1);
-
-    // Click on Safety button - the component calls onAddSafety() without parameters
-    fireEvent.click(screen.getByTestId('score-button-safety'));
-    expect(mockHandlers.onAddSafety).toHaveBeenCalledTimes(1);
-
-    // Click on Rack button - the component calls onAddScore(1)
-    fireEvent.click(screen.getByTestId('score-button-rack'));
-    expect(mockHandlers.onAddScore).toHaveBeenCalledWith(1);
+    // PlayerScoreCard is now data-only; the action buttons live in
+    // GameScoring's active-player action zone.
+    expect(screen.queryByRole('button', { name: /^Miss$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Foul$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Safety$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rack/i })).not.toBeInTheDocument();
   });
 
   test('handles zero innings case correctly for BPI calculation', () => {

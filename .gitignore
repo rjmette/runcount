@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 .env*
+!.env.example
 .migration
 
 npm-debug.log*

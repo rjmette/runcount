@@ -34,6 +34,12 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 
   const filteredGames = filterAndSortGames(games, filters, sortOption);
 
+  // "Filter active" means the user has narrowed the list — drives whether
+  // we show the noisy "Showing X of Y" count line.
+  const isFilterActive =
+    JSON.stringify(filters) !== JSON.stringify(defaultHistoryFilters) ||
+    sortOption !== 'date-desc';
+
   // Function to check if games are valid
   const getValidGamesCount = () => {
     if (!games || !Array.isArray(games)) return 0;
@@ -195,131 +201,183 @@ const GameHistory: React.FC<GameHistoryProps> = ({
             )}
           </div>
         </div>
-        <div className="flex gap-2">
-          {viewTrends && (
+        {/* Header CTAs only make sense once there's content; the empty
+            state below carries its own primary action. */}
+        {validGameCount > 0 && (
+          <div className="flex gap-2">
+            {viewTrends && (
+              <button
+                onClick={viewTrends}
+                className="px-4 py-2 bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600"
+              >
+                View Trends →
+              </button>
+            )}
             <button
-              onClick={viewTrends}
-              className="px-4 py-2 bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600"
+              onClick={startNewGame}
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
             >
-              View Trends →
+              New Game
             </button>
-          )}
-          <button
-            onClick={startNewGame}
-            className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
-          >
-            New Game
-          </button>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Conditionally render either the list or details view */}
       {view === 'list' ? (
         <div className="min-h-[calc(100vh-15rem)]">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                From
-                <input
-                  aria-label="From"
-                  type="date"
-                  value={filters.startDate}
-                  onChange={(event) => updateFilter('startDate', event.target.value)}
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                />
-              </label>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                To
-                <input
-                  aria-label="To"
-                  type="date"
-                  value={filters.endDate}
-                  onChange={(event) => updateFilter('endDate', event.target.value)}
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                />
-              </label>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Opponent
-                <input
-                  aria-label="Opponent"
-                  type="search"
-                  value={filters.opponent}
-                  onChange={(event) => updateFilter('opponent', event.target.value)}
-                  placeholder="Player name"
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                />
-              </label>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Type
-                <select
-                  aria-label="Type"
-                  value={filters.gameType}
-                  onChange={(event) =>
-                    updateFilter(
-                      'gameType',
-                      event.target.value as HistoryFilters['gameType'],
-                    )
-                  }
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="all">All games</option>
-                  <option value="completed">Completed</option>
-                  <option value="in-progress">In progress</option>
-                </select>
-              </label>
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Sort
-                <select
-                  aria-label="Sort"
-                  value={sortOption}
-                  onChange={(event) =>
-                    setSortOption(event.target.value as HistorySortOption)
-                  }
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="date-desc">Newest first</option>
-                  <option value="date-asc">Oldest first</option>
-                  <option value="winner">Winner</option>
-                  <option value="player-count">Player count</option>
-                  <option value="total-score-desc">Total score</option>
-                </select>
-              </label>
-            </div>
+          {/* Filter / export toolbar — hidden entirely when the user has
+              no games yet. The empty-state hero in GameList carries the
+              "start your first game" call to action; surfacing five date
+              inputs above it is noise. */}
+          {validGameCount > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  From
+                  <input
+                    aria-label="From"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(event) => updateFilter('startDate', event.target.value)}
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  To
+                  <input
+                    aria-label="To"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(event) => updateFilter('endDate', event.target.value)}
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Opponent
+                  <input
+                    aria-label="Opponent"
+                    type="search"
+                    value={filters.opponent}
+                    onChange={(event) => updateFilter('opponent', event.target.value)}
+                    placeholder="Player name"
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Type
+                  <select
+                    aria-label="Type"
+                    value={filters.gameType}
+                    onChange={(event) =>
+                      updateFilter(
+                        'gameType',
+                        event.target.value as HistoryFilters['gameType'],
+                      )
+                    }
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="all">All games</option>
+                    <option value="completed">Completed</option>
+                    <option value="in-progress">In progress</option>
+                  </select>
+                </label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Sort
+                  <select
+                    aria-label="Sort"
+                    value={sortOption}
+                    onChange={(event) =>
+                      setSortOption(event.target.value as HistorySortOption)
+                    }
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="date-desc">Newest first</option>
+                    <option value="date-asc">Oldest first</option>
+                    <option value="winner">Winner</option>
+                    <option value="player-count">Player count</option>
+                    <option value="total-score-desc">Total score</option>
+                  </select>
+                </label>
+              </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Showing {filteredGames.length} of {validGameCount} games
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={resetFilters}
-                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={exportCsv}
-                  disabled={filteredGames.length === 0}
-                  className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                >
-                  Export CSV
-                </button>
-                <button
-                  onClick={exportJson}
-                  disabled={filteredGames.length === 0}
-                  className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                >
-                  Export JSON
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Counter only renders when a filter is actually narrowing the
+                    list; "Showing 1 of 1 games" against an empty filter form
+                    was redundant noise. */}
+                {isFilterActive ? (
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Showing {filteredGames.length} of {validGameCount} games
+                  </p>
+                ) : (
+                  <span aria-hidden="true" />
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={resetFilters}
+                    disabled={!isFilterActive}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Reset
+                  </button>
+                  {/* Export buttons demoted from primary green/purple to a
+                      muted neutral with an icon; they're escape-hatches, not
+                      a primary action competing with the cards below. */}
+                  <button
+                    onClick={exportCsv}
+                    disabled={filteredGames.length === 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Export CSV
+                  </button>
+                  <button
+                    onClick={exportJson}
+                    disabled={filteredGames.length === 0}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                    Export JSON
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <GameList
             games={filteredGames}
-            selectedGameId={null} // No game is selected in list view
+            totalGameCount={validGameCount}
             onGameSelect={handleSelectGame}
             onDeleteGame={confirmDelete}
+            onStartNewGame={startNewGame}
           />
         </div>
       ) : (

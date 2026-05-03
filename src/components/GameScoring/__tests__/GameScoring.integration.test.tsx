@@ -195,7 +195,7 @@ describe('GameScoring integration', () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: /\?\s*Help/i }));
+    await userEvent.click(screen.getByRole('button', { name: /show help/i }));
 
     expect(await screen.findByText('14.1 Straight Pool Help')).toBeInTheDocument();
     expect(

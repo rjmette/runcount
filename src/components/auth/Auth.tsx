@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { type SupabaseClient } from '@supabase/supabase-js';
 
@@ -6,74 +6,86 @@ import Login from './Login';
 import ResetPassword from './ResetPassword';
 import SignUp from './SignUp';
 
-type AuthTab = 'login' | 'signup' | 'reset-password';
+export type AuthTab = 'login' | 'signup' | 'reset-password';
 
 interface AuthProps {
   supabase: SupabaseClient;
+  /**
+   * Active tab is owned by the parent (AuthModal) so it can also drive
+   * the per-tab modal title and conditionally hide the benefits panel
+   * on Reset Password.
+   */
+  activeTab: AuthTab;
+  onTabChange: (tab: AuthTab) => void;
   onAuthSuccess?: () => void;
 }
 
-const Auth: React.FC<AuthProps> = ({ supabase, onAuthSuccess }) => {
-  const [activeTab, setActiveTab] = useState<AuthTab>('login');
+interface TabDefinition {
+  id: AuthTab;
+  label: string;
+}
 
+/**
+ * Tab labels are kept short ("Reset" instead of "Reset Password") so all
+ * three tabs fit on one line at narrow modal widths. The Login form
+ * surfaces a "Forgot password?" link as the primary discovery path; the
+ * tab is here for users who already know what they need.
+ */
+const TABS: TabDefinition[] = [
+  { id: 'login', label: 'Login' },
+  { id: 'signup', label: 'Sign Up' },
+  { id: 'reset-password', label: 'Reset' },
+];
+
+const Auth: React.FC<AuthProps> = ({
+  supabase,
+  activeTab,
+  onTabChange,
+  onAuthSuccess,
+}) => {
   return (
-    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-in-out">
+    <div className="overflow-hidden">
       {/* Tabs */}
-      <div className="flex bg-gray-50 dark:bg-gray-700/50 border-b dark:border-gray-600">
-        <button
-          className={`py-2.5 px-6 flex-1 text-center font-medium transition-all duration-200 relative ${
-            activeTab === 'login'
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-          }`}
-          onClick={() => setActiveTab('login')}
-        >
-          Login
-          {activeTab === 'login' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 transform scale-x-100 transition-transform duration-200" />
-          )}
-        </button>
-        <button
-          className={`py-2.5 px-6 flex-1 text-center font-medium transition-all duration-200 relative ${
-            activeTab === 'signup'
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-          }`}
-          onClick={() => setActiveTab('signup')}
-        >
-          Sign Up
-          {activeTab === 'signup' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 transform scale-x-100 transition-transform duration-200" />
-          )}
-        </button>
-        <button
-          className={`py-2.5 px-6 flex-1 text-center font-medium transition-all duration-200 relative ${
-            activeTab === 'reset-password'
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-          }`}
-          onClick={() => setActiveTab('reset-password')}
-        >
-          Reset Password
-          {activeTab === 'reset-password' && (
-            <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 transform scale-x-100 transition-transform duration-200" />
-          )}
-        </button>
+      <div
+        className="flex bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-1 mb-4"
+        role="tablist"
+      >
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onTabChange(tab.id)}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}
-      <div className="p-4 dark:text-white">
-        <div className="transform transition-all duration-300 ease-in-out">
-          {activeTab === 'login' && (
-            <Login supabase={supabase} onSuccess={onAuthSuccess} />
-          )}
-          {activeTab === 'signup' && (
-            <SignUp supabase={supabase} onSuccess={onAuthSuccess} />
-          )}
-          {activeTab === 'reset-password' && (
-            <ResetPassword supabase={supabase} onSuccess={onAuthSuccess} />
-          )}
-        </div>
+      <div>
+        {activeTab === 'login' && (
+          <Login
+            supabase={supabase}
+            onSuccess={onAuthSuccess}
+            onForgotPassword={() => onTabChange('reset-password')}
+          />
+        )}
+        {activeTab === 'signup' && (
+          <SignUp supabase={supabase} onSuccess={onAuthSuccess} />
+        )}
+        {activeTab === 'reset-password' && (
+          <ResetPassword supabase={supabase} onSuccess={onAuthSuccess} />
+        )}
       </div>
     </div>
   );

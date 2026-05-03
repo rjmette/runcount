@@ -74,33 +74,30 @@ describe('App Component', () => {
     });
   });
 
-  test('opens Authentication modal when clicking user icon (unauthenticated)', async () => {
+  test('opens Authentication modal when clicking Sign in (unauthenticated)', async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /open authentication modal/i }));
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
+    // The modal opens on the Login tab by default; the per-tab header
+    // replaced the old generic "Authentication" title.
     await waitFor(() => {
-      expect(screen.getByText('Authentication')).toBeInTheDocument();
+      expect(screen.getByText('Welcome back')).toBeInTheDocument();
     });
   });
 
-  test('shows navigation tab for New Game when not scoring', async () => {
+  test('hides the navigation bar when not authenticated', async () => {
     render(<App />);
 
+    // The setup screen renders, but the top-level nav should not — when only "New Game"
+    // is the available tab (signed-out), the nav is hidden as redundant chrome.
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /New Game/i })).toBeInTheDocument();
+      expect(screen.getByTestId('game-setup')).toBeInTheDocument();
     });
-  });
 
-  test('displays correct navigation labels when not authenticated', async () => {
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /New Game/i })).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /History/i })).not.toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: /My Profile/i }),
-      ).not.toBeInTheDocument();
-    });
+    expect(screen.queryByRole('button', { name: /^New Game$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /History/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Trends/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /My Profile/i })).not.toBeInTheDocument();
   });
 });

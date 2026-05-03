@@ -115,28 +115,26 @@ export const Header: FC<HeaderProps> = ({
               </div>
             </div>
           ) : (
-            <div className="flex items-center space-x-2">
-              <div className="relative">
-                <button
-                  className="bg-gray-400 dark:bg-gray-600 hover:bg-gray-500 dark:hover:bg-gray-500 p-2 rounded-full text-gray-300 dark:text-gray-400 hover:text-gray-200 transition-colors"
-                  onClick={onAuthClick}
-                  aria-label="Open authentication modal"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <button
+              className="inline-flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 dark:bg-blue-800 dark:hover:bg-blue-700 px-3 py-1.5 rounded-md text-sm font-medium text-white transition-colors"
+              onClick={onAuthClick}
+              aria-label="Sign in"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span>Sign in</span>
+            </button>
           )}
         </div>
       </div>

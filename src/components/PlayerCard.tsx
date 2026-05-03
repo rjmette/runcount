@@ -39,12 +39,13 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
       className={`bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border-2 transition-all duration-200 cursor-pointer ${
         isBreaking
           ? `${color.borderActive} ${color.bgLight}`
-          : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
       }`}
       role="button"
       aria-pressed={isBreaking}
       aria-label={`Player ${playerNumber}${isBreaking ? ' (breaking)' : ''} - tap to select as breaking player`}
     >
+      {/* Top row: badge + name + breaking pill */}
       <div className="flex items-center gap-3">
         {/* Player badge */}
         <div
@@ -62,15 +63,35 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           type="text"
           value={playerName}
           onChange={(e) => onPlayerNameChange(e.target.value)}
-          className="flex-1 text-lg font-semibold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-600 text-gray-900 dark:text-white min-w-0"
-          placeholder={`Player ${playerNumber}`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex-1 text-lg font-semibold bg-transparent border-0 border-b-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-400 outline-none placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white min-w-0 px-1 py-0.5 transition-colors"
+          placeholder={`Enter Player ${playerNumber} name`}
           aria-label={`Player ${playerNumber} name`}
           required
         />
 
-        {/* Target score input */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        {/* Breaking pill (right side) */}
+        {isBreaking && (
+          <span
+            className={`inline-flex items-center gap-1 ${color.badge} ${color.text} text-xs font-semibold px-2.5 py-1 rounded-full flex-shrink-0`}
+          >
+            <span>🎱</span>
+            <span>Breaking</span>
+          </span>
+        )}
+      </div>
+
+      {/* Bottom row: target score input + hint when not breaking */}
+      <div className="flex items-center justify-between gap-3 mt-3">
+        <div className="flex items-center gap-2">
+          <label
+            htmlFor={`player-${playerNumber}-target`}
+            className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+          >
+            Target
+          </label>
           <input
+            id={`player-${playerNumber}-target`}
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -79,21 +100,21 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
               const val = e.target.value.replace(/\D/g, '');
               onTargetScoreChange(val ? Number(val) : 0);
             }}
-            className="w-16 text-lg font-bold bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1 text-center text-gray-900 dark:text-white"
+            onClick={(e) => e.stopPropagation()}
+            className="w-16 text-base font-bold bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 rounded-md px-2 py-1 text-center text-gray-900 dark:text-white outline-none transition-colors"
             aria-label={`Player ${playerNumber} target score`}
             required
           />
-          <span className="text-sm text-gray-400 dark:text-gray-500">pts</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">pts</span>
         </div>
-      </div>
 
-      {/* Breaking indicator */}
-      {isBreaking && (
-        <div className={`mt-2 text-xs font-medium ${color.text} flex items-center gap-1`}>
-          <span>🎱</span>
-          <span>Breaking</span>
-        </div>
-      )}
+        {/* Hint when not selected as breaker */}
+        {!isBreaking && (
+          <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+            Tap card to set as breaker
+          </span>
+        )}
+      </div>
     </div>
   );
 };

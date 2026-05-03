@@ -7,6 +7,12 @@ import { getAuthCallbackUrl } from '../../utils/authRedirect';
 interface LoginProps {
   supabase: SupabaseClient;
   onSuccess?: () => void;
+  /**
+   * Triggered by the "Forgot password?" link below the password field.
+   * Lets the parent (Auth) switch the active tab to Reset Password rather
+   * than requiring users to discover the third tab themselves.
+   */
+  onForgotPassword?: () => void;
 }
 
 const getErrorMessage = (error: unknown, fallback: string) => {
@@ -16,7 +22,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
+const Login: React.FC<LoginProps> = ({ supabase, onSuccess, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -95,12 +101,25 @@ const Login: React.FC<LoginProps> = ({ supabase, onSuccess }) => {
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-          >
-            Password
-          </label>
+          <div className="flex items-baseline justify-between mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Password
+            </label>
+            {/* "Forgot password?" — primary discovery path for the reset
+                flow. Users look for it here before scanning the tab bar. */}
+            {onForgotPassword && (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
           <input
             id="password"
             type="password"
