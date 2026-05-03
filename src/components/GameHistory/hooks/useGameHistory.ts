@@ -76,6 +76,10 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
 
     fetchGames();
 
+    if (import.meta.env.VITE_DISABLE_SUPABASE_REALTIME === 'true') {
+      return undefined;
+    }
+
     // Set up a real-time subscription to the games table
     const subscription = supabase
       .channel('games-changes')

@@ -3,6 +3,10 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
+
+vi.stubEnv('VITE_SUPABASE_KEY', 'vitest-test-key');
+vi.stubEnv('VITE_SUPABASE_URL', 'http://127.0.0.1:54321');
 
 class MemoryStorage implements Storage {
   private store = new Map<string, string>();

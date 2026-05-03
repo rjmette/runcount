@@ -15,6 +15,14 @@ export const GameList: React.FC<GameListProps> = ({
   onGameSelect,
   onDeleteGame,
 }) => {
+  if (games.length === 0) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-600 dark:text-gray-300">
+        No games match the current filters.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {games.map((game) => {
