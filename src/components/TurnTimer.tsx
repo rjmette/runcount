@@ -41,42 +41,16 @@ export const TurnTimer: React.FC<TurnTimerProps> = memo(
       }
     }, [startTime, isRunning]);
 
-    if (shotClockSeconds === null) {
-      return (
-        <div
-          className="flex items-center gap-1 sm:gap-2 bg-slate-100 dark:bg-slate-800 px-2 py-1 sm:px-3 sm:py-2 rounded-lg"
-          data-testid="turn-timer-disabled"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-500 dark:text-slate-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Shot Clock Off
-          </span>
-        </div>
-      );
-    }
-
     const minutes = Math.floor(elapsedSeconds / 60);
     const seconds = elapsedSeconds % 60;
     const elapsedTime =
       `${minutes.toString().padStart(2, '0')}:` +
       `${seconds.toString().padStart(2, '0')}`;
-    const isOverLimit = elapsedSeconds >= shotClockSeconds;
+    const hasLimit = shotClockSeconds !== null;
+    const isOverLimit = hasLimit && elapsedSeconds >= shotClockSeconds;
     const isApproaching =
-      !isOverLimit && elapsedSeconds >= Math.floor(shotClockSeconds * 0.75);
-    // Three states: neutral (in budget), approaching (>=75%), over.
+      hasLimit && !isOverLimit && elapsedSeconds >= Math.floor(shotClockSeconds * 0.75);
+    // Three states: neutral (no limit, or in budget), approaching (>=75%), over.
     const containerClasses = isOverLimit
       ? 'bg-red-100 dark:bg-red-900'
       : isApproaching
@@ -120,12 +94,14 @@ export const TurnTimer: React.FC<TurnTimerProps> = memo(
         <span className={`text-sm sm:text-lg font-mono font-bold ${timeClasses}`}>
           {elapsedTime}
         </span>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide sm:text-xs ${badgeClasses}`}
-          aria-label={`Shot clock set to ${shotClockSeconds} seconds`}
-        >
-          {shotClockSeconds}s
-        </span>
+        {hasLimit && (
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide sm:text-xs ${badgeClasses}`}
+            aria-label={`Shot clock set to ${shotClockSeconds} seconds`}
+          >
+            {shotClockSeconds}s
+          </span>
+        )}
       </div>
     );
   },

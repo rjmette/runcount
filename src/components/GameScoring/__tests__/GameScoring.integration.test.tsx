@@ -269,7 +269,7 @@ describe('GameScoring integration', () => {
     expect(screen.queryByTestId('match-timer-bot')).not.toBeInTheDocument();
   });
 
-  test('shows shot clock disabled state when the clock is turned off', async () => {
+  test('shows running turn timer without limit badge when shot clock is off', async () => {
     render(
       <GameScoring
         players={['Alice', 'Bob']}
@@ -292,9 +292,8 @@ describe('GameScoring integration', () => {
       />,
     );
 
-    expect(await screen.findByTestId('turn-timer-disabled')).toHaveTextContent(
-      'Shot Clock Off',
-    );
+    expect(await screen.findByTestId('turn-timer')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Shot clock set to/i)).not.toBeInTheDocument();
   });
 
   test('shows the configured shot clock duration when enabled', async () => {
