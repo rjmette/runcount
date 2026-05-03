@@ -241,7 +241,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const headline = deriveHeadline(gameData);
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl w-full mx-auto my-auto">
       <div className="mb-5 text-center sm:text-left">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
           Game Result

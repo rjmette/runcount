@@ -88,7 +88,7 @@ const GameSetup: React.FC<GameSetupProps> = ({
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md w-full mx-auto my-auto">
       {/* Header */}
       <div className="text-center mb-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
