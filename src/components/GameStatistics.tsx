@@ -2,32 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { useError } from '../context/ErrorContext';
 import { type GameStatisticsProps, type GameData, type Player } from '../types/game';
+import { computeMatchLength } from '../utils/computeMatchLength';
 import { copyWithFeedback } from '../utils/copyToClipboard';
+import { formatGameDateLong } from '../utils/formatGameDate';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
 import { GameSummaryPanel } from './shared/GameSummaryPanel';
 import { calculatePlayerStats } from './shared/stats';
-
-/**
- * Compute match length from the game's actual start/end timestamps when present,
- * with a graceful fallback for older records that only carry `date`.
- */
-const computeMatchLength = (game: GameData): string => {
-  const startSrc = game.startTime ?? game.date;
-  const endSrc = game.endTime ?? (game.completed ? null : new Date());
-  if (!startSrc || !endSrc) return '—';
-  const start = new Date(startSrc);
-  const end = new Date(endSrc);
-  const diffMs = Math.max(0, end.getTime() - start.getTime());
-  if (diffMs < 60 * 1000) {
-    const seconds = Math.max(1, Math.floor(diffMs / 1000));
-    return `${seconds}s`;
-  }
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-};
 
 /**
  * Derive a contextual headline from game state. Prefers the explicit winner,
@@ -171,18 +153,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';
 
-    const gameDate = new Date(gameData.date);
-    const formattedDate = gameDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-    const formattedTime = gameDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-
     // Calculate match length using actual start/end timestamps when available.
     const matchLength = computeMatchLength(gameData);
 
@@ -193,7 +163,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       return 0;
     });
 
-    let emailText = `${formattedDate} at ${formattedTime}\n`;
+    let emailText = `${formatGameDateLong(gameData.date)}\n`;
     emailText += `Length: ${matchLength}\n\n`;
 
     // Add player results

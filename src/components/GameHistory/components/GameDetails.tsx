@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 
 import { useError } from '../../../context/ErrorContext';
 import { type GameData } from '../../../types/game';
+import { computeMatchLength } from '../../../utils/computeMatchLength';
 import { copyWithFeedback } from '../../../utils/copyToClipboard';
+import { formatGameDateLong } from '../../../utils/formatGameDate';
 import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
 import { GameSummaryPanel } from '../../shared/GameSummaryPanel';
@@ -30,28 +32,13 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const { addError } = useError();
 
-  // Calculate match length
-  const startTime = new Date(game.date);
-  const endTime = game.completed ? new Date(game.date) : new Date();
-  const diffMs = endTime.getTime() - startTime.getTime();
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.ceil((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  const matchLength = `${hours}h ${minutes}m`;
+  // Compute match length from real start/end timestamps. The previous
+  // inline calc used `game.date` for both endpoints, so completed games
+  // always rendered "0h 0m" — same bug we already fixed in GameStatistics.
+  const matchLength = computeMatchLength(game);
 
   const formatGameResultsForEmail = () => {
     if (!game) return '';
-
-    const gameDate = new Date(game.date);
-    const formattedDate = gameDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-    });
-    const formattedTime = gameDate.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
 
     // Sort players to show winner first
     const sortedPlayers = [...game.players].sort((a, b) => {
@@ -60,7 +47,7 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
       return 0;
     });
 
-    let emailText = `${formattedDate} at ${formattedTime}\n`;
+    let emailText = `${formatGameDateLong(game.date)}\n`;
     emailText += `Length: ${matchLength}\n\n`;
 
     // Add player results

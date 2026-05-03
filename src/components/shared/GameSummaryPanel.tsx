@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { type Player, type GameAction } from '../../types/game';
+import { formatGameDateTime } from '../../utils/formatGameDate';
 
 import { type StatCalculator, type PlayerStats } from './types';
 
@@ -48,17 +49,7 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
   onShowDescriptions,
   copySuccess,
 }) => {
-  const gameDate = new Date(date);
-  const dayOfWeek = gameDate.toLocaleDateString('en-US', { weekday: 'short' });
-  const formattedDate = gameDate.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-  const formattedTime = gameDate.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const formattedDateTime = formatGameDateTime(date);
 
   const sortedPlayers = [...players].sort((a, b) => {
     if (a.id === winnerId) return -1;
@@ -100,9 +91,7 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
           {status.label}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          {completed
-            ? `${dayOfWeek}, ${formattedDate} · ${formattedTime}`
-            : 'Not completed'}
+          {completed ? formattedDateTime : 'Not completed'}
         </div>
       </div>
 
