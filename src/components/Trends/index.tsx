@@ -80,8 +80,15 @@ const TrendsPage: FC<TrendsPageProps> = ({ supabase, user, onStartNewGame }) => 
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Trends</h2>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="text-center sm:text-left">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Performance
+          </p>
+          <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            Trends
+          </h2>
+        </div>
         <button
           onClick={onStartNewGame}
           className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
