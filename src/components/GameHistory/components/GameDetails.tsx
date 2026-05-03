@@ -5,8 +5,7 @@ import { type GameData } from '../../../types/game';
 import { copyWithFeedback } from '../../../utils/copyToClipboard';
 import { InningsModal } from '../../GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from '../../GameStatistics/components/StatDescriptionsModal';
-import { GameStatusPanel } from '../../shared/GameStatusPanel';
-import { PerformanceMetricsPanel } from '../../shared/PerformanceMetricsPanel';
+import { GameSummaryPanel } from '../../shared/GameSummaryPanel';
 import { calculatePlayerStats } from '../utils/calculations';
 
 interface GameDetailsProps {
@@ -181,18 +180,19 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
         </div>
       </div>
 
-      {/* Game Status Panel */}
-      <GameStatusPanel
+      <GameSummaryPanel
         players={game.players}
         winnerId={game.winner_id}
         completed={game.completed}
         date={game.date}
         matchLength={matchLength}
-        calculatePlayerStats={(player) => calculatePlayerStats(player, game.actions)}
+        calculatePlayerStats={(player, actions) => calculatePlayerStats(player, actions)}
+        actions={game.actions}
+        tooltipContent={tooltipContent}
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
+        onShowDescriptions={() => setShowDescriptionsModal(true)}
         copySuccess={copySuccess}
-        actions={game.actions}
       />
 
       {/* Innings Modal */}
@@ -204,16 +204,6 @@ export const GameDetails: React.FC<GameDetailsProps> = ({
           players={game.players}
         />
       )}
-
-      {/* Performance Metrics Panel */}
-      <PerformanceMetricsPanel
-        players={game.players}
-        actions={game.actions}
-        winnerId={game.winner_id}
-        calculatePlayerStats={calculatePlayerStats}
-        tooltipContent={tooltipContent}
-        onShowDescriptions={() => setShowDescriptionsModal(true)}
-      />
 
       {/* Stat Descriptions Modal */}
       <StatDescriptionsModal

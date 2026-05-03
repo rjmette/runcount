@@ -48,9 +48,9 @@ describe('useGameActions', () => {
     const setActions = (a: GameAction[]) => {
       actions = a;
     };
-    const setBallsOnTable = (n: number) => {
+    const setBallsOnTable = vi.fn((n: number) => {
       ballsOnTable = n;
-    };
+    });
     const setCurrentRun = vi.fn();
     const setActivePlayerIndex = vi.fn();
     const setCurrentInning = vi.fn();
@@ -100,6 +100,7 @@ describe('useGameActions', () => {
         return actions;
       },
       mocks: {
+        setBallsOnTable,
         setCurrentRun,
         setActivePlayerIndex,
         setCurrentInning,
@@ -177,13 +178,31 @@ describe('useGameActions', () => {
     const { result, players } = setup();
 
     act(() => {
-      result.current.handleAddFoul(14, 2);
+      result.current.handleAddFoul(15, 2);
     });
 
-    // Break foul with 2-point penalty: adds balls pocketed (1) then subtracts 2-point penalty = -1 total
-    expect(players[0].score).toBe(-1); // 1 ball pocketed - 2 break foul penalty = -1
+    expect(players[0].score).toBe(-2);
     expect(players[0].fouls).toBe(1);
     expect(players[0].consecutiveFouls).toBe(1);
+  });
+
+  test('handleAddFoul records opening-break fouls distinctly and keeps the breaker active', () => {
+    const testHarness = setup();
+
+    act(() => {
+      testHarness.result.current.handleAddFoul(15, 2);
+    });
+
+    expect(testHarness.actions).toHaveLength(1);
+    expect(testHarness.actions[0]).toMatchObject({
+      type: 'foul',
+      playerId: 0,
+      value: -2,
+      isBreakFoul: true,
+      reBreak: false,
+      ballsOnTable: 15,
+    });
+    expect(testHarness.mocks.setActivePlayerIndex).not.toHaveBeenCalled();
   });
 
   test('handleAddFoul applies regular foul penalty (-1 point)', () => {
@@ -248,6 +267,27 @@ describe('useGameActions', () => {
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
   });
 
+  test('handleAddFoul applies manual three-foul penalty to the overridden active player', () => {
+    const { result, players, mocks } = setup({
+      activePlayerIndex: 1,
+      currentInning: 2,
+      actions: [{ type: 'miss', playerId: 0, value: 0, timestamp: new Date() }],
+    });
+    players[1].consecutiveFouls = 2;
+
+    act(() => {
+      result.current.handleAddFoul(15, undefined, {
+        manualConsecutiveDecision: 'threeFoul',
+        playerIdOverride: 1,
+      });
+    });
+
+    expect(players[0].score).toBe(0);
+    expect(players[1].score).toBe(-16);
+    expect(players[1].consecutiveFouls).toBe(0);
+    expect(mocks.setPlayerNeedsReBreak).toHaveBeenCalledWith(players[1].id);
+  });
+
   test('handleAddSafety switches player and adds safety count', () => {
     const { result, players, mocks } = setup();
 
@@ -272,6 +312,39 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(0);
     expect(mocks.setActivePlayerIndex).toHaveBeenCalledWith(1); // switch to player 1
     expect(mocks.setCurrentRun).toHaveBeenCalledWith(0); // reset run
+  });
+
+  test('resets BOT to 15 after a miss clears the table', () => {
+    const { result, mocks } = setup();
+
+    act(() => {
+      result.current.handleAddMiss(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
+  });
+
+  test('resets BOT to 15 after a safety clears the table', () => {
+    const { result, mocks } = setup();
+
+    act(() => {
+      result.current.handleAddSafety(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
+  });
+
+  test('resets BOT to 15 after a foul clears the table', () => {
+    const { result, mocks } = setup({
+      currentInning: 2,
+      actions: [{ type: 'miss', playerId: 1, value: 0, timestamp: new Date() }],
+    });
+
+    act(() => {
+      result.current.handleAddFoul(0);
+    });
+
+    expect(mocks.setBallsOnTable).toHaveBeenCalledWith(15);
   });
 
   test('advances inning when cycling back to first player', () => {

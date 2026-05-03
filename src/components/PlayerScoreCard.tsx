@@ -15,7 +15,7 @@ interface PlayerScoreCardProps {
   targetScore: number;
   onRegularShot?: (value: number) => void; // New prop for handling regular shots
   needsReBreak?: boolean; // New prop to indicate if this player needs to re-break
-  currentInning?: number; // Made optional to not break existing tests
+  isInitialBreak?: boolean; // True only before any actions in inning 1
   onBreakClick?: () => void; // New prop for handling break indicator clicks
 }
 
@@ -30,7 +30,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   targetScore,
   onRegularShot: _onRegularShot,
   needsReBreak,
-  currentInning,
+  isInitialBreak,
   onBreakClick,
 }) => {
   // Memoize expensive calculations
@@ -58,15 +58,10 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           )}
         </h3>
         <div className="flex gap-2">
-          {isActive && (
-            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-              Active
-            </span>
-          )}
-          {isActive === true && !needsReBreak && currentInning === 1 && (
+          {isActive === true && !needsReBreak && isInitialBreak && (
             <button
               onClick={onBreakClick}
-              className="bg-green-500 hover:bg-green-600 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
+              className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
               title="Click to change breaking player"
             >
               Break

@@ -138,9 +138,6 @@ describe('PlayerScoreCard Component', () => {
       />,
     );
 
-    // Check for active indicator
-    expect(screen.getByText('Active')).toBeInTheDocument();
-
     // Score buttons should be visible when active (using the mock test IDs)
     expect(screen.getByTestId('score-button-miss')).toBeInTheDocument();
     expect(screen.getByTestId('score-button-foul')).toBeInTheDocument();
@@ -160,9 +157,6 @@ describe('PlayerScoreCard Component', () => {
         targetScore={75}
       />,
     );
-
-    // No active indicator
-    expect(screen.queryByText('Active')).not.toBeInTheDocument();
 
     // Score buttons should not be visible when inactive
     expect(screen.queryByTestId('score-button-miss')).not.toBeInTheDocument();

@@ -6,7 +6,9 @@ import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
 import { type GameScoringProps } from '../../types/game';
 import BreakDialog from '../BreakDialog';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
+import { MatchTimer } from '../MatchTimer';
 import PlayerScoreCard from '../PlayerScoreCard';
+import { TurnTimer } from '../TurnTimer';
 
 import { AlertModal } from './components/AlertModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
@@ -14,6 +16,7 @@ import { BreakFoulModal } from './components/BreakFoulModal';
 import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
 import { ConsecutiveFoulPenaltyModal } from './components/ConsecutiveFoulPenaltyModal';
 import { EndGameModal } from './components/EndGameModal';
+import { GameHelpModal } from './components/GameHelpModal';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGameState } from './hooks/useGameState';
@@ -24,6 +27,7 @@ interface FoulFlowState {
   botAction: BotAction;
   selectedBreakPenalty: 1 | 2 | null;
   pendingConsecutiveFoulBotsValue: number | null;
+  pendingConsecutiveFoulPlayerId: number | null;
   showBreakPenaltyModal: boolean;
   showConsecutivePenaltyModal: boolean;
 }
@@ -33,7 +37,7 @@ type FoulFlowAction =
   | { type: 'openBreakPenalty' }
   | { type: 'closeBreakPenalty' }
   | { type: 'selectBreakPenalty'; penalty: 1 | 2 }
-  | { type: 'openConsecutivePenalty'; botsValue: number }
+  | { type: 'openConsecutivePenalty'; botsValue: number; playerId: number }
   | { type: 'closeConsecutivePenalty' }
   | { type: 'reset' };
 
@@ -41,6 +45,7 @@ const initialFoulFlowState: FoulFlowState = {
   botAction: null,
   selectedBreakPenalty: null,
   pendingConsecutiveFoulBotsValue: null,
+  pendingConsecutiveFoulPlayerId: null,
   showBreakPenaltyModal: false,
   showConsecutivePenaltyModal: false,
 };
@@ -60,12 +65,14 @@ const foulFlowReducer = (state: FoulFlowState, action: FoulFlowAction): FoulFlow
         ...state,
         showConsecutivePenaltyModal: true,
         pendingConsecutiveFoulBotsValue: action.botsValue,
+        pendingConsecutiveFoulPlayerId: action.playerId,
       };
     case 'closeConsecutivePenalty':
       return {
         ...state,
         showConsecutivePenaltyModal: false,
         pendingConsecutiveFoulBotsValue: null,
+        pendingConsecutiveFoulPlayerId: null,
       };
     case 'reset':
       return { ...initialFoulFlowState };
@@ -83,6 +90,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   supabase,
   user,
   breakingPlayerId = 0,
+  shotClockSeconds,
   matchStartTime: parentMatchStartTime,
   matchEndTime: parentMatchEndTime,
   setMatchStartTime: parentSetMatchStartTime,
@@ -100,6 +108,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [foulFlowState, dispatchFoulFlow] = useReducer(
     foulFlowReducer,
     initialFoulFlowState,
@@ -474,45 +483,31 @@ const GameScoring: React.FC<GameScoringProps> = ({
   ]);
 
   const handleEndGame = () => {
-    if (!gameWinner && gameId) {
-      // Clear the active game state since we're ending the game
-      clearGameState();
+    if (gameId) {
+      const endTime = new Date();
 
-      // Make sure to also update Supabase directly
-      if (user) {
-        try {
-          const now = new Date();
-          const payload = {
-            id: gameId,
-            date: now.toISOString(),
-            players: playerData,
-            actions,
-            completed: true,
-            winner_id: null,
-            owner_id: user.id,
-            deleted: false, // Explicitly set deleted to false
-          };
-
-          supabase
-            .from('games')
-            .upsert(payload)
-            .then(({ error }) => {
-              if (error) {
-                console.error('Error updating completed game in Supabase:', error);
-                addError(
-                  'Unable to finalize your game in the cloud. It will attempt again shortly.',
-                );
-              }
-            });
-        } catch (err) {
-          console.error('Error updating completed game in Supabase:', err);
-          addError('A network error occurred while finalizing your game.');
-        }
+      if (!gameWinner) {
+        setMatchEndTime(endTime);
       }
+
+      void saveGameToSupabaseHelper({
+        supabase,
+        user,
+        saveGameState,
+        clearGameState,
+        matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,
+        matchEndTime: (gameWinner ? matchEndTime : endTime)?.toISOString(),
+        turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
+        gameId,
+        players: playerData,
+        actions,
+        completed: true,
+        winner_id: gameWinner?.id ?? null,
+      });
     } else {
-      // Make sure to clear active game state from localStorage
       clearGameState();
     }
+
     finishGame();
   };
 
@@ -552,12 +547,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
   const handleConsecutivePenaltySelect = (penalty: 'regular' | 'threeFoul') => {
     const botsValue = foulFlowState.pendingConsecutiveFoulBotsValue;
+    const playerId = foulFlowState.pendingConsecutiveFoulPlayerId;
     if (botsValue === null) {
       return;
     }
 
     handleAddFoul(botsValue, undefined, {
       manualConsecutiveDecision: penalty,
+      playerIdOverride: playerId ?? undefined,
     });
 
     dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
@@ -587,7 +584,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
         playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
         playerData[activePlayerIndex].consecutiveFouls >= 2
       ) {
-        dispatchFoulFlow({ type: 'openConsecutivePenalty', botsValue });
+        dispatchFoulFlow({
+          type: 'openConsecutivePenalty',
+          botsValue,
+          playerId: playerData[activePlayerIndex].id,
+        });
         return;
       }
 
@@ -665,18 +666,35 @@ const GameScoring: React.FC<GameScoringProps> = ({
             onShowHistory={() => setShowHistoryModal(true)}
             targetScore={player.targetScore}
             needsReBreak={playerNeedsReBreak === player.id}
-            currentInning={currentInning}
+            isInitialBreak={currentInning === 1 && actions.length === 0}
             onBreakClick={() => setShowBreakDialog(true)}
           />
         ))}
       </div>
 
+      <div className="flex justify-center mt-4">
+        <div
+          className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm shadow-sm dark:border-blue-800 dark:bg-blue-950/60"
+          data-testid="bot-indicator"
+          aria-label={`Balls on Table: ${ballsOnTable}`}
+          title="BOT = Balls on Table"
+        >
+          <span className="font-medium uppercase tracking-wide text-blue-700 dark:text-blue-200">
+            BOT
+          </span>
+          <span className="text-xs text-blue-600 dark:text-blue-300">Balls on Table</span>
+          <span className="rounded-full bg-white px-2.5 py-0.5 text-base font-bold text-blue-700 shadow-sm dark:bg-blue-900 dark:text-blue-100">
+            {ballsOnTable}
+          </span>
+        </div>
+      </div>
+
       {/* Action buttons moved below player cards */}
       <div className="flex justify-center items-center mt-4">
-        <div className="flex flex-col space-y-3 min-[360px]:flex-row min-[360px]:space-y-0 min-[360px]:space-x-2">
+        <div className="grid w-full max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
           <button
             onClick={() => setShowInningsModal(true)}
-            className="w-28 px-2 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
+            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
             title="View game innings"
           >
             <svg
@@ -699,7 +717,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           <button
             onClick={handleUndoLastAction}
             disabled={!isUndoEnabled}
-            className={`w-28 px-2 py-2 rounded flex items-center justify-center gap-1 text-sm font-medium ${
+            className={`min-h-12 rounded px-3 py-3 flex items-center justify-center gap-2 text-sm font-medium shadow-sm ${
               isUndoEnabled
                 ? 'bg-yellow-600 text-white hover:bg-yellow-700'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -725,7 +743,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
           <button
             onClick={() => setShowEndGameModal(true)}
-            className="w-28 px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center gap-1 text-sm font-medium"
+            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -743,7 +761,30 @@ const GameScoring: React.FC<GameScoringProps> = ({
             </svg>
             New Game
           </button>
+
+          <button
+            onClick={() => setShowHelpModal(true)}
+            className="min-h-12 rounded bg-slate-600 px-3 py-3 text-sm font-medium text-white hover:bg-slate-700 flex items-center justify-center gap-2 shadow-sm"
+            title="Show straight pool help"
+          >
+            <span className="text-base font-bold leading-none">?</span>
+            Help
+          </button>
         </div>
+      </div>
+
+      {/* Timers at bottom */}
+      <div className="flex justify-center items-center gap-2 mt-4">
+        <MatchTimer
+          startTime={matchStartTime}
+          endTime={matchEndTime}
+          isRunning={!matchEndTime}
+        />
+        <TurnTimer
+          startTime={turnStartTime}
+          isRunning={!matchEndTime}
+          shotClockSeconds={shotClockSeconds}
+        />
       </div>
 
       {playerData.length > 0 && (
@@ -764,7 +805,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
           />
           <ConsecutiveFoulPenaltyModal
             isOpen={foulFlowState.showConsecutivePenaltyModal}
-            playerName={playerData[activePlayerIndex]?.name || ''}
+            playerName={
+              playerData.find(
+                (player) => player.id === foulFlowState.pendingConsecutiveFoulPlayerId,
+              )?.name || ''
+            }
             onSelectPenalty={handleConsecutivePenaltySelect}
             onCancel={handleCancelConsecutivePenalty}
           />
@@ -794,6 +839,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
         onClose={() => setShowAlertModal(false)}
         message={alertMessage}
       />
+
+      <GameHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
 
       <BreakDialog
         isOpen={showBreakDialog}

@@ -43,6 +43,13 @@ describe('BallsOnTableModal', () => {
     expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
   });
 
+  it('limits rack flow to 0 only when no balls remain on the table', () => {
+    render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={0} />);
+
+    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+  });
+
   it('calls onClose when cancel is pressed', () => {
     const onClose = vi.fn();
     render(<BallsOnTableModal {...baseProps} onClose={onClose} action="miss" />);
@@ -59,15 +66,15 @@ describe('BallsOnTableModal', () => {
     expect(onSubmit).toHaveBeenCalledWith(3);
   });
 
-  it('applies grid columns based on available values', () => {
+  it('always uses 4-column grid layout', () => {
     const { rerender } = render(
       <BallsOnTableModal {...baseProps} currentBallsOnTable={2} action="miss" />,
     );
 
-    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-3');
+    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-4');
 
     rerender(<BallsOnTableModal {...baseProps} currentBallsOnTable={10} action="miss" />);
-    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-5');
+    expect(screen.getByTestId('bot-grid')).toHaveClass('grid-cols-4');
   });
 
   it('has dialog accessibility attributes', () => {
@@ -76,5 +83,13 @@ describe('BallsOnTableModal', () => {
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
     expect(dialog).toHaveAttribute('aria-labelledby', 'balls-on-table-title');
+  });
+
+  it('explains how BOT scoring works', () => {
+    render(<BallsOnTableModal {...baseProps} action="miss" />);
+
+    expect(
+      screen.getByText(/RunCount uses this count to calculate the run that just ended/i),
+    ).toBeInTheDocument();
   });
 });

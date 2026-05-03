@@ -18,10 +18,12 @@ interface GameRouterProps {
   lastPlayers: string[];
   lastPlayerTargetScores: Record<string, number>;
   lastBreakingPlayerId: number;
+  lastShotClockSeconds: number | null;
   onStartGame: (
     players: string[],
     playerTargetScores: Record<string, number>,
     breakingPlayerId: number,
+    shotClockSeconds: number | null,
   ) => void;
   // Game scoring props
   players: string[];
@@ -29,6 +31,7 @@ interface GameRouterProps {
   gameId: string | null;
   setGameId: (id: string | null) => void;
   breakingPlayerId: number;
+  shotClockSeconds: number | null;
   matchStartTime: Date | null;
   matchEndTime: Date | null;
   setMatchStartTime: (time: Date | null) => void;
@@ -57,12 +60,14 @@ export const GameRouter: FC<GameRouterProps> = ({
   lastPlayers,
   lastPlayerTargetScores,
   lastBreakingPlayerId,
+  lastShotClockSeconds,
   onStartGame,
   players,
   playerTargetScores,
   gameId,
   setGameId,
   breakingPlayerId,
+  shotClockSeconds,
   matchStartTime,
   matchEndTime,
   setMatchStartTime,
@@ -85,6 +90,7 @@ export const GameRouter: FC<GameRouterProps> = ({
           lastPlayers={lastPlayers}
           lastPlayerTargetScores={lastPlayerTargetScores}
           lastBreakingPlayerId={lastBreakingPlayerId}
+          lastShotClockSeconds={lastShotClockSeconds}
         />
       );
     case 'scoring':
@@ -98,6 +104,7 @@ export const GameRouter: FC<GameRouterProps> = ({
           supabase={supabase}
           user={user}
           breakingPlayerId={breakingPlayerId}
+          shotClockSeconds={shotClockSeconds}
           matchStartTime={matchStartTime}
           matchEndTime={matchEndTime}
           setMatchStartTime={setMatchStartTime}

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import { getAuthCallbackUrl } from '../../utils/authRedirect';
+
 interface SignUpProps {
   supabase: SupabaseClient;
   onSuccess?: () => void;
@@ -39,7 +41,7 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}`,
+          emailRedirectTo: getAuthCallbackUrl(),
         },
       });
 
@@ -65,7 +67,7 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, onSuccess }) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: getAuthCallbackUrl(),
         },
       });
 

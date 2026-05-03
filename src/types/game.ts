@@ -27,6 +27,7 @@ export interface GameSettings {
   players: string[];
   playerTargetScores: Record<string, number>;
   breakingPlayerId?: number; // ID of the player who is breaking
+  shotClockSeconds?: number | null;
 }
 
 export interface GameData {
@@ -48,10 +49,12 @@ export interface GameSetupProps {
     players: string[],
     playerTargetScores: Record<string, number>,
     breakingPlayerId: number,
+    shotClockSeconds: number | null,
   ) => void;
   lastPlayers?: string[];
   lastPlayerTargetScores?: Record<string, number>;
   lastBreakingPlayerId?: number;
+  lastShotClockSeconds?: number | null;
 }
 
 export interface GameScoringProps {
@@ -63,6 +66,7 @@ export interface GameScoringProps {
   supabase: SupabaseClient;
   user?: User | null;
   breakingPlayerId?: number;
+  shotClockSeconds: number | null;
   matchStartTime: Date | null;
   matchEndTime: Date | null;
   setMatchStartTime: (time: Date | null) => void;

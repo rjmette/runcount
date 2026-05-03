@@ -7,6 +7,7 @@ import PlayerCard from './PlayerCard';
 describe('PlayerCard Component', () => {
   const mockOnPlayerNameChange = vi.fn();
   const mockOnTargetScoreChange = vi.fn();
+  const mockOnSelectBreaking = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,7 +25,7 @@ describe('PlayerCard Component', () => {
       />,
     );
 
-    expect(screen.getByText('Player 1')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
     expect(screen.getByLabelText('Player 1 name')).toBeInTheDocument();
   });
 
@@ -80,7 +81,7 @@ describe('PlayerCard Component', () => {
     expect(mockOnTargetScoreChange).toHaveBeenCalledWith(125);
   });
 
-  test('renders all quick-select score buttons', () => {
+  test('shows breaking indicator when isBreaking is true', () => {
     render(
       <PlayerCard
         playerNumber={1}
@@ -89,18 +90,15 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
+        isBreaking={true}
       />,
     );
 
-    const expectedScores = [50, 75, 100, 125, 150];
-    expectedScores.forEach((score) => {
-      expect(
-        screen.getByLabelText(`Set Player 1 target score to ${score} points`),
-      ).toBeInTheDocument();
-    });
+    expect(screen.getByText('Breaking')).toBeInTheDocument();
+    expect(screen.getByText('🎱')).toBeInTheDocument();
   });
 
-  test('quick-select button updates target score', () => {
+  test('does not show breaking indicator when isBreaking is false', () => {
     render(
       <PlayerCard
         playerNumber={1}
@@ -109,16 +107,14 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
+        isBreaking={false}
       />,
     );
 
-    const button100 = screen.getByLabelText('Set Player 1 target score to 100 points');
-    fireEvent.click(button100);
-
-    expect(mockOnTargetScoreChange).toHaveBeenCalledWith(100);
+    expect(screen.queryByText('Breaking')).not.toBeInTheDocument();
   });
 
-  test('quick-select buttons expose selection state via aria-pressed', () => {
+  test('calls onSelectBreaking when card is clicked', () => {
     render(
       <PlayerCard
         playerNumber={1}
@@ -127,20 +123,14 @@ describe('PlayerCard Component', () => {
         onPlayerNameChange={mockOnPlayerNameChange}
         onTargetScoreChange={mockOnTargetScoreChange}
         colorScheme="blue"
+        onSelectBreaking={mockOnSelectBreaking}
       />,
     );
 
-    const selectedButton = screen.getByLabelText(
-      'Set Player 1 target score to 75 points',
-    );
-    const unselectedButton = screen.getByLabelText(
-      'Set Player 1 target score to 50 points',
-    );
+    const card = screen.getByRole('button', { name: /Player 1/i });
+    fireEvent.click(card);
 
-    expect(selectedButton).toHaveAttribute('aria-pressed', 'true');
-    expect(selectedButton).toHaveAttribute('data-state', 'selected');
-    expect(unselectedButton).toHaveAttribute('aria-pressed', 'false');
-    expect(unselectedButton).toHaveAttribute('data-state', 'unselected');
+    expect(mockOnSelectBreaking).toHaveBeenCalled();
   });
 
   test('has required attribute on name input', () => {
@@ -175,7 +165,7 @@ describe('PlayerCard Component', () => {
     expect(scoreInput).toBeRequired();
   });
 
-  test('target score input has min and step attributes', () => {
+  test('target score input uses numeric keyboard on mobile', () => {
     render(
       <PlayerCard
         playerNumber={1}
@@ -188,7 +178,7 @@ describe('PlayerCard Component', () => {
     );
 
     const scoreInput = screen.getByLabelText('Player 1 target score');
-    expect(scoreInput).toHaveAttribute('min', '1');
-    expect(scoreInput).toHaveAttribute('step', '1');
+    expect(scoreInput).toHaveAttribute('inputMode', 'numeric');
+    expect(scoreInput).toHaveAttribute('pattern', '[0-9]*');
   });
 });

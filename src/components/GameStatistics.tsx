@@ -1,18 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 import { useError } from '../context/ErrorContext';
-import {
-  type GameStatisticsProps,
-  type GameData,
-  type GameAction,
-  type Player,
-} from '../types/game';
+import { type GameStatisticsProps, type GameData } from '../types/game';
 import { copyWithFeedback } from '../utils/copyToClipboard';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
-import { GameStatusPanel } from './shared/GameStatusPanel';
-import { PerformanceMetricsPanel } from './shared/PerformanceMetricsPanel';
+import { GameSummaryPanel } from './shared/GameSummaryPanel';
+import { calculatePlayerStats } from './shared/stats';
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
@@ -117,109 +112,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
       saveGameToSupabase();
     }
   }, [user, gameData, supabase, savedToSupabase]);
-
-  // Memoize expensive statistics calculations
-  const calculateStats = useMemo(
-    () => (players: Player[], actions: GameAction[]) => {
-      // Create a map to track results
-      const playerStats: Record<
-        number,
-        {
-          totalBallsPocketed: number;
-          totalInnings: number;
-          safetyInnings: number;
-          successfulSafeties: number;
-          failedSafeties: number;
-          totalSafeties: number;
-          ballsMade: number;
-          shotsTaken: number;
-        }
-      > = {};
-
-      // Initialize stats for each player
-      players.forEach((player) => {
-        playerStats[player.id] = {
-          totalBallsPocketed: player.score || 0,
-          totalInnings: player.innings || 0,
-          safetyInnings: 0,
-          successfulSafeties: 0,
-          failedSafeties: 0,
-          totalSafeties: player.safeties || 0,
-          ballsMade: player.score || 0,
-          shotsTaken:
-            (player.score || 0) +
-            (player.missedShots || 0) +
-            (player.safeties || 0) +
-            (player.fouls || 0),
-        };
-      });
-
-      // Analyze action sequence to determine safety effectiveness
-      for (let i = 0; i < actions.length - 1; i++) {
-        const currentAction = actions[i];
-        const nextAction = actions[i + 1];
-
-        // If current action is a safety
-        if (currentAction.type === 'safety') {
-          // Get current and next player IDs
-          const currentPlayerId = currentAction.playerId;
-          const nextPlayerId = nextAction.playerId;
-
-          // Count as a safety inning
-          playerStats[currentPlayerId].safetyInnings++;
-
-          // If next action is by a different player (opponent)
-          if (nextPlayerId !== currentPlayerId) {
-            // Check if next action is a foul or miss (successful safety)
-            if (nextAction.type === 'foul' || nextAction.type === 'miss') {
-              playerStats[currentPlayerId].successfulSafeties++;
-            } else {
-              // Opponent got to continue (failed safety)
-              playerStats[currentPlayerId].failedSafeties++;
-            }
-          }
-        }
-      }
-
-      // Calculate final statistics for each player
-      return players.map((player) => {
-        const stats = playerStats[player.id];
-
-        // 1. Traditional BPI
-        const traditionalBPI =
-          stats.totalInnings > 0
-            ? (stats.totalBallsPocketed / stats.totalInnings).toFixed(2)
-            : '0.00';
-
-        // 2. Offensive BPI (excluding safety innings)
-        const offensiveInnings = Math.max(1, stats.totalInnings - stats.safetyInnings);
-        const offensiveBPI = (stats.totalBallsPocketed / offensiveInnings).toFixed(2);
-
-        // 3. Safety Efficiency percentage
-        const safetyEfficiency =
-          stats.totalSafeties > 0
-            ? Math.round((stats.successfulSafeties / stats.totalSafeties) * 100)
-            : 0;
-
-        // 4. Shooting Percentage
-        const shootingPercentage =
-          stats.shotsTaken > 0
-            ? Math.round((stats.ballsMade / stats.shotsTaken) * 100)
-            : 0;
-
-        return {
-          ...player,
-          bpi: traditionalBPI,
-          offensiveBPI,
-          safetyEfficiency,
-          successfulSafeties: stats.successfulSafeties,
-          failedSafeties: stats.failedSafeties,
-          shootingPercentage,
-        };
-      });
-    },
-    [gameData?.players, gameData?.actions],
-  );
 
   const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';
@@ -335,38 +227,29 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold dark:text-white">Game Statistics</h2>
-        <div className="flex space-x-4">
-          {user && (
-            <button
-              onClick={viewHistory}
-              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
-            >
-              View History
-            </button>
-          )}
+        {user && (
           <button
-            onClick={startNewGame}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+            onClick={viewHistory}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800"
           >
-            New Game
+            View History
           </button>
-        </div>
+        )}
       </div>
 
-      {/* Game Status Panel */}
-      <GameStatusPanel
+      <GameSummaryPanel
         players={gameData.players}
         winnerId={gameData.winner_id}
         completed={gameData.completed}
         date={gameData.date}
         matchLength={matchLength}
-        calculatePlayerStats={(player: Player, actions: GameAction[]) =>
-          calculateStats([player], actions)[0]
-        }
+        calculatePlayerStats={calculatePlayerStats}
+        actions={gameData.actions}
+        tooltipContent={tooltipContent}
         onCopyResults={copyMatchResults}
         onViewInnings={() => setShowInningsModal(true)}
+        onShowDescriptions={() => setShowDescriptionsModal(true)}
         copySuccess={copySuccess}
-        actions={gameData.actions}
       />
 
       {/* Innings Modal */}
@@ -378,16 +261,6 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
           players={gameData.players}
         />
       )}
-
-      {/* Performance Metrics Panel */}
-      <PerformanceMetricsPanel
-        players={gameData.players}
-        actions={gameData.actions}
-        winnerId={gameData.winner_id}
-        calculatePlayerStats={(player) => calculateStats([player], gameData.actions)[0]}
-        tooltipContent={tooltipContent}
-        onShowDescriptions={() => setShowDescriptionsModal(true)}
-      />
 
       {/* Stat Descriptions Modal */}
       <StatDescriptionsModal

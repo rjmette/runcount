@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RunCount</string>
+    <string name="title_activity_main">RunCount</string>
+    <string name="package_name">net.rbios.runcount</string>
+    <string name="custom_url_scheme">net.rbios.runcount</string>
+</resources>

@@ -1,20 +1,11 @@
 import type { FC } from 'react';
 
-import { MatchTimer } from './MatchTimer';
-import { TurnTimer } from './TurnTimer';
-
-import type { GameState } from '../hooks/useGameState';
 import type { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
-  gameState: GameState;
   user: User | null;
   darkMode: boolean;
   isFullScreen: boolean;
-  matchStartTime: Date | null;
-  matchEndTime: Date | null;
-  turnStartTime?: Date | null;
-  ballsOnTable: number;
   toggleDarkMode: () => void;
   toggleFullscreen: () => void;
   onAuthClick: () => void;
@@ -22,14 +13,9 @@ interface HeaderProps {
 }
 
 export const Header: FC<HeaderProps> = ({
-  gameState,
   user,
   darkMode,
   isFullScreen,
-  matchStartTime,
-  matchEndTime,
-  turnStartTime,
-  ballsOnTable,
   toggleDarkMode,
   toggleFullscreen,
   onAuthClick,
@@ -39,21 +25,7 @@ export const Header: FC<HeaderProps> = ({
     <header className="bg-blue-800 dark:bg-blue-900 text-white py-2 px-3 shadow-md">
       <div className="flex justify-between items-center">
         <div>
-          {gameState === 'scoring' ? (
-            <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-              <MatchTimer
-                startTime={matchStartTime}
-                endTime={matchEndTime}
-                isRunning={!matchEndTime}
-                ballsOnTable={ballsOnTable}
-              />
-              {turnStartTime && (
-                <TurnTimer startTime={turnStartTime} isRunning={!matchEndTime} />
-              )}
-            </div>
-          ) : (
-            <h1 className="text-xl font-bold">RunCount</h1>
-          )}
+          <h1 className="text-xl font-bold">RunCount</h1>
         </div>
         <div className="flex items-center">
           <button

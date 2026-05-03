@@ -1,5 +1,7 @@
 import React, { type ErrorInfo } from 'react';
 
+import * as Sentry from '@sentry/react';
+
 import { useError } from '../../context/ErrorContext';
 
 type ErrorBoundaryProps = {
@@ -27,6 +29,10 @@ export class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    Sentry.captureException(error, {
+      extra: { componentStack: info.componentStack },
+    });
+
     // Fallback: try using window.dispatchEvent to signal error if context is not available
     try {
       const event = new CustomEvent('appError', {

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 
+import { DEFAULT_SHOT_CLOCK_SECONDS } from '../constants/gameSettings';
+
 /**
  * Custom hook for managing and persisting game settings
- * Stores last used players, target scores, and breaking player ID
+ * Stores last used players, target scores, breaking player ID, and shot clock
  */
 export const useGameSettings = () => {
   const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
@@ -20,6 +22,16 @@ export const useGameSettings = () => {
   const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() => {
     const savedBreakingPlayerId = localStorage.getItem('runcount_lastBreakingPlayerId');
     return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
+  });
+
+  const [lastShotClockSeconds, setLastShotClockSeconds] = useState<number | null>(() => {
+    const savedShotClockSeconds = localStorage.getItem('runcount_lastShotClockSeconds');
+
+    if (savedShotClockSeconds === null) {
+      return DEFAULT_SHOT_CLOCK_SECONDS;
+    }
+
+    return JSON.parse(savedShotClockSeconds) as number | null;
   });
 
   // Persist game settings to localStorage
@@ -45,6 +57,13 @@ export const useGameSettings = () => {
     );
   }, [lastBreakingPlayerId]);
 
+  useEffect(() => {
+    localStorage.setItem(
+      'runcount_lastShotClockSeconds',
+      JSON.stringify(lastShotClockSeconds),
+    );
+  }, [lastShotClockSeconds]);
+
   return {
     lastPlayers,
     setLastPlayers,
@@ -52,5 +71,7 @@ export const useGameSettings = () => {
     setLastPlayerTargetScores,
     lastBreakingPlayerId,
     setLastBreakingPlayerId,
+    lastShotClockSeconds,
+    setLastShotClockSeconds,
   };
 };

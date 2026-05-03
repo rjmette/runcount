@@ -18,14 +18,8 @@ vi.mock('../GameStatistics/components/StatDescriptionsModal', () => ({
   ),
 }));
 
-vi.mock('../shared/GameStatusPanel', () => ({
-  GameStatusPanel: () => <div data-testid="game-status-panel">Game Status Panel</div>,
-}));
-
-vi.mock('../shared/PerformanceMetricsPanel', () => ({
-  PerformanceMetricsPanel: () => (
-    <div data-testid="performance-metrics-panel">Performance Metrics Panel</div>
-  ),
+vi.mock('../shared/GameSummaryPanel', () => ({
+  GameSummaryPanel: () => <div data-testid="game-summary-panel">Game Summary Panel</div>,
 }));
 
 // Mock localStorage
@@ -103,7 +97,7 @@ describe('GameStatistics Component', () => {
     localStorage.clear();
   });
 
-  test('renders loading state initially', () => {
+  test('renders loading state initially', async () => {
     render(
       <GameStatistics
         gameId="game-1"
@@ -117,6 +111,10 @@ describe('GameStatistics Component', () => {
     expect(
       screen.getByRole('status', { name: 'Loading game statistics...' }),
     ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error/i)).toBeInTheDocument();
+    });
   });
 
   test('shows error when no game ID provided', async () => {
@@ -149,8 +147,7 @@ describe('GameStatistics Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByTestId('game-status-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('performance-metrics-panel')).toBeInTheDocument();
+      expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
     });
   });
 
@@ -187,7 +184,6 @@ describe('GameStatistics Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('New Game')).toBeInTheDocument();
       expect(screen.getByText('View History')).toBeInTheDocument();
     });
   });

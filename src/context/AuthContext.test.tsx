@@ -42,9 +42,16 @@ describe('AuthContext', () => {
   } as unknown as SupabaseClient;
 
   const mockUnsubscribe = vi.fn();
+  let authStateChangeHandler:
+    | ((event: string, session: { user?: { id: string; email: string } } | null) => void)
+    | null = null;
+  const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
 
   beforeEach(() => {
     vi.clearAllMocks();
+    authStateChangeHandler = null;
+    replaceStateSpy.mockClear();
+    window.history.replaceState({}, document.title, '/');
 
     // Default mocked responses
     mockGetSession.mockResolvedValue({
@@ -52,12 +59,15 @@ describe('AuthContext', () => {
       error: null,
     });
 
-    mockOnAuthStateChange.mockReturnValue({
-      data: {
-        subscription: {
-          unsubscribe: mockUnsubscribe,
+    mockOnAuthStateChange.mockImplementation((handler) => {
+      authStateChangeHandler = handler;
+      return {
+        data: {
+          subscription: {
+            unsubscribe: mockUnsubscribe,
+          },
         },
-      },
+      };
     });
   });
 
@@ -161,5 +171,27 @@ describe('AuthContext', () => {
 
     // Should have unsubscribed
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  test('normalizes the auth callback path after sign-in', async () => {
+    window.history.replaceState({}, document.title, '/auth/callback');
+
+    render(
+      <AuthProvider supabase={mockSupabase}>
+        <TestComponent />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(mockOnAuthStateChange).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      authStateChangeHandler?.('SIGNED_IN', {
+        user: { id: '123', email: 'test@example.com' },
+      });
+    });
+
+    expect(replaceStateSpy).toHaveBeenCalledWith({}, document.title, '/');
   });
 });

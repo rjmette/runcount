@@ -2,6 +2,7 @@ import React from 'react';
 
 import { type GameAction, type Player } from '../../../types/game';
 import { calculateInningActions } from '../../GameHistory/utils/calculations';
+import { RelativeTime } from '../../shared/RelativeTime';
 
 interface InningsModalProps {
   isOpen: boolean;
@@ -121,11 +122,7 @@ export const InningsModal: React.FC<InningsModalProps> = ({
                       {inning.endAction.ballsOnTable}
                     </td>
                     <td className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
-                      {inning.endTime.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                      })}
+                      <RelativeTime date={inning.endTime} />
                     </td>
                   </tr>
                 );
