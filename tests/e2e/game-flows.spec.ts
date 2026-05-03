@@ -65,6 +65,7 @@ test.describe('Straight pool core flows', () => {
 
     await recordMiss(page, 15);
     await commitFoul(page, { ballsRemaining: 15 });
+    await page.getByRole('button', { name: /16 Pt\. Foul/ }).click();
     await acknowledgeAlert(page, /three consecutive fouls!.*16-point penalty applied/i);
 
     await expect(page.getByTestId('player-score-0')).toHaveText('-4');
