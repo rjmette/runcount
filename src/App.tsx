@@ -84,6 +84,7 @@ const AppContent: FC = () => {
     handleFinishGame,
     handleStartNewGame,
     handleViewHistory,
+    handleViewTrends,
     handleGoToSetup,
   } = useGameState();
 
@@ -209,6 +210,7 @@ const AppContent: FC = () => {
           onStartNewGame={handleStartNewGame}
           onViewHistory={handleViewHistory}
           onGoToSetup={handleGoToSetup}
+          onViewTrends={handleViewTrends}
           onSignOut={handleSignOut}
         />
       </main>

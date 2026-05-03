@@ -14,12 +14,6 @@ export interface HistoryFilters {
   gameType: 'all' | 'completed' | 'in-progress';
 }
 
-export interface HistoryTrendPoint {
-  label: string;
-  games: number;
-  totalScore: number;
-}
-
 const getGameTimestamp = (game: GameData) => new Date(game.date).getTime();
 
 const getGameWinnerName = (game: GameData) =>
@@ -27,8 +21,6 @@ const getGameWinnerName = (game: GameData) =>
 
 const getGameTotalScore = (game: GameData) =>
   game.players.reduce((total, player) => total + (player.score || 0), 0);
-
-const formatDateInput = (date: Date) => date.toISOString().slice(0, 10);
 
 export const defaultHistoryFilters: HistoryFilters = {
   startDate: '',
@@ -124,27 +116,4 @@ export const buildGameHistoryCsv = (games: GameData[]) => {
   ]
     .map((row) => row.map(escapeCell).join(','))
     .join('\n');
-};
-
-export const buildGameHistoryTrends = (games: GameData[]) => {
-  const trendMap = new Map<string, HistoryTrendPoint>();
-
-  games.forEach((game) => {
-    const label = formatDateInput(new Date(game.date));
-    const existingTrend = trendMap.get(label) ?? {
-      label,
-      games: 0,
-      totalScore: 0,
-    };
-
-    trendMap.set(label, {
-      label,
-      games: existingTrend.games + 1,
-      totalScore: existingTrend.totalScore + getGameTotalScore(game),
-    });
-  });
-
-  return [...trendMap.values()].sort((firstTrend, secondTrend) =>
-    firstTrend.label.localeCompare(secondTrend.label),
-  );
 };

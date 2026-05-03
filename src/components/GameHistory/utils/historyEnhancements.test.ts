@@ -6,7 +6,6 @@ import { type GameData } from '../../../types/game';
 import {
   buildGameHistoryCsv,
   buildGameHistoryExport,
-  buildGameHistoryTrends,
   defaultHistoryFilters,
   filterAndSortGames,
 } from './historyEnhancements';
@@ -95,18 +94,5 @@ describe('historyEnhancements', () => {
       '"Game ID","Date","Status","Winner","Players","Total Score","Scores"',
     );
     expect(buildGameHistoryCsv(games)).toContain('"Alice (75/75); Bob (60/75)"');
-  });
-
-  test('builds daily scoring trend points', () => {
-    const trends = buildGameHistoryTrends([
-      createGame({ id: 'one', date: '2026-04-02T12:00:00.000Z' }),
-      createGame({ id: 'two', date: '2026-04-02T18:00:00.000Z' }),
-      createGame({ id: 'three', date: '2026-04-03T12:00:00.000Z' }),
-    ]);
-
-    expect(trends).toEqual([
-      { label: '2026-04-02', games: 2, totalScore: 270 },
-      { label: '2026-04-03', games: 1, totalScore: 135 },
-    ]);
   });
 });

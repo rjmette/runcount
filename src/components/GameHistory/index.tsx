@@ -10,7 +10,6 @@ import { useGameSelection } from './hooks/useGameSelection';
 import {
   buildGameHistoryCsv,
   buildGameHistoryExport,
-  buildGameHistoryTrends,
   defaultHistoryFilters,
   filterAndSortGames,
   type HistoryFilters,
@@ -21,6 +20,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
   startNewGame,
   user = null,
+  viewTrends,
 }) => {
   // Add a state to track which view we're showing
   const [view, setView] = useState<'list' | 'details'>('list');
@@ -33,11 +33,6 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   });
 
   const filteredGames = filterAndSortGames(games, filters, sortOption);
-  const trendPoints = buildGameHistoryTrends(filteredGames);
-  const maxTrendScore = Math.max(
-    1,
-    ...trendPoints.map((trendPoint) => trendPoint.totalScore),
-  );
 
   // Function to check if games are valid
   const getValidGamesCount = () => {
@@ -188,12 +183,22 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         <h2 className="text-2xl font-bold">
           Game History {validGameCount > 0 ? `(${validGameCount})` : ''}
         </h2>
-        <button
-          onClick={startNewGame}
-          className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
-        >
-          New Game
-        </button>
+        <div className="flex gap-2">
+          {viewTrends && (
+            <button
+              onClick={viewTrends}
+              className="px-4 py-2 bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600"
+            >
+              View Trends →
+            </button>
+          )}
+          <button
+            onClick={startNewGame}
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
+          >
+            New Game
+          </button>
+        </div>
       </div>
 
       {/* Conditionally render either the list or details view */}
@@ -297,37 +302,6 @@ const GameHistory: React.FC<GameHistoryProps> = ({
               </div>
             </div>
           </div>
-
-          {trendPoints.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                Scoring Trend
-              </h3>
-              <div className="space-y-3">
-                {trendPoints.slice(-8).map((trendPoint) => (
-                  <div
-                    key={trendPoint.label}
-                    className="grid grid-cols-[6rem_1fr_5rem] items-center gap-3 text-sm"
-                  >
-                    <span className="text-gray-600 dark:text-gray-300">
-                      {trendPoint.label}
-                    </span>
-                    <div className="h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{
-                          width: `${(trendPoint.totalScore / maxTrendScore) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-right text-gray-600 dark:text-gray-300">
-                      {trendPoint.totalScore} pts
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <GameList
             games={filteredGames}

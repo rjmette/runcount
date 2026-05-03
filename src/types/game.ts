@@ -89,6 +89,7 @@ export interface GameHistoryProps {
   supabase: SupabaseClient;
   startNewGame: () => void;
   user?: User | null;
+  viewTrends?: () => void;
 }
 
 export interface ScoreButtonProps {

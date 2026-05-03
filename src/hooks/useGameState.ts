@@ -3,7 +3,13 @@ import { useState, useCallback, useEffect } from 'react';
 import { useGamePersist } from '../context/GamePersistContext';
 
 // Game states
-export type GameState = 'setup' | 'scoring' | 'statistics' | 'history' | 'profile';
+export type GameState =
+  | 'setup'
+  | 'scoring'
+  | 'statistics'
+  | 'history'
+  | 'trends'
+  | 'profile';
 
 /**
  * Custom hook for managing game state and related data
@@ -139,6 +145,10 @@ export const useGameState = () => {
     setGameState('history');
   }, []);
 
+  const handleViewTrends = useCallback(() => {
+    setGameState('trends');
+  }, []);
+
   const handleGoToSetup = useCallback(() => {
     setGameState('setup');
   }, []);
@@ -163,6 +173,7 @@ export const useGameState = () => {
     handleFinishGame,
     handleStartNewGame,
     handleViewHistory,
+    handleViewTrends,
     handleGoToSetup,
   };
 };
