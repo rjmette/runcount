@@ -5,6 +5,7 @@ import GameHistory from './GameHistory/index';
 import GameScoring from './GameScoring/index';
 import GameSetup from './GameSetup';
 import GameStatistics from './GameStatistics';
+import TrendsPage from './Trends/index';
 
 import type { GameState } from '../hooks/useGameState';
 import type { User } from '@supabase/supabase-js';
@@ -46,6 +47,7 @@ interface GameRouterProps {
   onViewHistory: () => void;
   // Game history props
   onGoToSetup: () => void;
+  onViewTrends: () => void;
   // Profile props
   onSignOut: () => Promise<void>;
 }
@@ -80,6 +82,7 @@ export const GameRouter: FC<GameRouterProps> = ({
   onStartNewGame,
   onViewHistory,
   onGoToSetup,
+  onViewTrends,
   onSignOut,
 }) => {
   switch (gameState) {
@@ -126,7 +129,16 @@ export const GameRouter: FC<GameRouterProps> = ({
         />
       );
     case 'history':
-      return <GameHistory supabase={supabase} startNewGame={onGoToSetup} user={user} />;
+      return (
+        <GameHistory
+          supabase={supabase}
+          startNewGame={onGoToSetup}
+          user={user}
+          viewTrends={onViewTrends}
+        />
+      );
+    case 'trends':
+      return <TrendsPage supabase={supabase} user={user} onStartNewGame={onGoToSetup} />;
     case 'profile':
       return <UserProfile supabase={supabase} user={user!} onSignOut={onSignOut} />;
     default:

@@ -58,7 +58,7 @@ test.describe('Game history enhancements', () => {
 
     await expect(page.getByRole('heading', { name: /Game History \(3\)/ })).toBeVisible();
     await expect(page.getByText('Showing 3 of 3 games')).toBeVisible();
-    await expect(page.getByText('Scoring Trend')).toBeVisible();
+    await expect(page.getByRole('button', { name: /View Trends/ })).toBeVisible();
 
     await page.getByLabel('From', { exact: true }).fill('2026-04-01');
     await page.getByLabel('To', { exact: true }).fill('2026-04-30');

@@ -1,5 +1,6 @@
-import type { Page } from '@playwright/test';
 import { expect } from '../setup';
+
+import type { Page } from '@playwright/test';
 
 type GameSetupOptions = {
   playerOne?: string;
@@ -7,6 +8,11 @@ type GameSetupOptions = {
   playerOneTarget?: number;
   playerTwoTarget?: number;
   breakingPlayerIndex?: 0 | 1;
+};
+
+const BREAKING_PLAYER_LABEL: Record<0 | 1, RegExp> = {
+  0: /Player 1.*tap to select as breaking player/,
+  1: /Player 2.*tap to select as breaking player/,
 };
 
 type FoulOptions = {
@@ -34,11 +40,9 @@ export const startNewGame = async (page: Page, options: GameSetupOptions = {}) =
     .getByLabel('Player 2 target score', { exact: true })
     .fill(playerTwoTarget.toString());
 
-  const breakerLabel =
-    breakingPlayerIndex === 0
-      ? `Select ${playerOne || 'Player 1'} as breaking player`
-      : `Select ${playerTwo || 'Player 2'} as breaking player`;
-  await page.getByRole('button', { name: breakerLabel }).click();
+  await page
+    .getByRole('button', { name: BREAKING_PLAYER_LABEL[breakingPlayerIndex] })
+    .click();
 
   await page.getByRole('button', { name: 'Start Game' }).click();
   await expect(page.getByTestId('player-card')).toHaveCount(2);

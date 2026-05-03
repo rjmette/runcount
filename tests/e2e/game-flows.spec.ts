@@ -14,9 +14,13 @@ test.describe('Straight pool core flows', () => {
 
     const playerCards = page.getByTestId('player-card');
     await expect(playerCards).toHaveCount(2);
-    await expect(playerCards.first()).toContainText('Active');
     await expect(playerCards.first()).toContainText('Alice');
     await expect(playerCards.nth(1)).toContainText('Bob');
+    // Active player on initial break is the only card showing the Break button
+    await expect(
+      playerCards.first().getByRole('button', { name: 'Break' }),
+    ).toBeVisible();
+    await expect(playerCards.nth(1).getByRole('button', { name: 'Break' })).toBeHidden();
     await expect(page.getByRole('button', { name: 'Innings' })).toBeVisible();
   });
 
@@ -79,7 +83,8 @@ test.describe('Straight pool core flows', () => {
     await page.getByRole('button', { name: 'End Game' }).click();
 
     await expect(page.getByRole('heading', { name: 'Game Statistics' })).toBeVisible();
-    await page.getByRole('main').getByRole('button', { name: 'New Game' }).click();
+    // Post-game, the user navigates to a fresh game via the nav tab
+    await page.getByRole('navigation').getByRole('button', { name: 'New Game' }).click();
 
     await expect(page.getByRole('heading', { name: 'New Game' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Start Game' })).toBeVisible();
