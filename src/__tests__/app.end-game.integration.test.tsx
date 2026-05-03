@@ -90,7 +90,8 @@ describe('App end-game flow', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Start Game/i }));
 
-    await screen.findByRole('button', { name: /New Game/i });
+    // Wait for the scoring screen to mount: the End Game button is part of the utility row.
+    await screen.findByRole('button', { name: /^End Game$/i });
   };
 
   test('continues from the win screen without hitting the error boundary', async () => {
@@ -112,8 +113,12 @@ describe('App end-game flow', () => {
   test('ends a game manually without hitting the error boundary', async () => {
     await startGame();
 
-    await userEvent.click(screen.getByRole('button', { name: /New Game/i }));
-    await userEvent.click(screen.getByRole('button', { name: /^End Game$/i }));
+    // Open the End Game modal from the utility row, then confirm in the modal.
+    // (`getAllByRole` because both the row button and the modal confirm button match.)
+    const endGameButtons = screen.getAllByRole('button', { name: /^End Game$/i });
+    await userEvent.click(endGameButtons[0]);
+    const confirmButtons = await screen.findAllByRole('button', { name: /^End Game$/i });
+    await userEvent.click(confirmButtons[confirmButtons.length - 1]);
 
     await waitFor(() => {
       expect(

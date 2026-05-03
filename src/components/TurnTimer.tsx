@@ -74,18 +74,29 @@ export const TurnTimer: React.FC<TurnTimerProps> = memo(
       `${minutes.toString().padStart(2, '0')}:` +
       `${seconds.toString().padStart(2, '0')}`;
     const isOverLimit = elapsedSeconds >= shotClockSeconds;
+    const isApproaching =
+      !isOverLimit && elapsedSeconds >= Math.floor(shotClockSeconds * 0.75);
+    // Three states: neutral (in budget), approaching (>=75%), over.
     const containerClasses = isOverLimit
       ? 'bg-red-100 dark:bg-red-900'
-      : 'bg-orange-100 dark:bg-orange-900';
+      : isApproaching
+        ? 'bg-amber-100 dark:bg-amber-900/60'
+        : 'bg-gray-100 dark:bg-gray-700';
     const iconClasses = isOverLimit
       ? 'text-red-600 dark:text-red-300'
-      : 'text-orange-600 dark:text-orange-400';
+      : isApproaching
+        ? 'text-amber-600 dark:text-amber-300'
+        : 'text-gray-500 dark:text-gray-300';
     const timeClasses = isOverLimit
       ? 'text-red-800 dark:text-red-100'
-      : 'text-orange-800 dark:text-orange-200';
+      : isApproaching
+        ? 'text-amber-800 dark:text-amber-100'
+        : 'text-gray-800 dark:text-gray-200';
     const badgeClasses = isOverLimit
       ? 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-100'
-      : 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-100';
+      : isApproaching
+        ? 'bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-100'
+        : 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200';
 
     return (
       <div

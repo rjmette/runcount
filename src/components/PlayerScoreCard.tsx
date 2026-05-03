@@ -2,8 +2,6 @@ import React, { useMemo, memo } from 'react';
 
 import { type Player } from '../types/game';
 
-import ScoreButton from './ScoreButton';
-
 interface PlayerScoreCardProps {
   player: Player;
   isActive: boolean;
@@ -22,10 +20,10 @@ interface PlayerScoreCardProps {
 const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   player,
   isActive,
-  onAddScore,
-  onAddFoul,
-  onAddSafety,
-  onAddMiss,
+  onAddScore: _onAddScore,
+  onAddFoul: _onAddFoul,
+  onAddSafety: _onAddSafety,
+  onAddMiss: _onAddMiss,
   onShowHistory: _onShowHistory,
   targetScore,
   onRegularShot: _onRegularShot,
@@ -44,14 +42,19 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   return (
     <div
       data-testid="player-card"
+      aria-current={isActive ? 'true' : undefined}
       className={`rounded-lg p-3 mb-2 transition-all duration-300 ${
         isActive
-          ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 border-2 border-blue-500 shadow-lg shadow-blue-200 dark:shadow-blue-900/50 scale-[1.02]'
-          : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 opacity-80 shadow-md'
+          ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/60 dark:to-blue-800/60 border-2 border-blue-500 shadow-lg shadow-blue-200/50 dark:shadow-blue-900/30'
+          : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-sm'
       }`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-2xl font-extrabold dark:text-white">
+        <h3
+          className={`text-2xl dark:text-white ${
+            isActive ? 'font-extrabold' : 'font-semibold text-gray-700 dark:text-gray-300'
+          }`}
+        >
           {player.name}
           {player.score >= targetScore && (
             <span className="ml-1 text-yellow-500">🏆</span>
@@ -61,19 +64,19 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           {isActive === true && !needsReBreak && isInitialBreak && (
             <button
               onClick={onBreakClick}
-              className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
               title="Click to change breaking player"
             >
               Break
             </button>
           )}
           {needsReBreak && (
-            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+            <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-medium">
               Re-Break
             </span>
           )}
           {player.consecutiveFouls >= 2 && (
-            <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">
               2 Fouls
             </span>
           )}
@@ -89,7 +92,9 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
                 ? 'text-green-600 dark:text-green-500'
                 : player.score < 0
                   ? 'text-red-600 dark:text-red-500'
-                  : 'text-blue-700 dark:text-blue-400'
+                  : isActive
+                    ? 'text-blue-700 dark:text-blue-300'
+                    : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             {player.score < 0 && '-'}
@@ -139,57 +144,7 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
         />
       </div>
 
-      {isActive && (
-        <div className="mt-3 space-y-3">
-          <ScoreButton
-            label="Miss"
-            value={0}
-            onClick={() => onAddMiss()}
-            className="bg-gray-500 hover:bg-gray-600 hover:shadow-lg hover:scale-105 transition-all duration-150 border border-gray-400 dark:border-gray-500 w-full"
-          />
-
-          <div className="grid grid-cols-3 gap-3">
-            <ScoreButton
-              label="Safety"
-              value={0}
-              onClick={() => onAddSafety()}
-              className="bg-yellow-600 hover:bg-yellow-700 hover:shadow-lg hover:scale-105 transition-all duration-150"
-            />
-
-            <ScoreButton
-              label="Foul"
-              value={-1}
-              onClick={() => onAddFoul()}
-              className="bg-red-600 hover:bg-red-700 hover:shadow-lg hover:scale-105 transition-all duration-150"
-            />
-
-            <ScoreButton
-              label={
-                <div className="flex items-center justify-center space-x-1">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>Rack</span>
-                </div>
-              }
-              value={1}
-              onClick={() => onAddScore(1)}
-              className="bg-green-600 hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all duration-150 whitespace-nowrap"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="mt-2 grid grid-cols-3 gap-1 text-center text-sm text-gray-500 dark:text-gray-400">
+      <div className="mt-3 grid grid-cols-3 gap-1 text-center text-sm text-gray-500 dark:text-gray-400">
         <div>
           <span className="font-bold dark:text-gray-300">{player.safeties}</span>{' '}
           <span className="font-medium">Safeties</span>

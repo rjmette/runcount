@@ -88,106 +88,99 @@ const GameSetup: React.FC<GameSetupProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-md mx-auto pt-8">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-            New Game
-          </h1>
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-            14.1 Straight Pool scorer
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Tap a player to select who breaks
-          </p>
+    <div className="max-w-md mx-auto">
+      {/* Header */}
+      <div className="text-center mb-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
+          14.1 Straight Pool scorer
+        </p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+          New Game
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          Tap a player to select who breaks
+        </p>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl mb-4 text-sm">
+          {error}
         </div>
+      )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl mb-4 text-sm">
-            {error}
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <PlayerCard
+          playerNumber={1}
+          playerName={player1}
+          targetScore={player1TargetScore}
+          onPlayerNameChange={setPlayer1}
+          onTargetScoreChange={setPlayer1TargetScore}
+          colorScheme="blue"
+          isBreaking={breakingPlayerId === 0}
+          onSelectBreaking={() => setBreakingPlayerId(0)}
+        />
+
+        <PlayerCard
+          playerNumber={2}
+          playerName={player2}
+          targetScore={player2TargetScore}
+          onPlayerNameChange={setPlayer2}
+          onTargetScoreChange={setPlayer2TargetScore}
+          colorScheme="green"
+          isBreaking={breakingPlayerId === 1}
+          onSelectBreaking={() => setBreakingPlayerId(1)}
+        />
+
+        <section className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border border-gray-100 dark:border-gray-700">
+          <div className="mb-3">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+              Shot Clock
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Choose the per-turn timer for this match.
+            </p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <PlayerCard
-            playerNumber={1}
-            playerName={player1}
-            targetScore={player1TargetScore}
-            onPlayerNameChange={setPlayer1}
-            onTargetScoreChange={setPlayer1TargetScore}
-            colorScheme="blue"
-            isBreaking={breakingPlayerId === 0}
-            onSelectBreaking={() => setBreakingPlayerId(0)}
-          />
-
-          <PlayerCard
-            playerNumber={2}
-            playerName={player2}
-            targetScore={player2TargetScore}
-            onPlayerNameChange={setPlayer2}
-            onTargetScoreChange={setPlayer2TargetScore}
-            colorScheme="green"
-            isBreaking={breakingPlayerId === 1}
-            onSelectBreaking={() => setBreakingPlayerId(1)}
-          />
-
-          <section className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md border border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-                  Shot Clock
-                </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Choose the per-turn timer for this match.
-                </p>
-              </div>
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                {shotClockSeconds === null ? 'Off' : `${shotClockSeconds}s`}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2 mt-3">
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              type="button"
+              onClick={() => setShotClockSeconds(null)}
+              aria-pressed={shotClockSeconds === null}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                shotClockSeconds === null
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Off
+            </button>
+            {SHOT_CLOCK_PRESET_SECONDS.map((preset) => (
               <button
+                key={preset}
                 type="button"
-                onClick={() => setShotClockSeconds(null)}
-                aria-pressed={shotClockSeconds === null}
+                onClick={() => setShotClockSeconds(preset)}
+                aria-pressed={shotClockSeconds === preset}
                 className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                  shotClockSeconds === null
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600'
+                  shotClockSeconds === preset
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                Off
+                {preset}s
               </button>
-              {SHOT_CLOCK_PRESET_SECONDS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setShotClockSeconds(preset)}
-                  aria-pressed={shotClockSeconds === preset}
-                  className={`rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                    shotClockSeconds === preset
-                      ? 'bg-orange-600 text-white'
-                      : 'bg-orange-50 text-orange-700 hover:bg-orange-100 dark:bg-orange-900/40 dark:text-orange-200 dark:hover:bg-orange-900/70'
-                  }`}
-                >
-                  {preset}s
-                </button>
-              ))}
-            </div>
-          </section>
+            ))}
+          </div>
+        </section>
 
-          {/* Start Game Button */}
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white py-4 px-8 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 mt-4"
-          >
-            Start Game
-          </button>
-        </form>
-      </div>
+        {/* Start Game Button */}
+        <button
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white py-4 px-8 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 mt-4"
+        >
+          Start Game
+        </button>
+      </form>
     </div>
   );
 };

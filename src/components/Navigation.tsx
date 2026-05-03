@@ -10,8 +10,9 @@ interface NavigationProps {
 }
 
 export const Navigation: FC<NavigationProps> = ({ gameState, user, onNavigate }) => {
-  // Only show navigation tabs when not in an active game
-  if (gameState === 'scoring') {
+  // Hide nav during active scoring, and when signed out (only "New Game" would show — redundant
+  // with the page-level Start New Game CTAs and the page itself).
+  if (gameState === 'scoring' || !user) {
     return null;
   }
 

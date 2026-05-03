@@ -672,109 +672,150 @@ const GameScoring: React.FC<GameScoringProps> = ({
         ))}
       </div>
 
-      <div className="flex justify-center mt-4">
-        <div
-          className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm shadow-sm dark:border-blue-800 dark:bg-blue-950/60"
-          data-testid="bot-indicator"
-          aria-label={`Balls on Table: ${ballsOnTable}`}
-          title="BOT = Balls on Table"
+      {/* Active-player action zone: end-of-inning actions + BOT context */}
+      <div className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div className="mb-3 flex items-center justify-end gap-2 text-sm">
+          <span
+            className="text-gray-600 dark:text-gray-400"
+            data-testid="bot-indicator"
+            aria-label={`Balls on Table: ${ballsOnTable}`}
+            title="BOT = Balls on Table"
+          >
+            Balls on Table:{' '}
+            <span className="font-mono font-bold text-gray-900 dark:text-white">
+              {ballsOnTable}
+            </span>
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          {/* Primary end-of-inning action */}
+          <button
+            type="button"
+            onClick={() => handleActionClick('miss')}
+            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 text-sm font-semibold shadow-sm transition-colors"
+          >
+            Miss
+          </button>
+
+          {/* Qualifiers / alternative end-of-inning markers */}
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => handleActionClick('safety')}
+              className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 px-3 py-2.5 text-sm font-medium transition-colors"
+            >
+              Safety
+            </button>
+            <button
+              type="button"
+              onClick={() => handleActionClick('foul')}
+              className="rounded-lg bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-700 dark:bg-gray-700 dark:hover:bg-red-900/40 dark:text-gray-100 dark:hover:text-red-200 px-3 py-2.5 text-sm font-medium transition-colors"
+            >
+              Foul
+            </button>
+            <button
+              type="button"
+              onClick={() => handleActionClick('newrack')}
+              className="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 dark:text-emerald-200 px-3 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1"
+            >
+              <span aria-hidden="true">+</span>Rack
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Utility row + timers */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => setShowInningsModal(true)}
+          className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 text-xs font-medium transition-colors"
+          title="View game innings"
         >
-          <span className="font-medium uppercase tracking-wide text-blue-700 dark:text-blue-200">
-            BOT
-          </span>
-          <span className="text-xs text-blue-600 dark:text-blue-300">Balls on Table</span>
-          <span className="rounded-full bg-white px-2.5 py-0.5 text-base font-bold text-blue-700 shadow-sm dark:bg-blue-900 dark:text-blue-100">
-            {ballsOnTable}
-          </span>
-        </div>
-      </div>
-
-      {/* Action buttons moved below player cards */}
-      <div className="flex justify-center items-center mt-4">
-        <div className="grid w-full max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-          <button
-            onClick={() => setShowInningsModal(true)}
-            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
-            title="View game innings"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-            Innings
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
+          </svg>
+          Innings
+        </button>
 
-          <button
-            onClick={handleUndoLastAction}
-            disabled={!isUndoEnabled}
-            className={`min-h-12 rounded px-3 py-3 flex items-center justify-center gap-2 text-sm font-medium shadow-sm ${
-              isUndoEnabled
-                ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-            title="Undo last action"
+        <button
+          type="button"
+          onClick={handleUndoLastAction}
+          disabled={!isUndoEnabled}
+          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            isUndoEnabled
+              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200'
+              : 'bg-gray-50 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+          }`}
+          title="Undo last action"
+          aria-label="Undo last action"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-              />
-            </svg>
-            Undo
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+            />
+          </svg>
+          Undo
+        </button>
 
-          <button
-            onClick={() => setShowEndGameModal(true)}
-            className="min-h-12 rounded bg-blue-600 px-3 py-3 text-sm font-medium text-white hover:bg-blue-700 flex items-center justify-center gap-2 shadow-sm"
+        <button
+          type="button"
+          onClick={() => setShowEndGameModal(true)}
+          className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 text-xs font-medium transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8.002 8.002 0 0115.356 2M20 20v-5h-.581m-15.356-2A8.001 8.001 0 0019.419 15m0 0V15a8.002 8.002 0 00-15.356-2"
-              />
-            </svg>
-            New Game
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+          End Game
+        </button>
 
-          <button
-            onClick={() => setShowHelpModal(true)}
-            className="min-h-12 rounded bg-slate-600 px-3 py-3 text-sm font-medium text-white hover:bg-slate-700 flex items-center justify-center gap-2 shadow-sm"
-            title="Show straight pool help"
-          >
-            <span className="text-base font-bold leading-none">?</span>
-            Help
-          </button>
-        </div>
-      </div>
+        <button
+          type="button"
+          onClick={() => setShowHelpModal(true)}
+          className="inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 w-7 h-7 text-xs font-bold transition-colors"
+          title="Show straight pool help"
+          aria-label="Show help"
+        >
+          ?
+        </button>
 
-      {/* Timers at bottom */}
-      <div className="flex justify-center items-center gap-2 mt-4">
+        <span
+          className="mx-1 hidden h-5 w-px bg-gray-300 dark:bg-gray-600 sm:inline-block"
+          aria-hidden="true"
+        />
+
         <MatchTimer
           startTime={matchStartTime}
           endTime={matchEndTime}
