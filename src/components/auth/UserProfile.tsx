@@ -219,7 +219,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl w-full mx-auto my-auto">
       {/* Page header — matches the kicker + title pattern used on Setup
           and Stats so the auth-gated screens share visual language. Hidden
           when rendered inside ProfileModal (which has its own header). */}

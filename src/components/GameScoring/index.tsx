@@ -652,7 +652,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl w-full mx-auto my-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {playerData.map((player, index) => (
           <PlayerScoreCard

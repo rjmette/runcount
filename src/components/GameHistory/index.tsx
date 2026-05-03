@@ -178,7 +178,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl w-full mx-auto my-auto">
       <DeleteConfirmationModal
         isOpen={showDeleteConfirmation}
         onCancel={cancelDelete}
@@ -225,7 +225,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 
       {/* Conditionally render either the list or details view */}
       {view === 'list' ? (
-        <div className="min-h-[calc(100vh-15rem)]">
+        <div>
           {/* Filter / export toolbar — hidden entirely when the user has
               no games yet. The empty-state hero in GameList carries the
               "start your first game" call to action; surfacing five date
@@ -381,7 +381,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
           />
         </div>
       ) : (
-        <div className="min-h-[calc(100vh-15rem)]">
+        <div>
           {selectedGame ? (
             <GameDetails
               game={selectedGame}
