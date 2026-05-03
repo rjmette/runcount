@@ -79,8 +79,10 @@ describe('App Component', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
+    // The modal opens on the Login tab by default; the per-tab header
+    // replaced the old generic "Authentication" title.
     await waitFor(() => {
-      expect(screen.getByText('Authentication')).toBeInTheDocument();
+      expect(screen.getByText('Welcome back')).toBeInTheDocument();
     });
   });
 
