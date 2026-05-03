@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
+import { getAuthCallbackUrl } from '../../utils/authRedirect';
+
 import SignUp from './SignUp';
 
 describe('SignUp', () => {
@@ -39,7 +41,7 @@ describe('SignUp', () => {
         email: 'player@example.com',
         password: 'secret123',
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getAuthCallbackUrl(),
         },
       });
     });
@@ -55,7 +57,7 @@ describe('SignUp', () => {
       expect(signInWithOAuth).toHaveBeenCalledWith({
         provider: 'apple',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getAuthCallbackUrl(),
         },
       });
     });
