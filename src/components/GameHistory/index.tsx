@@ -185,10 +185,22 @@ const GameHistory: React.FC<GameHistoryProps> = ({
         onConfirm={() => gameToDelete && handleDeleteGame(gameToDelete)}
       />
 
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">
-          Game History {validGameCount > 0 ? `(${validGameCount})` : ''}
-        </h2>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="text-center sm:text-left">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Past Games
+          </p>
+          <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 sm:justify-start">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Game History
+            </h2>
+            {validGameCount > 0 && (
+              <span className="text-base font-medium text-gray-500 dark:text-gray-400">
+                ({validGameCount})
+              </span>
+            )}
+          </div>
+        </div>
         {/* Header CTAs only make sense once there's content; the empty
             state below carries its own primary action. */}
         {validGameCount > 0 && (

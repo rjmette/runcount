@@ -8,6 +8,12 @@ interface UserProfileProps {
   supabase: SupabaseClient;
   user: User;
   onSignOut: () => Promise<void>;
+  /**
+   * Render the per-screen kicker + bold title block. Off by default so
+   * ProfileModal (which has its own modal header) doesn't double up; the
+   * full-screen route in GameRouter passes `showPageTitle`.
+   */
+  showPageTitle?: boolean;
 }
 
 const getErrorMessage = (error: unknown, fallback = 'An error occurred') => {
@@ -130,7 +136,12 @@ const SubmitSpinner: React.FC = () => (
   </svg>
 );
 
-const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) => {
+const UserProfile: React.FC<UserProfileProps> = ({
+  supabase,
+  user,
+  onSignOut,
+  showPageTitle = false,
+}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -210,15 +221,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ supabase, user, onSignOut }) 
   return (
     <div className="max-w-2xl mx-auto">
       {/* Page header — matches the kicker + title pattern used on Setup
-          and Stats so the auth-gated screens share visual language. */}
-      <div className="mb-5 text-center sm:text-left">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-          Your Account
-        </p>
-        <h2 className="mt-1 text-2xl sm:text-3xl font-bold dark:text-white">
-          My Profile
-        </h2>
-      </div>
+          and Stats so the auth-gated screens share visual language. Hidden
+          when rendered inside ProfileModal (which has its own header). */}
+      {showPageTitle && (
+        <div className="mb-5 text-center sm:text-left">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+            Your Account
+          </p>
+          <h2 className="mt-1 text-2xl sm:text-3xl font-bold dark:text-white">
+            My Profile
+          </h2>
+        </div>
+      )}
 
       {/* Status messages — inline above the cards so they're impossible
           to miss regardless of which form fired them. */}

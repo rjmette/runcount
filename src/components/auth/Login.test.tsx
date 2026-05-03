@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
+import { getAuthCallbackUrl } from '../../utils/authRedirect';
+
 import Login from './Login';
 
 describe('Login', () => {
@@ -67,7 +69,7 @@ describe('Login', () => {
       expect(signInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getAuthCallbackUrl(),
         },
       });
     });
