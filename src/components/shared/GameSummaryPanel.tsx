@@ -72,6 +72,23 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
     statsMap.set(player.id, calculatePlayerStats(player, actions));
   });
 
+  // Three status variants: completed-with-winner, ended-without-winner, in-progress.
+  const hasWinner = winnerId !== null && winnerId !== undefined;
+  const status = !completed
+    ? {
+        label: 'In Progress',
+        classes: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200',
+      }
+    : hasWinner
+      ? {
+          label: 'Completed',
+          classes: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+        }
+      : {
+          label: 'Ended',
+          classes: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200',
+        };
+
   return (
     <div
       className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 overflow-hidden"
@@ -79,48 +96,54 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
     >
       {/* Status Header */}
       <div className="flex justify-between items-center px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-        <div
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
-            completed
-              ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-              : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-          }`}
-        >
-          {completed ? 'Completed' : 'In Progress'}
+        <div className={`px-3 py-1 rounded-full text-xs font-medium ${status.classes}`}>
+          {status.label}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400">
           {completed
-            ? `${dayOfWeek}, ${formattedDate} ${formattedTime}`
+            ? `${dayOfWeek}, ${formattedDate} · ${formattedTime}`
             : 'Not completed'}
         </div>
       </div>
 
       {/* Score Cards */}
       <div className="grid grid-cols-2 gap-3 p-4">
-        {sortedPlayers.map((player) => (
-          <div
-            key={player.id}
-            className={`p-3 rounded-lg ${
-              player.id === winnerId
-                ? 'border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-                : 'border-l-4 border-transparent bg-gray-50 dark:bg-gray-700/50'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-semibold text-sm dark:text-white">{player.name}</span>
-              {player.id === winnerId && (
-                <span className="text-yellow-500 text-sm">🏆</span>
-              )}
+        {sortedPlayers.map((player) => {
+          const isWinner = player.id === winnerId;
+          return (
+            <div
+              key={player.id}
+              className={`relative p-3 rounded-lg border ${
+                isWinner
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/40 ring-1 ring-blue-500/30'
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span
+                  className={`text-sm dark:text-white ${
+                    isWinner ? 'font-bold' : 'font-semibold'
+                  }`}
+                >
+                  {player.name}
+                </span>
+                {isWinner && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 dark:bg-yellow-900/50 px-2 py-0.5 text-[11px] font-semibold text-yellow-800 dark:text-yellow-200">
+                    <span aria-hidden="true">🏆</span>
+                    <span>Winner</span>
+                  </span>
+                )}
+              </div>
+              <div className="text-2xl font-bold dark:text-white">
+                {player.score}
+                <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
+                  {' '}
+                  / {player.targetScore}
+                </span>
+              </div>
             </div>
-            <div className="text-2xl font-bold dark:text-white">
-              {player.score}
-              <span className="text-sm font-normal text-gray-400 dark:text-gray-500">
-                {' '}
-                / {player.targetScore}
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Metrics Table */}
@@ -131,14 +154,16 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
           </span>
           <button
             onClick={onShowDescriptions}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="View Statistic Descriptions"
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title="View statistic descriptions"
+            aria-label="View statistic descriptions"
           >
             <svg
-              className="w-4 h-4"
+              className="w-3.5 h-3.5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -147,6 +172,7 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
+            <span>What do these mean?</span>
           </button>
         </div>
         <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
@@ -157,7 +183,7 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
                 {sortedPlayers.map((player) => (
                   <th
                     key={player.id}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                    className="px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-gray-200"
                   >
                     {player.name}
                   </th>
@@ -195,7 +221,7 @@ export const GameSummaryPanel: React.FC<GameSummaryPanelProps> = ({
             <span className="font-medium">Length:</span> {matchLength}
           </span>
           <span>
-            <span className="font-medium">Innings:</span>{' '}
+            <span className="font-medium">Total Innings:</span>{' '}
             {Math.max(...players.map((p) => p.innings))}
           </span>
         </div>
