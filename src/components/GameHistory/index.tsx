@@ -7,6 +7,15 @@ import { GameDetails } from './components/GameDetails';
 import { GameList } from './components/GameList';
 import { useGameHistory } from './hooks/useGameHistory';
 import { useGameSelection } from './hooks/useGameSelection';
+import {
+  buildGameHistoryCsv,
+  buildGameHistoryExport,
+  buildGameHistoryTrends,
+  defaultHistoryFilters,
+  filterAndSortGames,
+  type HistoryFilters,
+  type HistorySortOption,
+} from './utils/historyEnhancements';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
   supabase,
@@ -15,11 +24,20 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 }) => {
   // Add a state to track which view we're showing
   const [view, setView] = useState<'list' | 'details'>('list');
+  const [filters, setFilters] = useState<HistoryFilters>(defaultHistoryFilters);
+  const [sortOption, setSortOption] = useState<HistorySortOption>('date-desc');
 
   const { games, loading, error, deleteGame } = useGameHistory({
     supabase,
     user,
   });
+
+  const filteredGames = filterAndSortGames(games, filters, sortOption);
+  const trendPoints = buildGameHistoryTrends(filteredGames);
+  const maxTrendScore = Math.max(
+    1,
+    ...trendPoints.map((trendPoint) => trendPoint.totalScore),
+  );
 
   // Function to check if games are valid
   const getValidGamesCount = () => {
@@ -73,17 +91,59 @@ const GameHistory: React.FC<GameHistoryProps> = ({
 
   // New functions to navigate between games
   const handlePreviousGame = () => {
-    const currentIndex = games.findIndex((game) => game.id === selectedGameId);
+    const currentIndex = filteredGames.findIndex((game) => game.id === selectedGameId);
     if (currentIndex > 0) {
-      handleGameSelect(games[currentIndex - 1].id);
+      handleGameSelect(filteredGames[currentIndex - 1].id);
     }
   };
 
   const handleNextGame = () => {
-    const currentIndex = games.findIndex((game) => game.id === selectedGameId);
-    if (currentIndex < games.length - 1) {
-      handleGameSelect(games[currentIndex + 1].id);
+    const currentIndex = filteredGames.findIndex((game) => game.id === selectedGameId);
+    if (currentIndex < filteredGames.length - 1) {
+      handleGameSelect(filteredGames[currentIndex + 1].id);
     }
+  };
+
+  const updateFilter = <Key extends keyof HistoryFilters>(
+    key: Key,
+    value: HistoryFilters[Key],
+  ) => {
+    setFilters((currentFilters) => ({
+      ...currentFilters,
+      [key]: value,
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters(defaultHistoryFilters);
+    setSortOption('date-desc');
+  };
+
+  const downloadExport = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportCsv = () => {
+    downloadExport(
+      buildGameHistoryCsv(filteredGames),
+      'runcount-game-history.csv',
+      'text/csv;charset=utf-8',
+    );
+  };
+
+  const exportJson = () => {
+    downloadExport(
+      JSON.stringify(buildGameHistoryExport(filteredGames), null, 2),
+      'runcount-game-history.json',
+      'application/json;charset=utf-8',
+    );
   };
 
   if (loading) {
@@ -139,8 +199,138 @@ const GameHistory: React.FC<GameHistoryProps> = ({
       {/* Conditionally render either the list or details view */}
       {view === 'list' ? (
         <div className="min-h-[calc(100vh-15rem)]">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                From
+                <input
+                  aria-label="From"
+                  type="date"
+                  value={filters.startDate}
+                  onChange={(event) => updateFilter('startDate', event.target.value)}
+                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                To
+                <input
+                  aria-label="To"
+                  type="date"
+                  value={filters.endDate}
+                  onChange={(event) => updateFilter('endDate', event.target.value)}
+                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Opponent
+                <input
+                  aria-label="Opponent"
+                  type="search"
+                  value={filters.opponent}
+                  onChange={(event) => updateFilter('opponent', event.target.value)}
+                  placeholder="Player name"
+                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Type
+                <select
+                  aria-label="Type"
+                  value={filters.gameType}
+                  onChange={(event) =>
+                    updateFilter(
+                      'gameType',
+                      event.target.value as HistoryFilters['gameType'],
+                    )
+                  }
+                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="all">All games</option>
+                  <option value="completed">Completed</option>
+                  <option value="in-progress">In progress</option>
+                </select>
+              </label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Sort
+                <select
+                  aria-label="Sort"
+                  value={sortOption}
+                  onChange={(event) =>
+                    setSortOption(event.target.value as HistorySortOption)
+                  }
+                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="date-desc">Newest first</option>
+                  <option value="date-asc">Oldest first</option>
+                  <option value="winner">Winner</option>
+                  <option value="player-count">Player count</option>
+                  <option value="total-score-desc">Total score</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Showing {filteredGames.length} of {validGameCount} games
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={resetFilters}
+                  className="px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={exportCsv}
+                  disabled={filteredGames.length === 0}
+                  className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                >
+                  Export CSV
+                </button>
+                <button
+                  onClick={exportJson}
+                  disabled={filteredGames.length === 0}
+                  className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                >
+                  Export JSON
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {trendPoints.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                Scoring Trend
+              </h3>
+              <div className="space-y-3">
+                {trendPoints.slice(-8).map((trendPoint) => (
+                  <div
+                    key={trendPoint.label}
+                    className="grid grid-cols-[6rem_1fr_5rem] items-center gap-3 text-sm"
+                  >
+                    <span className="text-gray-600 dark:text-gray-300">
+                      {trendPoint.label}
+                    </span>
+                    <div className="h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-600"
+                        style={{
+                          width: `${(trendPoint.totalScore / maxTrendScore) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-right text-gray-600 dark:text-gray-300">
+                      {trendPoint.totalScore} pts
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <GameList
-            games={games}
+            games={filteredGames}
             selectedGameId={null} // No game is selected in list view
             onGameSelect={handleSelectGame}
             onDeleteGame={confirmDelete}
@@ -155,10 +345,11 @@ const GameHistory: React.FC<GameHistoryProps> = ({
               onPrevious={handlePreviousGame}
               onNext={handleNextGame}
               canNavigatePrevious={
-                games.findIndex((game) => game.id === selectedGameId) > 0
+                filteredGames.findIndex((game) => game.id === selectedGameId) > 0
               }
               canNavigateNext={
-                games.findIndex((game) => game.id === selectedGameId) < games.length - 1
+                filteredGames.findIndex((game) => game.id === selectedGameId) <
+                filteredGames.length - 1
               }
             />
           ) : (
