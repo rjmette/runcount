@@ -8,7 +8,6 @@ import BreakDialog from '../BreakDialog';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
 import { MatchTimer } from '../MatchTimer';
 import PlayerScoreCard from '../PlayerScoreCard';
-import { TurnTimer } from '../TurnTimer';
 
 import { AlertModal } from './components/AlertModal';
 import { BallsOnTableModal } from './components/BallsOnTableModal';
@@ -17,6 +16,7 @@ import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
 import { ConsecutiveFoulPenaltyModal } from './components/ConsecutiveFoulPenaltyModal';
 import { EndGameModal } from './components/EndGameModal';
 import { GameHelpModal } from './components/GameHelpModal';
+import { GameStatusBar } from './components/GameStatusBar';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
 import { useGameState } from './hooks/useGameState';
@@ -651,6 +651,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
     // No need for alert - the UI immediately shows the change
   };
 
+  // Rack number: starts at 1, increments with each newrack action (score with value 0)
+  const rackNumber =
+    actions.filter((a) => a.type === 'score' && a.value === 0).length + 1;
+
   return (
     <div className="max-w-4xl w-full mx-auto my-auto">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -672,22 +676,18 @@ const GameScoring: React.FC<GameScoringProps> = ({
         ))}
       </div>
 
-      {/* Active-player action zone: end-of-inning actions + BOT context */}
-      <div className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="mb-3 flex items-center justify-end gap-2 text-sm">
-          <span
-            className="text-gray-600 dark:text-gray-400"
-            data-testid="bot-indicator"
-            aria-label={`Balls on Table: ${ballsOnTable}`}
-            title="BOT = Balls on Table"
-          >
-            Balls on Table:{' '}
-            <span className="font-mono font-bold text-gray-900 dark:text-white">
-              {ballsOnTable}
-            </span>
-          </span>
-        </div>
+      {/* Game status bar: balls on table, turn timer, inning + rack */}
+      <GameStatusBar
+        ballsOnTable={ballsOnTable}
+        currentInning={currentInning}
+        rackNumber={rackNumber}
+        turnStartTime={turnStartTime}
+        isRunning={!matchEndTime}
+        shotClockSeconds={shotClockSeconds}
+      />
 
+      {/* Active-player action zone: end-of-inning actions */}
+      <div className="mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="space-y-2">
           {/* Primary end-of-inning action */}
           <button
@@ -820,11 +820,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
           startTime={matchStartTime}
           endTime={matchEndTime}
           isRunning={!matchEndTime}
-        />
-        <TurnTimer
-          startTime={turnStartTime}
-          isRunning={!matchEndTime}
-          shotClockSeconds={shotClockSeconds}
         />
       </div>
 

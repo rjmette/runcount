@@ -1,5 +1,6 @@
 import React, { useMemo, memo } from 'react';
 
+import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import { type Player } from '../types/game';
 
 interface PlayerScoreCardProps {
@@ -31,6 +32,9 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
   isInitialBreak,
   onBreakClick,
 }) => {
+  // Animate score changes: ramps up on increases, quick-drop on fouls.
+  const animatedScore = useAnimatedCounter(player.score);
+
   // Memoize expensive calculations
   const { bpi, percentage } = useMemo(() => {
     const bpiValue =
@@ -97,8 +101,8 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
                     : 'text-gray-500 dark:text-gray-400'
             }`}
           >
-            {player.score < 0 && '-'}
-            {Math.abs(player.score)}
+            {animatedScore < 0 && '-'}
+            {Math.abs(animatedScore)}
           </span>
         </div>
 
