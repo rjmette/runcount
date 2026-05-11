@@ -102,39 +102,54 @@ jobs:
           })
           const publisher = google.androidpublisher({ version: 'v3', auth })
 
-          try {
-            const edit = await publisher.edits.insert({ packageName: PACKAGE })
-            const editId = edit.data.id
-            const upload = await publisher.edits.bundles.upload({
+          // Try 'completed' (auto-rollout to internal testers). The Play API
+          // rejects this for apps still in Play Console draft state — fall back
+          // to 'draft' (requires manual promotion in Play Console UI) so the
+          // workflow keeps working until the app is past draft.
+          const setReleaseStatus = (edit, versionCode, status) =>
+            publisher.edits.tracks.update({
               packageName: PACKAGE,
-              editId,
-              media: {
-                mimeType: 'application/octet-stream',
-                body: readFileSync(AAB_PATH),
-              },
-            })
-            const versionCode = upload.data.versionCode
-            await publisher.edits.tracks.update({
-              packageName: PACKAGE,
-              editId,
+              editId: edit.data.id,
               track: TRACK,
               requestBody: {
                 track: TRACK,
-                releases: [
-                  {
-                    name: VERSION_NAME,
-                    status: 'draft',
-                    versionCodes: [String(versionCode)],
-                  },
-                ],
+                releases: [{ name: VERSION_NAME, status, versionCodes: [String(versionCode)] }],
               },
             })
-            await publisher.edits.commit({ packageName: PACKAGE, editId })
-            console.log(`Uploaded versionCode ${versionCode} to ${TRACK} track`)
+
+          const tryRelease = async (status) => {
+            const edit = await publisher.edits.insert({ packageName: PACKAGE })
+            const upload = await publisher.edits.bundles.upload({
+              packageName: PACKAGE,
+              editId: edit.data.id,
+              media: { mimeType: 'application/octet-stream', body: readFileSync(AAB_PATH) },
+            })
+            const versionCode = upload.data.versionCode
+            await setReleaseStatus(edit, versionCode, status)
+            await publisher.edits.commit({ packageName: PACKAGE, editId: edit.data.id })
+            return versionCode
+          }
+
+          try {
+            const versionCode = await tryRelease('completed')
+            console.log(`Uploaded versionCode ${versionCode} to ${TRACK} track (auto-rolled out to testers)`)
           } catch (e) {
-            console.error('Upload failed', e.code || e.response?.status, e.message)
-            if (e.response?.data) console.error(JSON.stringify(e.response.data, null, 2))
-            process.exit(1)
+            const msg = e.response?.data?.error?.message || e.message || ''
+            const isDraftAppError = /draft/i.test(msg) && /status/i.test(msg)
+            if (!isDraftAppError) {
+              console.error('Upload failed', e.code || e.response?.status, msg)
+              if (e.response?.data) console.error(JSON.stringify(e.response.data, null, 2))
+              process.exit(1)
+            }
+            console.log(`'completed' rejected (app still in Play Console draft state) — retrying as draft`)
+            try {
+              const versionCode = await tryRelease('draft')
+              console.log(`Uploaded versionCode ${versionCode} to ${TRACK} track as draft — promote manually in Play Console`)
+            } catch (e2) {
+              console.error('Draft fallback also failed', e2.code || e2.response?.status, e2.message)
+              if (e2.response?.data) console.error(JSON.stringify(e2.response.data, null, 2))
+              process.exit(1)
+            }
           }
           NODESCRIPT
           node upload-aab.mjs
