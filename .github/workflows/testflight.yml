@@ -7,14 +7,18 @@ on:
 
 env:
   NODE_VERSION: '22'
+  APPLE_TEAM_ID: U4L88W98BS
 
 jobs:
   build-and-upload:
-    runs-on: macos-15
+    runs-on: [self-hosted, macOS]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,26 +30,26 @@ jobs:
         run: npm ci
 
       - name: Build web app
-        run: VITE_BASE=./ npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+        run: VITE_BASE=./ npm run build
 
       - name: Sync Capacitor
         run: npx cap sync ios
 
-      - name: Set build number from run
+      - name: Resolve version metadata
         run: |
           BUILD_NUMBER=${{ github.run_number }}
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> $GITHUB_ENV
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/App/App/Info.plist
-
-      - name: Set marketing version from release tag
-        if: github.event_name == 'release'
-        run: |
-          VERSION="${{ github.event.release.tag_name }}"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo v1.0.0)"
+          fi
           VERSION="${VERSION#v}"
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" ios/App/App/Info.plist
+          echo "MARKETING_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Install App Store Connect API key
         run: |
@@ -73,11 +77,13 @@ jobs:
             -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }} \
             CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=U4L88W98BS
+            DEVELOPMENT_TEAM=${{ env.APPLE_TEAM_ID }} \
+            MARKETING_VERSION="$MARKETING_VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
       - name: Export and upload to App Store Connect
         run: |
-          cat > $RUNNER_TEMP/ExportOptions.plist << 'PLIST'
+          cat > $RUNNER_TEMP/ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -85,7 +91,7 @@ jobs:
             <key>method</key>
             <string>app-store-connect</string>
             <key>teamID</key>
-            <string>U4L88W98BS</string>
+            <string>${{ env.APPLE_TEAM_ID }}</string>
             <key>uploadSymbols</key>
             <true/>
             <key>destination</key>
