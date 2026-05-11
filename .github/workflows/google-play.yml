@@ -1,0 +1,148 @@
+name: Deploy to Google Play
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  JAVA_VERSION: '21'
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+        run: VITE_BASE=./ npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Resolve version metadata
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo v1.0.0)"
+          fi
+          echo "ANDROID_VERSION_NAME=${VERSION#v}" >> $GITHUB_ENV
+          echo "ANDROID_VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > $RUNNER_TEMP/release.jks
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> $GITHUB_ENV
+
+      - name: Build signed AAB
+        env:
+          KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew bundleRelease
+
+      - name: Upload to Play Store internal track
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          npm install --no-save googleapis@latest
+          cat > upload-aab.mjs << 'NODESCRIPT'
+          import { google } from 'googleapis'
+          import { readFileSync } from 'node:fs'
+
+          const PACKAGE = 'net.rbios.runcount'
+          const TRACK = 'internal'
+          const AAB_PATH = 'android/app/build/outputs/bundle/release/app-release.aab'
+          const VERSION_NAME = process.env.ANDROID_VERSION_NAME
+
+          const rawJson = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON || ''
+          if (!rawJson) {
+            console.error('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is empty')
+            process.exit(1)
+          }
+          const credentials = JSON.parse(rawJson)
+          const auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+          })
+          const publisher = google.androidpublisher({ version: 'v3', auth })
+
+          try {
+            const edit = await publisher.edits.insert({ packageName: PACKAGE })
+            const editId = edit.data.id
+            const upload = await publisher.edits.bundles.upload({
+              packageName: PACKAGE,
+              editId,
+              media: {
+                mimeType: 'application/octet-stream',
+                body: readFileSync(AAB_PATH),
+              },
+            })
+            const versionCode = upload.data.versionCode
+            await publisher.edits.tracks.update({
+              packageName: PACKAGE,
+              editId,
+              track: TRACK,
+              requestBody: {
+                track: TRACK,
+                releases: [
+                  {
+                    name: VERSION_NAME,
+                    status: 'draft',
+                    versionCodes: [String(versionCode)],
+                  },
+                ],
+              },
+            })
+            await publisher.edits.commit({ packageName: PACKAGE, editId })
+            console.log(`Uploaded versionCode ${versionCode} to ${TRACK} track`)
+          } catch (e) {
+            console.error('Upload failed', e.code || e.response?.status, e.message)
+            if (e.response?.data) console.error(JSON.stringify(e.response.data, null, 2))
+            process.exit(1)
+          }
+          NODESCRIPT
+          node upload-aab.mjs
+
+      - name: Upload AAB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: warn
