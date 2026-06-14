@@ -148,6 +148,22 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(0); // reset fouls
   });
 
+  test('handleAddScore triggers game end when player reaches target score', () => {
+    const { result, players, mocks } = setup();
+    players[0].score = 9;
+
+    act(() => {
+      result.current.handleAddScore(1, 14);
+    });
+
+    expect(players[0].score).toBe(10);
+    expect(mocks.setGameWinner).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Alice' }),
+    );
+    expect(mocks.setShowEndGameModal).toHaveBeenCalledWith(true);
+    expect(mocks.setMatchEndTime).toHaveBeenCalledWith(expect.any(Date));
+  });
+
   test('handleAddFoul applies default break foul penalty (-2 points)', () => {
     const { result, players } = setup();
 
