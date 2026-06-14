@@ -102,7 +102,23 @@ export const useGameActions = ({
     }
 
     setPlayerData(updatedPlayerData);
-    saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+
+    const playerTargetScore = updatedPlayerData[activePlayerIndex].targetScore;
+    if (updatedPlayerData[activePlayerIndex].score >= playerTargetScore) {
+      const winner = { ...updatedPlayerData[activePlayerIndex] };
+      setGameWinner(winner);
+      setMatchEndTime(new Date());
+      setShowEndGameModal(true);
+      saveGameToSupabase(
+        gameId,
+        updatedPlayerData,
+        [...actions, newAction],
+        true,
+        winner.id,
+      );
+    } else {
+      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+    }
 
     return { needsBOTInput: false };
   };

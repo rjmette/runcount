@@ -35,6 +35,36 @@ test.describe('Straight pool core flows', () => {
     await expect(page.getByTestId('player-score-1')).toHaveText('0');
   });
 
+  test('automatically completes the game when a scoring action reaches target', async ({
+    page,
+  }) => {
+    await startNewGame(page, { playerOneTarget: 14, playerTwoTarget: 30 });
+
+    await completeRack(page, 1);
+
+    await expect(page.getByRole('heading', { name: 'Congratulations!' })).toBeVisible();
+    await expect(page.getByText('Alice Wins!')).toBeVisible();
+    await expect(page.getByTestId('player-score-0')).toHaveText('14');
+
+    const completedGame = await page.evaluate(() => {
+      const historyKey = Object.keys(localStorage).find((key) =>
+        key.startsWith('runcount_game_'),
+      );
+      const storedHistory = historyKey ? localStorage.getItem(historyKey) : null;
+
+      return {
+        activeGame: localStorage.getItem('runcount_active_game'),
+        history: storedHistory ? JSON.parse(storedHistory) : null,
+      };
+    });
+
+    expect(completedGame.activeGame).toBeNull();
+    expect(completedGame.history).toMatchObject({
+      completed: true,
+      winner_id: 0,
+    });
+  });
+
   test('applies break and standard foul penalties with appropriate UI prompts', async ({
     page,
   }) => {
@@ -75,7 +105,7 @@ test.describe('Straight pool core flows', () => {
   test('completes a game and returns to setup after viewing statistics', async ({
     page,
   }) => {
-    await startNewGame(page, { playerOneTarget: 10, playerTwoTarget: 10 });
+    await startNewGame(page, { playerOneTarget: 30, playerTwoTarget: 30 });
 
     await completeRack(page, 1);
     // The scoring screen utility row has an "End Game" button that opens the
