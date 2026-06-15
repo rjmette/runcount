@@ -60,6 +60,8 @@
     ]
   },
   "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1068.0",
+    "@aws-sdk/lib-dynamodb": "^3.1068.0",
     "@playwright/test": "^1.56.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/node": "^22.10.5",
@@ -69,6 +71,7 @@
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.20",
+    "aws-sdk-client-mock": "^4.1.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "eslint": "^9.39.1",
