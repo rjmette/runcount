@@ -1,6 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  DeleteCommand,
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
@@ -45,7 +44,7 @@ function userClaimsOf(event) {
 function userSubOf(claims) {
   const sub = claims?.sub;
   if (typeof sub !== "string" || !sub) {
-    throw new Error("missing user sub");
+    return null;
   }
   return sub;
 }
@@ -202,6 +201,8 @@ async function dispatch(event) {
   const env = envConfig();
   const claims = userClaimsOf(event);
   const userId = userSubOf(claims);
+  if (!userId) return error(401, "missing user sub");
+
   const method = event.requestContext?.http?.method ?? "";
   const routeKey = event.routeKey ?? `${method} ${event.rawPath}`;
 

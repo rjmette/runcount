@@ -145,4 +145,15 @@ export default tseslint.config(
       },
     },
   },
+  {
+    files: ['infra/lambda/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        console: 'readonly',
+        crypto: 'readonly',
+        process: 'readonly',
+      },
+    },
+  },
 );
