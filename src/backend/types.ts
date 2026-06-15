@@ -17,7 +17,9 @@ export interface GameBackend {
   deleteGame: (gameId: string) => Promise<void>;
   getProfileStats: (user: AppUser) => Promise<ProfileStats>;
   updateEmail?: (email: string) => Promise<void>;
-  updatePassword?: (password: string) => Promise<void>;
+  verifyEmailUpdate?: (code: string) => Promise<void>;
+  updatePassword?: (password: string, currentPassword?: string) => Promise<void>;
+  requiresCurrentPasswordForPasswordUpdate?: boolean;
   subscribeToGames?: (
     user: AppUser | null,
     onChange: (event: { type: 'INSERT' | 'UPDATE' | 'DELETE'; game: GameData }) => void,

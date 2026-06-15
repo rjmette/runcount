@@ -2,8 +2,17 @@ import React, { useState } from 'react';
 
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import {
+  getPasswordPolicyError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+} from './passwordPolicy';
+
+import type { AwsAuthOperations } from './Auth';
+
 interface ResetPasswordProps {
-  supabase: SupabaseClient;
+  supabase?: SupabaseClient;
+  awsAuth?: AwsAuthOperations;
   onSuccess?: () => void;
 }
 
@@ -14,8 +23,14 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) => {
+const ResetPassword: React.FC<ResetPasswordProps> = ({
+  supabase,
+  awsAuth,
+  onSuccess,
+}) => {
   const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -24,7 +39,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const urlHash = window.location.hash;
-  const isResetting = urlHash.includes('type=recovery');
+  const isResetting = awsAuth ? codeSent : urlHash.includes('type=recovery');
 
   const handleSendResetLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,15 +49,26 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
       setError(null);
       setMessage(null);
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}`,
-      });
+      if (awsAuth) {
+        await awsAuth.forgotPassword(email);
+        setCodeSent(true);
+      } else if (supabase) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}`,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        throw new Error('Authentication is not configured.');
+      }
 
-      setMessage('Password reset instructions sent to your email!');
+      setMessage(
+        awsAuth
+          ? 'Password reset code sent to your email!'
+          : 'Password reset instructions sent to your email!',
+      );
 
-      if (onSuccess) {
+      if (!awsAuth && onSuccess) {
         setTimeout(() => {
           onSuccess();
         }, 2000);
@@ -62,20 +88,36 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
       return;
     }
 
+    if (awsAuth) {
+      const passwordPolicyError = getPasswordPolicyError(newPassword);
+      if (passwordPolicyError) {
+        setError(passwordPolicyError);
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       setError(null);
       setMessage(null);
 
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
+      if (awsAuth) {
+        await awsAuth.confirmForgotPassword(email, verificationCode, newPassword);
+      } else if (supabase) {
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        throw new Error('Authentication is not configured.');
+      }
 
       setMessage('Password updated successfully!');
 
-      window.history.replaceState(null, '', window.location.pathname);
+      if (!awsAuth) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
 
       if (onSuccess) {
         setTimeout(() => {
@@ -92,7 +134,10 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
   return (
     <div className="space-y-5">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in">
+        <div
+          role="alert"
+          className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in"
+        >
           {error}
         </div>
       )}
@@ -105,6 +150,29 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
 
       {isResetting ? (
         <form onSubmit={handleResetPassword} className="space-y-5">
+          {awsAuth && (
+            <div>
+              <label
+                htmlFor="reset-verification-code"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Verification code
+              </label>
+              <input
+                id="reset-verification-code"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                required
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
+                placeholder="Enter the code from your email"
+                disabled={loading}
+              />
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="new-password"
@@ -118,11 +186,20 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ supabase, onSuccess }) =>
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={awsAuth ? PASSWORD_MIN_LENGTH : 6}
+              aria-describedby={awsAuth ? 'reset-password-help' : undefined}
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
               placeholder="Enter your new password"
               disabled={loading}
             />
+            {awsAuth && (
+              <p
+                id="reset-password-help"
+                className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              >
+                {PASSWORD_POLICY_MESSAGE}
+              </p>
+            )}
           </div>
 
           <div>

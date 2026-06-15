@@ -38,9 +38,16 @@ export class AuthStack extends Stack {
 
     this.userPool = new UserPool(this, 'UserPool', {
       userPoolName: `runcount-${props.envName}`,
-      selfSignUpEnabled: false,
+      selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },
+      passwordPolicy: {
+        minLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: true,
+      },
       standardAttributes: {
         email: { required: true, mutable: true },
         givenName: { required: false, mutable: true },
@@ -75,7 +82,14 @@ export class AuthStack extends Stack {
       userPool: this.userPool,
       userPoolClientName: `runcount-${props.envName}-web`,
       generateSecret: false,
-      supportedIdentityProviders: [UserPoolClientIdentityProvider.GOOGLE],
+      supportedIdentityProviders: [
+        UserPoolClientIdentityProvider.COGNITO,
+        UserPoolClientIdentityProvider.GOOGLE,
+      ],
+      authFlows: {
+        userPassword: true,
+      },
+      preventUserExistenceErrors: true,
       oAuth: {
         flows: { authorizationCodeGrant: true },
         scopes: [OAuthScope.OPENID, OAuthScope.EMAIL, OAuthScope.PROFILE],

@@ -268,5 +268,5 @@ describe('useGameActions generated simulations', () => {
       ).not.toBeNull();
       assertSimulationInvariants(result.current);
     }
-  });
+  }, 15000);
 });

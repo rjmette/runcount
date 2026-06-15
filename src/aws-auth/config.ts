@@ -29,6 +29,7 @@ export const cognitoConfig = {
 export const mockUser = {
   id: import.meta.env.VITE_AUTH_MOCK_SUB ?? 'mock-user-1',
   email: import.meta.env.VITE_AUTH_MOCK_EMAIL ?? 'mock@example.com',
+  auth_provider: 'password',
   created_at: new Date(0).toISOString(),
   user_metadata: {
     given_name: import.meta.env.VITE_AUTH_MOCK_GIVEN_NAME ?? 'Mock',

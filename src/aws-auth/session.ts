@@ -55,7 +55,10 @@ export function getStoredMockUser(): AppUser | null {
 
 export async function startAwsSignIn(): Promise<void> {
   if (isAwsAuthMock) {
-    localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(mockUser));
+    localStorage.setItem(
+      MOCK_USER_STORAGE_KEY,
+      JSON.stringify({ ...mockUser, auth_provider: 'google' }),
+    );
     window.location.reload();
     return;
   }

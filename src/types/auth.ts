@@ -2,6 +2,7 @@ export interface AppUser {
   id: string;
   email?: string;
   created_at?: string;
+  auth_provider?: 'password' | 'google' | string;
   user_metadata?: {
     given_name?: string;
     family_name?: string;
