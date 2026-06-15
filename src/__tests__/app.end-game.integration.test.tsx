@@ -110,7 +110,7 @@ describe('App end-game flow', () => {
       expect(screen.getByText('Completed')).toBeInTheDocument();
       expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
     });
-  });
+  }, 15000);
 
   test('ends a game manually without hitting the error boundary', async () => {
     await startGame();

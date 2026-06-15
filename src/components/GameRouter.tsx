@@ -85,17 +85,19 @@ export const GameRouter: FC<GameRouterProps> = ({
   onViewTrends,
   onSignOut,
 }) => {
+  const renderSetup = () => (
+    <GameSetup
+      startGame={onStartGame}
+      lastPlayers={lastPlayers}
+      lastPlayerTargetScores={lastPlayerTargetScores}
+      lastBreakingPlayerId={lastBreakingPlayerId}
+      lastShotClockSeconds={lastShotClockSeconds}
+    />
+  );
+
   switch (gameState) {
     case 'setup':
-      return (
-        <GameSetup
-          startGame={onStartGame}
-          lastPlayers={lastPlayers}
-          lastPlayerTargetScores={lastPlayerTargetScores}
-          lastBreakingPlayerId={lastBreakingPlayerId}
-          lastShotClockSeconds={lastShotClockSeconds}
-        />
-      );
+      return renderSetup();
     case 'scoring':
       return (
         <GameScoring
@@ -140,10 +142,11 @@ export const GameRouter: FC<GameRouterProps> = ({
     case 'trends':
       return <TrendsPage backend={backend} user={user} onStartNewGame={onGoToSetup} />;
     case 'profile':
+      if (!user) return renderSetup();
       return (
-        <UserProfile backend={backend} user={user!} onSignOut={onSignOut} showPageTitle />
+        <UserProfile backend={backend} user={user} onSignOut={onSignOut} showPageTitle />
       );
     default:
-      return <GameSetup startGame={onStartGame} />;
+      return renderSetup();
   }
 };
