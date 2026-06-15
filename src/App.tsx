@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { FC } from 'react';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import { AwsAuthProvider, useAwsAuth } from './aws-auth/AwsAuthContext';
 import { isAwsBackend } from './aws-auth/config';
@@ -27,10 +27,16 @@ import type { AppUser } from './types/auth';
 
 import './App.css';
 
-// Initialize Supabase client - Replace with your actual Supabase project details
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = isAwsBackend ? null : createClient(supabaseUrl, supabaseKey);
+
+const getSupabaseClient = (): SupabaseClient => {
+  if (!supabase) {
+    throw new Error('Supabase client is only available when VITE_BACKEND is not aws.');
+  }
+  return supabase;
+};
 
 // Main App Component - now just wraps the content with AuthProvider
 const App: FC = () => {
@@ -46,12 +52,7 @@ const App: FC = () => {
               </GamePersistProvider>
             </AwsAuthProvider>
           ) : (
-            <AuthProvider supabase={supabase}>
-              <GamePersistProvider>
-                <SupabaseAppContent />
-                <ErrorBanner />
-              </GamePersistProvider>
-            </AuthProvider>
+            <SupabaseAppProviders />
           )}
         </ErrorEventsBridge>
       </ErrorBoundary>
@@ -59,7 +60,24 @@ const App: FC = () => {
   );
 };
 
-const SupabaseAppContent: FC = () => {
+const SupabaseAppProviders: FC = () => {
+  const supabaseClient = getSupabaseClient();
+
+  return (
+    <AuthProvider supabase={supabaseClient}>
+      <GamePersistProvider>
+        <SupabaseAppContent supabase={supabaseClient} />
+        <ErrorBanner />
+      </GamePersistProvider>
+    </AuthProvider>
+  );
+};
+
+interface SupabaseAppContentProps {
+  supabase: SupabaseClient;
+}
+
+const SupabaseAppContent: FC<SupabaseAppContentProps> = ({ supabase }) => {
   const { user, loading, signOut } = useAuth();
   const backend = useMemo(() => createSupabaseBackend(supabase), []);
 

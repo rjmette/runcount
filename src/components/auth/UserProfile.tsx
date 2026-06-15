@@ -149,6 +149,8 @@ const UserProfile: React.FC<UserProfileProps> = ({
     totalGames,
     lastGameDate,
   } = useProfileStats(backend, user);
+  const canUpdateEmail = Boolean(backend.updateEmail);
+  const canUpdatePassword = Boolean(backend.updatePassword);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,89 +265,91 @@ const UserProfile: React.FC<UserProfileProps> = ({
           </dl>
         </SectionCard>
 
-        {/* Change email */}
-        <SectionCard heading="Change email">
-          <form onSubmit={handleUpdateEmail} className="space-y-3">
-            <div>
-              <label
-                htmlFor="new-email"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                New email
-              </label>
-              <input
-                id="new-email"
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                required
-                disabled={loading}
-                placeholder="you@example.com"
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={loading || !newEmail}
-                className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading && <SubmitSpinner />}
-                {loading ? 'Updating…' : 'Update email'}
-              </button>
-            </div>
-          </form>
-        </SectionCard>
+        {canUpdateEmail && (
+          <SectionCard heading="Change email">
+            <form onSubmit={handleUpdateEmail} className="space-y-3">
+              <div>
+                <label
+                  htmlFor="new-email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  New email
+                </label>
+                <input
+                  id="new-email"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  placeholder="you@example.com"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={loading || !newEmail}
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading && <SubmitSpinner />}
+                  {loading ? 'Updating…' : 'Update email'}
+                </button>
+              </div>
+            </form>
+          </SectionCard>
+        )}
 
-        {/* Change password */}
-        <SectionCard heading="Change password">
-          <form onSubmit={handleUpdatePassword} className="space-y-3">
-            <div>
-              <label
-                htmlFor="new-password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                New password
-              </label>
-              <input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="confirm-password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Confirm new password
-              </label>
-              <input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={loading || !newPassword || !confirmPassword}
-                className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading && <SubmitSpinner />}
-                {loading ? 'Updating…' : 'Update password'}
-              </button>
-            </div>
-          </form>
-        </SectionCard>
+        {canUpdatePassword && (
+          <SectionCard heading="Change password">
+            <form onSubmit={handleUpdatePassword} className="space-y-3">
+              <div>
+                <label
+                  htmlFor="new-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  New password
+                </label>
+                <input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Confirm new password
+                </label>
+                <input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={loading || !newPassword || !confirmPassword}
+                  className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading && <SubmitSpinner />}
+                  {loading ? 'Updating…' : 'Update password'}
+                </button>
+              </div>
+            </form>
+          </SectionCard>
+        )}
       </div>
 
       {/* Sign out — demoted to a quiet outline pill in the page footer.
