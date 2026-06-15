@@ -86,4 +86,59 @@ describe('Login', () => {
 
     expect(await screen.findByText('Apple OAuth is not configured')).toBeInTheDocument();
   });
+
+  test('submits AWS email login credentials and closes on success', async () => {
+    const awsAuth = {
+      signInWithPassword: vi.fn().mockResolvedValue(undefined),
+      signInWithGoogle: vi.fn(),
+      signUp: vi.fn(),
+      confirmSignUp: vi.fn(),
+      forgotPassword: vi.fn(),
+      confirmForgotPassword: vi.fn(),
+    };
+
+    render(<Login awsAuth={awsAuth} onSuccess={onSuccess} />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'player@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'secret123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(awsAuth.signInWithPassword).toHaveBeenCalledWith(
+        'player@example.com',
+        'secret123',
+      );
+    });
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /^apple$/i })).not.toBeInTheDocument();
+  });
+
+  test('shows an AWS login error', async () => {
+    const awsAuth = {
+      signInWithPassword: vi
+        .fn()
+        .mockRejectedValue(new Error('Incorrect username or password')),
+      signInWithGoogle: vi.fn(),
+      signUp: vi.fn(),
+      confirmSignUp: vi.fn(),
+      forgotPassword: vi.fn(),
+      confirmForgotPassword: vi.fn(),
+    };
+
+    render(<Login awsAuth={awsAuth} />);
+
+    fireEvent.change(screen.getByLabelText(/email/i), {
+      target: { value: 'player@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/password/i), {
+      target: { value: 'wrong-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(await screen.findByText('Incorrect username or password')).toBeInTheDocument();
+  });
 });

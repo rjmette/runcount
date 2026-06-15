@@ -139,6 +139,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
+  const [emailVerificationCode, setEmailVerificationCode] = useState('');
+  const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
@@ -165,8 +168,40 @@ const UserProfile: React.FC<UserProfileProps> = ({
       }
       await backend.updateEmail(newEmail);
 
-      setMessage('Email update initiated. Check your new email for confirmation!');
+      setMessage(
+        backend.verifyEmailUpdate
+          ? 'Email update initiated. Enter the code sent to your new email.'
+          : 'Email update initiated. Check your new email for confirmation!',
+      );
+      setAwaitingEmailVerification(Boolean(backend.verifyEmailUpdate));
       setNewEmail('');
+      setShowSuccessAnimation(true);
+      setTimeout(() => setShowSuccessAnimation(false), 2000);
+    } catch (error) {
+      setError(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyEmailUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setError(null);
+      setMessage(null);
+
+      if (!backend.verifyEmailUpdate) {
+        throw new Error('Email verification is not configured.');
+      }
+      await backend.verifyEmailUpdate(emailVerificationCode);
+
+      setMessage(
+        'Email verified successfully. Sign out and back in if it is not refreshed yet.',
+      );
+      setEmailVerificationCode('');
+      setAwaitingEmailVerification(false);
       setShowSuccessAnimation(true);
       setTimeout(() => setShowSuccessAnimation(false), 2000);
     } catch (error) {
@@ -192,9 +227,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
       if (!backend.updatePassword) {
         throw new Error('Password updates are part of the Phase 2 Cognito signup work.');
       }
-      await backend.updatePassword(newPassword);
+      await backend.updatePassword(newPassword, currentPassword);
 
       setMessage('Password updated successfully!');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowSuccessAnimation(true);
@@ -297,12 +333,69 @@ const UserProfile: React.FC<UserProfileProps> = ({
                 </button>
               </div>
             </form>
+
+            {awaitingEmailVerification && backend.verifyEmailUpdate && (
+              <form
+                onSubmit={handleVerifyEmailUpdate}
+                className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-4 space-y-3"
+              >
+                <div>
+                  <label
+                    htmlFor="email-verification-code"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Verification code
+                  </label>
+                  <input
+                    id="email-verification-code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={emailVerificationCode}
+                    onChange={(e) => setEmailVerificationCode(e.target.value)}
+                    required
+                    disabled={loading}
+                    placeholder="Enter the code from your new email"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={loading || !emailVerificationCode}
+                    className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading && <SubmitSpinner />}
+                    {loading ? 'Verifying…' : 'Verify email'}
+                  </button>
+                </div>
+              </form>
+            )}
           </SectionCard>
         )}
 
         {canUpdatePassword && (
           <SectionCard heading="Change password">
             <form onSubmit={handleUpdatePassword} className="space-y-3">
+              {backend.requiresCurrentPasswordForPasswordUpdate && (
+                <div>
+                  <label
+                    htmlFor="current-password"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Current password
+                  </label>
+                  <input
+                    id="current-password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                  />
+                </div>
+              )}
               <div>
                 <label
                   htmlFor="new-password"
@@ -340,7 +433,12 @@ const UserProfile: React.FC<UserProfileProps> = ({
               <div className="flex justify-end">
                 <button
                   type="submit"
-                  disabled={loading || !newPassword || !confirmPassword}
+                  disabled={
+                    loading ||
+                    !newPassword ||
+                    !confirmPassword ||
+                    (backend.requiresCurrentPasswordForPasswordUpdate && !currentPassword)
+                  }
                   className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading && <SubmitSpinner />}
