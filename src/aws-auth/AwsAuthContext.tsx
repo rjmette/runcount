@@ -24,7 +24,6 @@ import {
   getFreshIdToken,
   getStoredAwsSession,
   getStoredMockUser,
-  getUserFromSession,
   signOutAws,
   startAwsSignIn,
 } from './session';
@@ -74,7 +73,9 @@ export const AwsAuthProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
     saveTokens(nextSession);
-    setUser(getUserFromSession(nextSession));
+    // Use the mock-aware resolver: the synthetic 'mock-id-token' from
+    // VITE_AUTH_MOCK is not a real JWT, so decoding it directly throws.
+    setUser(getUserFromPasswordSession(nextSession));
   }, []);
 
   useEffect(() => {
@@ -119,7 +120,6 @@ export const AwsAuthProvider: React.FC<{ children: React.ReactNode }> = ({
     async (email: string, password: string) => {
       const nextSession = await signInWithPassword(email, password);
       applySession(nextSession);
-      setUser(getUserFromPasswordSession(nextSession));
     },
     [applySession],
   );
