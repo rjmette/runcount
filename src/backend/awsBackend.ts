@@ -11,7 +11,7 @@ import type { GameBackend } from './types';
 interface AwsBackendAuthActions {
   updateEmail: (email: string) => Promise<void>;
   verifyEmailUpdate: (code: string) => Promise<void>;
-  updatePassword: (currentPassword: string, password: string) => Promise<void>;
+  updatePassword?: (currentPassword: string, password: string) => Promise<void>;
 }
 
 export function createAwsBackend(
@@ -24,7 +24,7 @@ export function createAwsBackend(
     return token;
   };
 
-  return {
+  const backend: GameBackend = {
     async listGames() {
       return listGames(await requireToken());
     },
@@ -45,25 +45,28 @@ export function createAwsBackend(
       const currentUser = await getCurrentUser(await requireToken());
       return currentUser.stats;
     },
+  };
 
-    async updateEmail(email) {
-      if (!authActions) throw new Error('AWS account updates are not configured.');
+  if (authActions) {
+    backend.updateEmail = async (email) => {
       await authActions.updateEmail(email);
-    },
+    };
 
-    async verifyEmailUpdate(code) {
-      if (!authActions) throw new Error('AWS account updates are not configured.');
+    backend.verifyEmailUpdate = async (code) => {
       await authActions.verifyEmailUpdate(code);
-    },
+    };
+  }
 
-    async updatePassword(password, currentPassword) {
-      if (!authActions) throw new Error('AWS account updates are not configured.');
+  if (authActions?.updatePassword) {
+    backend.updatePassword = async (password, currentPassword) => {
       if (!currentPassword) {
         throw new Error('Enter your current password to change your password.');
       }
       await authActions.updatePassword(currentPassword, password);
-    },
+    };
 
-    requiresCurrentPasswordForPasswordUpdate: true,
-  };
+    backend.requiresCurrentPasswordForPasswordUpdate = true;
+  }
+
+  return backend;
 }

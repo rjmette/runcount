@@ -71,13 +71,18 @@ export async function signInWithPassword(
   password: string,
 ): Promise<AppSession> {
   if (isAwsAuthMock) {
+    const passwordMockUser: AppUser = {
+      ...mockUser,
+      email: email || mockUser.email,
+      auth_provider: 'password',
+    };
     const session: AppSession = {
       accessToken: 'mock-access-token',
       idToken: 'mock-id-token',
       refreshToken: 'mock-refresh-token',
       expiresAt: Date.now() + 60 * 60 * 1000,
     };
-    localStorage.setItem('runcount.auth.mock-user', JSON.stringify(mockUser));
+    localStorage.setItem('runcount.auth.mock-user', JSON.stringify(passwordMockUser));
     return session;
   }
 
@@ -188,6 +193,10 @@ export async function verifyEmailUpdate(
 }
 
 export function getUserFromPasswordSession(session: AppSession): AppUser {
-  if (session.idToken === 'mock-id-token') return mockUser;
+  if (session.idToken === 'mock-id-token') {
+    const raw = localStorage.getItem('runcount.auth.mock-user');
+    if (raw) return JSON.parse(raw) as AppUser;
+    return mockUser;
+  }
   return userFromIdToken(session.idToken);
 }

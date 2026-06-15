@@ -116,14 +116,21 @@ const AwsAppContent: FC = () => {
     verifyEmailUpdate,
     updatePassword,
   } = useAwsAuth();
+  const isFederatedAwsUser =
+    Boolean(user?.auth_provider) && user?.auth_provider !== 'password';
   const backend = useMemo(
     () =>
-      createAwsBackend(getIdToken, {
-        updateEmail,
-        verifyEmailUpdate,
-        updatePassword,
-      }),
-    [getIdToken, updateEmail, verifyEmailUpdate, updatePassword],
+      createAwsBackend(
+        getIdToken,
+        isFederatedAwsUser
+          ? undefined
+          : {
+              updateEmail,
+              verifyEmailUpdate,
+              updatePassword,
+            },
+      ),
+    [getIdToken, isFederatedAwsUser, updateEmail, verifyEmailUpdate, updatePassword],
   );
 
   return (

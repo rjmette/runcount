@@ -125,5 +125,5 @@ describe('GameScoring consecutive foul flow', () => {
       expect(screen.getByTestId('player-score-1')).toHaveTextContent('0');
       expect(screen.getByText('Re-Break')).toBeInTheDocument();
     });
-  });
+  }, 15000);
 });

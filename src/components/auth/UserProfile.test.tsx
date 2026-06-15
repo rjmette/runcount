@@ -46,4 +46,18 @@ describe('UserProfile', () => {
       'Use at least 8 characters with uppercase, lowercase, a number, and a symbol.',
     );
   });
+
+  test('does not render account update forms when backend does not expose them', async () => {
+    const backend = buildBackend();
+
+    render(<UserProfile backend={backend} user={user} onSignOut={vi.fn()} />);
+
+    expect(await screen.findByText('Never')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /update email/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /update password/i }),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -10,6 +10,8 @@ interface CognitoUserClaims {
   given_name?: string;
   family_name?: string;
   name?: string;
+  identities?: unknown;
+  'cognito:username'?: string;
   iat?: number;
 }
 
@@ -24,6 +26,34 @@ function decodeJwt<T = unknown>(token: string): T {
   const [, payload] = token.split('.');
   const padded = payload.replace(/-/g, '+').replace(/_/g, '/');
   return JSON.parse(atob(padded)) as T;
+}
+
+function getProviderFromIdentities(identities: unknown): string | undefined {
+  const parsedIdentities =
+    typeof identities === 'string' ? (JSON.parse(identities) as unknown) : identities;
+
+  if (!Array.isArray(parsedIdentities)) return undefined;
+
+  const [primaryIdentity] = parsedIdentities;
+  if (!primaryIdentity || typeof primaryIdentity !== 'object') return undefined;
+
+  const providerName = (primaryIdentity as { providerName?: unknown }).providerName;
+  return typeof providerName === 'string' ? providerName.toLowerCase() : undefined;
+}
+
+function getAuthProvider(claims: CognitoUserClaims): AppUser['auth_provider'] {
+  try {
+    const identityProvider = getProviderFromIdentities(claims.identities);
+    if (identityProvider) return identityProvider;
+  } catch {
+    return 'password';
+  }
+
+  if (claims['cognito:username']?.toLowerCase().startsWith('google_')) {
+    return 'google';
+  }
+
+  return 'password';
 }
 
 function toSession(res: TokenResponse, existingRefresh?: string): AppSession {
@@ -59,6 +89,7 @@ export function userFromIdToken(idToken: string): AppUser {
   return {
     id: claims.sub,
     email: claims.email,
+    auth_provider: getAuthProvider(claims),
     created_at: claims.iat ? new Date(claims.iat * 1000).toISOString() : undefined,
     user_metadata: {
       given_name: claims.given_name,

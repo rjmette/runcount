@@ -31,6 +31,7 @@ describe('AwsAuthProvider mock-mode password sign-in', () => {
       await result.current.signInWithPassword('player@example.com', 'whatever-password');
     });
 
-    expect(result.current.user?.email).toBe('mock@example.com');
+    expect(result.current.user?.email).toBe('player@example.com');
+    expect(result.current.user?.auth_provider).toBe('password');
   });
 });
