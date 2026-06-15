@@ -25,8 +25,8 @@ vi.mock('../../../context/GamePersistContext', async () => {
   };
 });
 
-const supabase = {
-  from: () => ({ upsert: async () => ({ data: null, error: null }) }),
+const backend = {
+  saveGame: vi.fn(async () => undefined),
 } as any;
 
 describe('GameScoring integration', () => {
@@ -43,7 +43,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -72,7 +72,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={1}
         shotClockSeconds={15}
@@ -106,7 +106,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -145,7 +145,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -180,7 +180,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -214,7 +214,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -247,7 +247,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}
@@ -277,7 +277,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={null}
@@ -304,7 +304,7 @@ describe('GameScoring integration', () => {
         gameId={null}
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={35}

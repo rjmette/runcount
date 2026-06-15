@@ -33,8 +33,8 @@ vi.mock('../../../context/GamePersistContext', async () => {
   };
 });
 
-const supabase = {
-  from: () => ({ upsert: async () => ({ data: null, error: null }) }),
+const backend = {
+  saveGame: vi.fn(async () => undefined),
 } as any;
 
 describe('GameScoring consecutive foul flow', () => {
@@ -94,7 +94,7 @@ describe('GameScoring consecutive foul flow', () => {
         gameId="saved-game-1"
         setGameId={() => {}}
         finishGame={() => {}}
-        supabase={supabase}
+        backend={backend}
         user={null}
         breakingPlayerId={0}
         shotClockSeconds={15}

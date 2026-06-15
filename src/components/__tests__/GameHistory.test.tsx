@@ -22,14 +22,9 @@ vi.mock('../GameHistory/components/DeleteConfirmationModal', () => ({
   ),
 }));
 
-// Mock Supabase
-const mockSupabase = {
-  from: vi.fn(() => ({
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  })),
+const mockBackend = {
+  listGames: vi.fn(),
+  deleteGame: vi.fn(),
 };
 
 const mockUser = { id: 'user-1', email: 'test@example.com' } as any;
@@ -57,11 +52,7 @@ describe('GameHistory Component', () => {
 
   test('renders GameList component by default', () => {
     render(
-      <GameHistory
-        supabase={mockSupabase as any}
-        startNewGame={vi.fn()}
-        user={mockUser}
-      />,
+      <GameHistory backend={mockBackend as any} startNewGame={vi.fn()} user={mockUser} />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();
@@ -69,7 +60,7 @@ describe('GameHistory Component', () => {
 
   test('renders without user (guest mode)', () => {
     render(
-      <GameHistory supabase={mockSupabase as any} startNewGame={vi.fn()} user={null} />,
+      <GameHistory backend={mockBackend as any} startNewGame={vi.fn()} user={null} />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();
@@ -85,11 +76,7 @@ describe('GameHistory Component', () => {
     });
 
     render(
-      <GameHistory
-        supabase={mockSupabase as any}
-        startNewGame={vi.fn()}
-        user={mockUser}
-      />,
+      <GameHistory backend={mockBackend as any} startNewGame={vi.fn()} user={mockUser} />,
     );
 
     // Should render a loading status
@@ -108,11 +95,7 @@ describe('GameHistory Component', () => {
     } as any);
 
     render(
-      <GameHistory
-        supabase={mockSupabase as any}
-        startNewGame={vi.fn()}
-        user={mockUser}
-      />,
+      <GameHistory backend={mockBackend as any} startNewGame={vi.fn()} user={mockUser} />,
     );
 
     // Error banner renders with Start New Game button
@@ -147,11 +130,7 @@ describe('GameHistory Component', () => {
     } as any);
 
     render(
-      <GameHistory
-        supabase={mockSupabase as any}
-        startNewGame={vi.fn()}
-        user={mockUser}
-      />,
+      <GameHistory backend={mockBackend as any} startNewGame={vi.fn()} user={mockUser} />,
     );
 
     expect(screen.getByTestId('game-list')).toBeInTheDocument();

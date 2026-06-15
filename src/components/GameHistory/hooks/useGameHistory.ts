@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
-
 import { type GameData } from '../../../types/game';
 
+import type { GameBackend } from '../../../backend/types';
+import type { AppUser } from '../../../types/auth';
+
 interface UseGameHistoryProps {
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
 }
 
-export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
+export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
   const [games, setGames] = useState<GameData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,27 +20,7 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
       try {
         setLoading(true);
 
-        // Simplify the query to just get user's games
-        const query = supabase.from('games').select('*');
-
-        // If user is authenticated, filter by owner
-        if (user?.id) {
-          query.eq('owner_id', user.id);
-        }
-
-        // Filter out deleted games
-        query.eq('deleted', false);
-
-        // Order by date descending
-        query.order('date', { ascending: false });
-
-        // Execute query
-        const { data, error } = await query;
-
-        if (error) {
-          console.error('Error fetching games:', error);
-          throw error;
-        }
+        const data = await backend.listGames(user);
 
         // Type cast and filter out any potentially invalid data
         const validGames = (data || [])
@@ -76,69 +57,38 @@ export const useGameHistory = ({ supabase, user }: UseGameHistoryProps) => {
 
     fetchGames();
 
-    if (import.meta.env.VITE_DISABLE_SUPABASE_REALTIME === 'true') {
+    if (
+      import.meta.env.VITE_DISABLE_SUPABASE_REALTIME === 'true' ||
+      !backend.subscribeToGames
+    ) {
       return undefined;
     }
 
-    // Set up a real-time subscription to the games table
-    const subscription = supabase
-      .channel('games-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'games',
-          filter: user?.id ? `owner_id=eq.${user.id}` : undefined,
-        },
-        (payload) => {
-          // Handle different types of changes
-          if (payload.eventType === 'INSERT') {
-            const newGame = payload.new as unknown as GameData;
-            if (!newGame.deleted) {
-              setGames((prevGames) => [newGame, ...prevGames]);
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedGame = payload.new as unknown as GameData;
-            setGames((prevGames) => {
-              if (updatedGame.deleted) {
-                // If the game was soft-deleted, remove it from the list
-                return prevGames.filter((game) => game.id !== updatedGame.id);
-              } else {
-                // Otherwise, update the game in the list
-                return prevGames.map((game) =>
-                  game.id === updatedGame.id ? updatedGame : game,
-                );
-              }
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const deletedGame = payload.old as unknown as GameData;
-            setGames((prevGames) =>
-              prevGames.filter((game) => game.id !== deletedGame.id),
-            );
+    const subscription = backend.subscribeToGames(user, ({ type, game }) => {
+      if (type === 'INSERT') {
+        if (!game.deleted) {
+          setGames((prevGames) => [game, ...prevGames]);
+        }
+      } else if (type === 'UPDATE') {
+        setGames((prevGames) => {
+          if (game.deleted) {
+            return prevGames.filter((entry) => entry.id !== game.id);
           }
-        },
-      )
-      .subscribe();
+          return prevGames.map((entry) => (entry.id === game.id ? game : entry));
+        });
+      } else if (type === 'DELETE') {
+        setGames((prevGames) => prevGames.filter((entry) => entry.id !== game.id));
+      }
+    });
 
-    // Clean up the subscription when the component unmounts
     return () => {
-      supabase.removeChannel(subscription);
+      subscription.unsubscribe();
     };
-  }, [supabase, user]);
+  }, [backend, user]);
 
   const deleteGame = async (gameId: string) => {
     try {
-      // Soft delete - update game with deleted flag
-      const { error } = await supabase
-        .from('games')
-        .update({ deleted: true })
-        .eq('id', gameId);
-
-      if (error) {
-        console.error('Error soft-deleting game:', error);
-        throw error;
-      }
+      await backend.deleteGame(gameId);
 
       // Update local state
       setGames(games.filter((g) => g.id !== gameId));

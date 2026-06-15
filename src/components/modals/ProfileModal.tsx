@@ -2,13 +2,13 @@ import type { FC } from 'react';
 
 import UserProfile from '../auth/UserProfile';
 
-import type { User } from '@supabase/supabase-js';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { GameBackend } from '../../backend/types';
+import type { AppUser } from '../../types/auth';
 
 interface ProfileModalProps {
   isOpen: boolean;
-  user: User | null;
-  supabase: SupabaseClient;
+  user: AppUser | null;
+  backend: GameBackend;
   onClose: () => void;
   onSignOut: () => Promise<void>;
 }
@@ -16,7 +16,7 @@ interface ProfileModalProps {
 export const ProfileModal: FC<ProfileModalProps> = ({
   isOpen,
   user,
-  supabase,
+  backend,
   onClose,
   onSignOut,
 }) => {
@@ -35,7 +35,7 @@ export const ProfileModal: FC<ProfileModalProps> = ({
           </button>
         </div>
         <div className="p-4">
-          <UserProfile supabase={supabase} user={user} onSignOut={onSignOut} />
+          <UserProfile backend={backend} user={user} onSignOut={onSignOut} />
         </div>
       </div>
     </div>

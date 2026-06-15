@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
-
 import { formatGameDateTime } from '../../utils/formatGameDate';
 
+import type { GameBackend } from '../../backend/types';
+import type { AppUser } from '../../types/auth';
+
 interface UserProfileProps {
-  supabase: SupabaseClient;
-  user: User;
+  backend: GameBackend;
+  user: AppUser;
   onSignOut: () => Promise<void>;
   /**
    * Render the per-screen kicker + bold title block. Off by default so
@@ -39,8 +40,8 @@ interface ProfileStats {
 }
 
 const useProfileStats = (
-  supabase: SupabaseClient,
-  userId: string | undefined,
+  backend: GameBackend,
+  user: AppUser | undefined,
 ): ProfileStats => {
   const [stats, setStats] = useState<ProfileStats>({
     loading: true,
@@ -49,41 +50,33 @@ const useProfileStats = (
   });
 
   useEffect(() => {
-    if (!userId) {
+    if (!user) {
       setStats({ loading: false, totalGames: 0, lastGameDate: null });
       return;
     }
 
     let cancelled = false;
     (async () => {
-      // One round-trip for both counters: order by date desc, then derive
-      // total = data.length and last = data[0]?.date. Cheap because each
-      // row only carries the date column. Acceptable while game volume per
-      // account stays small.
-      const { data, error } = await supabase
-        .from('games')
-        .select('date')
-        .eq('owner_id', userId)
-        .eq('deleted', false)
-        .order('date', { ascending: false });
+      try {
+        const data = await backend.getProfileStats(user);
 
-      if (cancelled) return;
-      if (error || !data) {
-        setStats({ loading: false, totalGames: 0, lastGameDate: null });
-        return;
+        if (cancelled) return;
+        setStats({
+          loading: false,
+          totalGames: data.totalGames,
+          lastGameDate: data.lastGameDate,
+        });
+      } catch {
+        if (!cancelled) {
+          setStats({ loading: false, totalGames: 0, lastGameDate: null });
+        }
       }
-
-      setStats({
-        loading: false,
-        totalGames: data.length,
-        lastGameDate: data.length > 0 && data[0]?.date ? String(data[0].date) : null,
-      });
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [supabase, userId]);
+  }, [backend, user]);
 
   return stats;
 };
@@ -137,7 +130,7 @@ const SubmitSpinner: React.FC = () => (
 );
 
 const UserProfile: React.FC<UserProfileProps> = ({
-  supabase,
+  backend,
   user,
   onSignOut,
   showPageTitle = false,
@@ -155,7 +148,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     loading: statsLoading,
     totalGames,
     lastGameDate,
-  } = useProfileStats(supabase, user.id);
+  } = useProfileStats(backend, user);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,11 +158,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
       setError(null);
       setMessage(null);
 
-      const { error } = await supabase.auth.updateUser({
-        email: newEmail,
-      });
-
-      if (error) throw error;
+      if (!backend.updateEmail) {
+        throw new Error('Email updates are part of the Phase 2 Cognito signup work.');
+      }
+      await backend.updateEmail(newEmail);
 
       setMessage('Email update initiated. Check your new email for confirmation!');
       setNewEmail('');
@@ -195,11 +187,10 @@ const UserProfile: React.FC<UserProfileProps> = ({
       setError(null);
       setMessage(null);
 
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) throw error;
+      if (!backend.updatePassword) {
+        throw new Error('Password updates are part of the Phase 2 Cognito signup work.');
+      }
+      await backend.updatePassword(newPassword);
 
       setMessage('Password updated successfully!');
       setNewPassword('');

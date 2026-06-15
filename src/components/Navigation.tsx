@@ -1,11 +1,11 @@
 import type { FC } from 'react';
 
 import type { GameState } from '../hooks/useGameState';
-import type { User } from '@supabase/supabase-js';
+import type { AppUser } from '../types/auth';
 
 interface NavigationProps {
   gameState: GameState;
-  user: User | null;
+  user: AppUser | null;
   onNavigate: (state: GameState) => void;
 }
 

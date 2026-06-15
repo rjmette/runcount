@@ -7,14 +7,14 @@ import GameSetup from './GameSetup';
 import GameStatistics from './GameStatistics';
 import TrendsPage from './Trends/index';
 
+import type { GameBackend } from '../backend/types';
 import type { GameState } from '../hooks/useGameState';
-import type { User } from '@supabase/supabase-js';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { AppUser } from '../types/auth';
 
 interface GameRouterProps {
   gameState: GameState;
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
   // Game setup props
   lastPlayers: string[];
   lastPlayerTargetScores: Record<string, number>;
@@ -57,7 +57,7 @@ interface GameRouterProps {
  */
 export const GameRouter: FC<GameRouterProps> = ({
   gameState,
-  supabase,
+  backend,
   user,
   lastPlayers,
   lastPlayerTargetScores,
@@ -104,7 +104,7 @@ export const GameRouter: FC<GameRouterProps> = ({
           gameId={gameId}
           setGameId={setGameId}
           finishGame={onFinishGame}
-          supabase={supabase}
+          backend={backend}
           user={user}
           breakingPlayerId={breakingPlayerId}
           shotClockSeconds={shotClockSeconds}
@@ -122,7 +122,7 @@ export const GameRouter: FC<GameRouterProps> = ({
       return (
         <GameStatistics
           gameId={gameId}
-          supabase={supabase}
+          backend={backend}
           startNewGame={onStartNewGame}
           viewHistory={onViewHistory}
           user={user}
@@ -131,22 +131,17 @@ export const GameRouter: FC<GameRouterProps> = ({
     case 'history':
       return (
         <GameHistory
-          supabase={supabase}
+          backend={backend}
           startNewGame={onGoToSetup}
           user={user}
           viewTrends={onViewTrends}
         />
       );
     case 'trends':
-      return <TrendsPage supabase={supabase} user={user} onStartNewGame={onGoToSetup} />;
+      return <TrendsPage backend={backend} user={user} onStartNewGame={onGoToSetup} />;
     case 'profile':
       return (
-        <UserProfile
-          supabase={supabase}
-          user={user!}
-          onSignOut={onSignOut}
-          showPageTitle
-        />
+        <UserProfile backend={backend} user={user!} onSignOut={onSignOut} showPageTitle />
       );
     default:
       return <GameSetup startGame={onStartGame} />;

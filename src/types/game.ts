@@ -1,4 +1,5 @@
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
+import type { AppUser } from './auth';
+import type { GameBackend } from '../backend/types';
 
 export interface Player {
   id: number;
@@ -63,8 +64,8 @@ export interface GameScoringProps {
   gameId: string | null;
   setGameId: (id: string) => void;
   finishGame: () => void;
-  supabase: SupabaseClient;
-  user?: User | null;
+  backend: GameBackend;
+  user?: AppUser | null;
   breakingPlayerId?: number;
   shotClockSeconds: number | null;
   matchStartTime: Date | null;
@@ -79,16 +80,16 @@ export interface GameScoringProps {
 
 export interface GameStatisticsProps {
   gameId: string | null;
-  supabase: SupabaseClient;
+  backend: GameBackend;
   startNewGame: () => void;
   viewHistory: () => void;
-  user?: User | null;
+  user?: AppUser | null;
 }
 
 export interface GameHistoryProps {
-  supabase: SupabaseClient;
+  backend: GameBackend;
   startNewGame: () => void;
-  user?: User | null;
+  user?: AppUser | null;
   viewTrends?: () => void;
 }
 

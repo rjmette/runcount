@@ -21,10 +21,9 @@ vi.mock('recharts', () => ({
   YAxis: () => null,
 }));
 
-const mockSupabase = {
-  from: vi.fn(),
-  channel: vi.fn(),
-  removeChannel: vi.fn(),
+const mockBackend = {
+  listGames: vi.fn(),
+  deleteGame: vi.fn(),
 } as any;
 
 const mockUser = { id: 'user-1', email: 'test@example.com' } as any;
@@ -65,7 +64,7 @@ const buildGame = (overrides: Partial<GameData> = {}): GameData => ({
 });
 
 const renderPage = () =>
-  render(<TrendsPage supabase={mockSupabase} user={mockUser} onStartNewGame={vi.fn()} />);
+  render(<TrendsPage backend={mockBackend} user={mockUser} onStartNewGame={vi.fn()} />);
 
 describe('TrendsPage', () => {
   beforeEach(() => {
