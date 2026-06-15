@@ -1,7 +1,5 @@
 import { useMemo, useState, type FC } from 'react';
 
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
-
 import { MetricToggle, type MetricDefinition } from './components/MetricToggle';
 import { PlayerSelector } from './components/PlayerSelector';
 import { SummaryCards } from './components/SummaryCards';
@@ -9,6 +7,8 @@ import { TrendChart, type TrendSeries } from './components/TrendChart';
 import { useTrendsData } from './hooks/useTrendsData';
 
 import type { TrendMetric } from './utils/trendsData';
+import type { GameBackend } from '../../backend/types';
+import type { AppUser } from '../../types/auth';
 
 const METRIC_DECIMALS: Record<TrendMetric, number> = {
   bpi: 2,
@@ -25,8 +25,8 @@ const METRIC_UNITS: Record<TrendMetric, string> = {
 };
 
 interface TrendsPageProps {
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
   onStartNewGame: () => void;
 }
 
@@ -40,7 +40,7 @@ const METRIC_DEFINITIONS: MetricDefinition[] = [
 const TRENDS_REQUIRED_GAMES = 3;
 const TRENDS_DELTA_MIN_GAMES = 10;
 
-const TrendsPage: FC<TrendsPageProps> = ({ supabase, user, onStartNewGame }) => {
+const TrendsPage: FC<TrendsPageProps> = ({ backend, user, onStartNewGame }) => {
   const {
     loading,
     error,
@@ -51,7 +51,7 @@ const TrendsPage: FC<TrendsPageProps> = ({ supabase, user, onStartNewGame }) => 
     trendPoints,
     summary,
     hasAnyCompletedGames,
-  } = useTrendsData({ supabase, user });
+  } = useTrendsData({ backend, user });
 
   const [visibleMetrics, setVisibleMetrics] = useState<TrendMetric[]>(() =>
     METRIC_DEFINITIONS.map((metric) => metric.key),

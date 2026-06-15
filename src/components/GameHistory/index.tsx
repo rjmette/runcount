@@ -17,7 +17,7 @@ import {
 } from './utils/historyEnhancements';
 
 const GameHistory: React.FC<GameHistoryProps> = ({
-  supabase,
+  backend,
   startNewGame,
   user = null,
   viewTrends,
@@ -28,7 +28,7 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   const [sortOption, setSortOption] = useState<HistorySortOption>('date-desc');
 
   const { games, loading, error, deleteGame } = useGameHistory({
-    supabase,
+    backend,
     user,
   });
 

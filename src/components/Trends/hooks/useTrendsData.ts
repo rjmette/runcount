@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
-
 import { useGameHistory } from '../../GameHistory/hooks/useGameHistory';
 import {
   buildPlayerTrendData,
@@ -12,9 +10,12 @@ import {
   type TrendsSummary,
 } from '../utils/trendsData';
 
+import type { GameBackend } from '../../../backend/types';
+import type { AppUser } from '../../../types/auth';
+
 interface UseTrendsDataParams {
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
 }
 
 interface UseTrendsDataResult {
@@ -30,10 +31,10 @@ interface UseTrendsDataResult {
 }
 
 export const useTrendsData = ({
-  supabase,
+  backend,
   user,
 }: UseTrendsDataParams): UseTrendsDataResult => {
-  const { games, loading, error } = useGameHistory({ supabase, user });
+  const { games, loading, error } = useGameHistory({ backend, user });
 
   const playerOptions = useMemo(() => getTrendsPlayerOptions(games), [games]);
   const [selectedPlayerKey, setSelectedPlayerKey] = useState<string>('');

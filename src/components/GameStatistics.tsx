@@ -48,7 +48,7 @@ const deriveHeadline = (game: GameData): { primary: string; secondary?: string }
 
 const GameStatistics: React.FC<GameStatisticsProps> = ({
   gameId,
-  supabase,
+  backend,
   startNewGame,
   viewHistory,
   user,
@@ -93,21 +93,11 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
           console.log('No game found in localStorage, trying Supabase');
         }
 
-        // If no local data, try Supabase
-        const { data, error } = await supabase
-          .from('games')
-          .select('*')
-          .eq('id', gameId)
-          .eq('deleted', false)
-          .single();
+        // If no local data, try cloud backend
+        const data = await backend.getGame(gameId);
 
-        if (error) {
-          console.error('Error fetching from Supabase:', error);
-          throw error;
-        }
-
-        console.log('Fetched game data from Supabase:', data);
-        setGameData(data as unknown as GameData);
+        console.log('Fetched game data from cloud backend:', data);
+        setGameData(data);
       } catch (err) {
         console.error('Error in fetchGameData:', err);
         setError('Failed to load game data');
@@ -117,38 +107,31 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
     };
 
     fetchGameData();
-  }, [gameId, supabase]);
+  }, [gameId, backend]);
 
-  // Effect to save game to Supabase when user logs in
+  // Effect to save game to cloud backend when user logs in
   useEffect(() => {
     if (user && gameData && !savedToSupabase) {
-      const saveGameToSupabase = async () => {
+      const saveGameToCloud = async () => {
         try {
-          console.log('Saving game to Supabase after login on results screen');
+          console.log('Saving game to cloud backend after login on results screen');
 
-          // Create payload from the gameData
-          const payload = {
+          const payload: GameData = {
             ...gameData,
-            owner_id: user.id,
             deleted: false,
           };
 
-          const { error } = await supabase.from('games').upsert(payload);
-
-          if (error) {
-            console.error('Error saving game to Supabase after login:', error);
-          } else {
-            console.log('Successfully saved game to Supabase after login');
-            setSavedToSupabase(true);
-          }
+          await backend.saveGame(payload, user);
+          console.log('Successfully saved game to cloud backend after login');
+          setSavedToSupabase(true);
         } catch (err) {
-          console.error('Error saving game to Supabase after login:', err);
+          console.error('Error saving game to cloud backend after login:', err);
         }
       };
 
-      saveGameToSupabase();
+      saveGameToCloud();
     }
-  }, [user, gameData, supabase, savedToSupabase]);
+  }, [user, gameData, backend, savedToSupabase]);
 
   const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';

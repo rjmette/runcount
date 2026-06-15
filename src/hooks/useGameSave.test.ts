@@ -9,20 +9,15 @@ describe('saveGameToSupabaseHelper', () => {
 
   let saveGameState: any;
   let clearGameState: any;
-  let supabase: any;
-  let upsertSpy: any;
-  let tableName: string | null;
+  let backend: any;
+  let saveGameSpy: any;
 
   beforeEach(() => {
     saveGameState = vi.fn();
     clearGameState = vi.fn();
-    upsertSpy = vi.fn(async () => ({ error: null }));
-    tableName = null;
-    supabase = {
-      from: (t: string) => {
-        tableName = t;
-        return { upsert: upsertSpy };
-      },
+    saveGameSpy = vi.fn(async () => undefined);
+    backend = {
+      saveGame: saveGameSpy,
     };
     vi.spyOn(window.localStorage.__proto__, 'setItem');
     (window.localStorage.setItem as any).mockClear();
@@ -30,7 +25,7 @@ describe('saveGameToSupabaseHelper', () => {
 
   it('saves to localStorage and context but not Supabase when user is null', async () => {
     await saveGameToSupabaseHelper({
-      supabase,
+      backend,
       user: null,
       saveGameState,
       clearGameState,
@@ -49,15 +44,14 @@ describe('saveGameToSupabaseHelper', () => {
       `runcount_game_${gameId}`,
       expect.stringContaining('"id":"game-123"'),
     );
-    expect(tableName).toBe(null);
-    expect(upsertSpy).not.toHaveBeenCalled();
+    expect(saveGameSpy).not.toHaveBeenCalled();
   });
 
-  it('saves to Supabase when user is present', async () => {
+  it('saves to cloud backend when user is present', async () => {
     const user = { id: 'user-42' };
 
     await saveGameToSupabaseHelper({
-      supabase,
+      backend,
       user,
       saveGameState,
       clearGameState,
@@ -71,20 +65,19 @@ describe('saveGameToSupabaseHelper', () => {
     });
 
     expect(saveGameState).toHaveBeenCalledTimes(1);
-    expect(tableName).toBe('games');
-    expect(upsertSpy).toHaveBeenCalledTimes(1);
-    const payload = upsertSpy.mock.calls[0][0];
+    expect(saveGameSpy).toHaveBeenCalledTimes(1);
+    const payload = saveGameSpy.mock.calls[0][0];
     expect(payload).toMatchObject({
       id: gameId,
       players,
       actions,
       completed: false,
       winner_id: 0,
-      owner_id: user.id,
       deleted: false,
       startTime: '2025-08-17T00:00:00.000Z',
       endTime: '2025-08-17T01:00:00.000Z',
     });
+    expect(saveGameSpy.mock.calls[0][1]).toBe(user);
     expect(typeof payload.date).toBe('string');
   });
 
@@ -92,7 +85,7 @@ describe('saveGameToSupabaseHelper', () => {
     const user = { id: 'user-42' };
 
     await saveGameToSupabaseHelper({
-      supabase,
+      backend,
       user,
       saveGameState,
       clearGameState,
@@ -108,6 +101,6 @@ describe('saveGameToSupabaseHelper', () => {
     expect(clearGameState).toHaveBeenCalledTimes(1);
     expect(saveGameState).not.toHaveBeenCalled();
     expect(window.localStorage.setItem).toHaveBeenCalled();
-    expect(upsertSpy).toHaveBeenCalled();
+    expect(saveGameSpy).toHaveBeenCalled();
   });
 });

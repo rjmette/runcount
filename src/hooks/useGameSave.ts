@@ -1,10 +1,10 @@
-import { type SupabaseClient, type User } from '@supabase/supabase-js';
-
+import type { GameBackend } from '../backend/types';
+import type { AppUser } from '../types/auth';
 import type { GameAction, GameData, Player } from '../types/game';
 
 type UseGameSaveArgs = {
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
   saveGameState: (state: GameData) => void;
   clearGameState: () => void;
   matchStartTime?: string;
@@ -14,14 +14,9 @@ type UseGameSaveArgs = {
 
 type WinnerId = number | string | null;
 
-type SupabaseGamePayload = GameData & {
-  owner_id: string;
-  deleted: boolean;
-};
-
 export const saveGameToSupabaseHelper = async (options: {
-  supabase: SupabaseClient;
-  user: User | null;
+  backend: GameBackend;
+  user: AppUser | null;
   saveGameState: (state: GameData) => void;
   clearGameState: () => void;
   matchStartTime?: string;
@@ -34,7 +29,7 @@ export const saveGameToSupabaseHelper = async (options: {
   winner_id: WinnerId;
 }) => {
   const {
-    supabase,
+    backend,
     user,
     saveGameState,
     clearGameState,
@@ -96,14 +91,13 @@ export const saveGameToSupabaseHelper = async (options: {
 
   try {
     const now = new Date();
-    const payload: SupabaseGamePayload = {
+    const payload: GameData = {
       id: gameId,
       date: now.toISOString(),
       players,
       actions,
       completed,
       winner_id: winnerId,
-      owner_id: user.id,
       deleted: false,
     };
 
@@ -117,34 +111,22 @@ export const saveGameToSupabaseHelper = async (options: {
       payload.turnStartTime = turnStartTime;
     }
 
-    const { error } = await supabase.from('games').upsert(payload);
-
-    if (error) {
-      console.error('Error saving game to Supabase:', error);
-      try {
-        const evt = new CustomEvent('appError', {
-          detail: "Cloud save failed. We'll keep trying in the background.",
-        });
-        window.dispatchEvent(evt);
-      } catch (dispatchError) {
-        console.warn('Unable to dispatch Supabase save warning', dispatchError);
-      }
-    }
+    await backend.saveGame(payload, user);
   } catch (err) {
-    console.error('Error saving game to Supabase:', err);
+    console.error('Error saving game to cloud backend:', err);
     try {
       const evt = new CustomEvent('appError', {
         detail: 'Network error during cloud save.',
       });
       window.dispatchEvent(evt);
     } catch (dispatchError) {
-      console.warn('Unable to dispatch Supabase network warning', dispatchError);
+      console.warn('Unable to dispatch cloud save warning', dispatchError);
     }
   }
 };
 
 export const useGameSave = ({
-  supabase,
+  backend,
   user,
   saveGameState,
   clearGameState,
@@ -161,7 +143,7 @@ export const useGameSave = ({
     endTime?: string,
   ) => {
     await saveGameToSupabaseHelper({
-      supabase,
+      backend,
       user,
       saveGameState,
       clearGameState,

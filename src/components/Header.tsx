@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 
-import type { User } from '@supabase/supabase-js';
+import type { AppUser } from '../types/auth';
 
 interface HeaderProps {
-  user: User | null;
+  user: AppUser | null;
   darkMode: boolean;
   isFullScreen: boolean;
   toggleDarkMode: () => void;

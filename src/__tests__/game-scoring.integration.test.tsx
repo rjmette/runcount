@@ -18,15 +18,8 @@ vi.mock('../context/GamePersistContext', () => ({
   }),
 }));
 
-// Mock Supabase
-const mockSupabase = {
-  from: () => ({
-    upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    insert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockResolvedValue({ data: [], error: null }),
-  }),
+const mockBackend = {
+  saveGame: vi.fn(async () => undefined),
 };
 
 describe('Game Scoring Integration Tests', () => {
@@ -36,7 +29,7 @@ describe('Game Scoring Integration Tests', () => {
     gameId: null,
     setGameId: vi.fn(),
     finishGame: vi.fn(),
-    supabase: mockSupabase as any,
+    backend: mockBackend as any,
     user: null,
     breakingPlayerId: 0,
     shotClockSeconds: 15,

@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { FC } from 'react';
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
+import { AwsAuthProvider, useAwsAuth } from './aws-auth/AwsAuthContext';
+import { isAwsBackend } from './aws-auth/config';
+import { createAwsBackend } from './backend/awsBackend';
+import { createSupabaseBackend } from './backend/supabaseBackend';
 import { GameRouter } from './components/GameRouter';
 import { Header } from './components/Header';
 import { AuthModal } from './components/modals/AuthModal';
@@ -18,12 +22,21 @@ import { useGameSettings } from './hooks/useGameSettings';
 import { useGameState } from './hooks/useGameState';
 import { useTheme } from './hooks/useTheme';
 
+import type { GameBackend } from './backend/types';
+import type { AppUser } from './types/auth';
+
 import './App.css';
 
-// Initialize Supabase client - Replace with your actual Supabase project details
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = isAwsBackend ? null : createClient(supabaseUrl, supabaseKey);
+
+const getSupabaseClient = (): SupabaseClient => {
+  if (!supabase) {
+    throw new Error('Supabase client is only available when VITE_BACKEND is not aws.');
+  }
+  return supabase;
+};
 
 // Main App Component - now just wraps the content with AuthProvider
 const App: FC = () => {
@@ -31,21 +44,103 @@ const App: FC = () => {
     <ErrorProvider>
       <ErrorBoundary>
         <ErrorEventsBridge>
-          <AuthProvider supabase={supabase}>
-            <GamePersistProvider>
-              <AppContent />
-              <ErrorBanner />
-            </GamePersistProvider>
-          </AuthProvider>
+          {isAwsBackend ? (
+            <AwsAuthProvider>
+              <GamePersistProvider>
+                <AwsAppContent />
+                <ErrorBanner />
+              </GamePersistProvider>
+            </AwsAuthProvider>
+          ) : (
+            <SupabaseAppProviders />
+          )}
         </ErrorEventsBridge>
       </ErrorBoundary>
     </ErrorProvider>
   );
 };
 
-// The actual app content, using the auth context
-const AppContent: FC = () => {
+const SupabaseAppProviders: FC = () => {
+  const supabaseClient = getSupabaseClient();
+
+  return (
+    <AuthProvider supabase={supabaseClient}>
+      <GamePersistProvider>
+        <SupabaseAppContent supabase={supabaseClient} />
+        <ErrorBanner />
+      </GamePersistProvider>
+    </AuthProvider>
+  );
+};
+
+interface SupabaseAppContentProps {
+  supabase: SupabaseClient;
+}
+
+const SupabaseAppContent: FC<SupabaseAppContentProps> = ({ supabase }) => {
   const { user, loading, signOut } = useAuth();
+  const backend = useMemo(() => createSupabaseBackend(supabase), []);
+
+  return (
+    <AppContent
+      user={user}
+      loading={loading}
+      signOut={signOut}
+      backend={backend}
+      renderAuthModal={({ isOpen, gameState, onClose }) => (
+        <AuthModal
+          isOpen={isOpen}
+          gameState={gameState}
+          supabase={supabase}
+          onClose={onClose}
+        />
+      )}
+    />
+  );
+};
+
+const AwsAppContent: FC = () => {
+  const { user, loading, signOut, getIdToken, signIn } = useAwsAuth();
+  const backend = useMemo(() => createAwsBackend(getIdToken), [getIdToken]);
+
+  return (
+    <AppContent
+      user={user}
+      loading={loading}
+      signOut={signOut}
+      backend={backend}
+      renderAuthModal={({ isOpen, gameState, onClose }) => (
+        <AwsAuthModal
+          isOpen={isOpen}
+          gameState={gameState}
+          onClose={onClose}
+          onSignIn={signIn}
+        />
+      )}
+    />
+  );
+};
+
+interface AppContentProps {
+  user: AppUser | null;
+  loading: boolean;
+  signOut: () => Promise<void>;
+  backend: GameBackend;
+  renderAuthModal: (props: {
+    isOpen: boolean;
+    gameState: ReturnType<typeof useGameState>['gameState'];
+    onClose: () => void;
+  }) => React.ReactNode;
+}
+
+// The actual app content, using the selected auth/backend implementation.
+const AppContent: FC<AppContentProps> = ({
+  user,
+  loading,
+  signOut,
+  backend,
+  renderAuthModal,
+}) => {
   const { addError } = useError();
 
   // Custom hooks for feature management
@@ -185,7 +280,7 @@ const AppContent: FC = () => {
       <main className="flex-grow container mx-auto p-4 flex flex-col">
         <GameRouter
           gameState={gameState}
-          supabase={supabase}
+          backend={backend}
           user={user}
           lastPlayers={lastPlayers}
           lastPlayerTargetScores={lastPlayerTargetScores}
@@ -215,20 +310,79 @@ const AppContent: FC = () => {
         />
       </main>
 
-      <AuthModal
-        isOpen={showAuthModal}
-        gameState={gameState}
-        supabase={supabase}
-        onClose={() => setShowAuthModal(false)}
-      />
+      {renderAuthModal({
+        isOpen: showAuthModal,
+        gameState,
+        onClose: () => setShowAuthModal(false),
+      })}
 
       <ProfileModal
         isOpen={showProfileModal}
         user={user}
-        supabase={supabase}
+        backend={backend}
         onClose={() => setShowProfileModal(false)}
         onSignOut={handleSignOut}
       />
+    </div>
+  );
+};
+
+interface AwsAuthModalProps {
+  isOpen: boolean;
+  gameState: ReturnType<typeof useGameState>['gameState'];
+  onClose: () => void;
+  onSignIn: () => Promise<void>;
+}
+
+const AwsAuthModal: FC<AwsAuthModalProps> = ({
+  isOpen,
+  gameState,
+  onClose,
+  onSignIn,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm sm:max-w-lg w-full relative"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="aws-auth-modal-title"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 w-7 h-7 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-white transition-colors"
+          aria-label="Close authentication"
+        >
+          ✕
+        </button>
+        <div className="p-5 text-center bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-700/60 dark:to-gray-700/30 rounded-t-2xl border-b border-gray-200 dark:border-gray-700">
+          <h2 id="aws-auth-modal-title" className="text-xl font-bold dark:text-white">
+            Sign in to RunCount
+          </h2>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Use your Google account to save games to AWS.
+          </p>
+        </div>
+        <div className="p-4 space-y-4">
+          {gameState === 'scoring' || gameState === 'statistics' ? (
+            <div className="p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-lg text-sm">
+              Logging in will save your current game to your account.
+            </div>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void onSignIn()}
+            className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
+          >
+            Continue with Google
+          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+            Signup, password recovery, and account updates are tracked for Phase 2.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

@@ -87,7 +87,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   gameId,
   setGameId,
   finishGame,
-  supabase,
+  backend,
   user,
   breakingPlayerId = 0,
   shotClockSeconds,
@@ -119,46 +119,36 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
     useState<number>(breakingPlayerId);
 
-  // Add effect to detect user login and save game to SupaBase
+  // Add effect to detect user login and save game to cloud backend
   useEffect(() => {
-    // If user just logged in and we have a game in progress, save it to SupaBase
+    // If user just logged in and we have a game in progress, save it to cloud backend
     if (user && gameId) {
-      const saveCurrentGameToSupabase = async () => {
+      const saveCurrentGameToCloud = async () => {
         try {
           const gameState = getGameState();
           if (!gameState) return;
 
-          const now = new Date();
           const payload = {
             id: gameId,
-            date: now.toISOString(),
+            date: new Date().toISOString(),
             players: gameState.players,
             actions: gameState.actions,
             completed: gameState.completed,
             winner_id: gameState.winner_id,
-            owner_id: user.id,
             deleted: false,
           };
 
-          const { error } = await supabase.from('games').upsert(payload);
-
-          if (error) {
-            console.error('Error saving game to Supabase after login:', error);
-            addError(
-              'Could not save your in-progress game to the cloud after login. Your local progress is safe.',
-            );
-          } else {
-            console.log('Successfully saved game to Supabase after login');
-          }
+          await backend.saveGame(payload, user);
+          console.log('Successfully saved game to cloud backend after login');
         } catch (err) {
-          console.error('Error saving game to Supabase after login:', err);
+          console.error('Error saving game to cloud backend after login:', err);
           addError('A network error occurred while saving your game. Please try again.');
         }
       };
 
-      saveCurrentGameToSupabase();
+      saveCurrentGameToCloud();
     }
-  }, [user, gameId, supabase, getGameState]);
+  }, [user, gameId, backend, getGameState, addError]);
 
   // Game state management
   const {
@@ -203,7 +193,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     ) => {
       try {
         await saveGameToSupabaseHelper({
-          supabase,
+          backend,
           user,
           saveGameState,
           clearGameState,
@@ -225,7 +215,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           winner_id,
         });
       } catch (_error) {
-        console.error('Failed to persist game to Supabase', _error);
+        console.error('Failed to persist game to cloud backend', _error);
         addError(
           'Failed to save your game. Changes are saved locally and will sync when online.',
         );
@@ -254,7 +244,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       ) => {
         try {
           await saveGameToSupabaseHelper({
-            supabase,
+            backend,
             user,
             saveGameState,
             clearGameState,
@@ -276,7 +266,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             winner_id,
           });
         } catch (_error) {
-          console.error('Failed to persist action to Supabase', _error);
+          console.error('Failed to persist action to cloud backend', _error);
           addError(
             'Could not save your recent action to the cloud. It will retry automatically.',
           );
@@ -317,7 +307,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     ) => {
       try {
         await saveGameToSupabaseHelper({
-          supabase,
+          backend,
           user,
           saveGameState,
           clearGameState,
@@ -335,7 +325,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           winner_id,
         });
       } catch (_error) {
-        console.error('Failed to persist updated history to Supabase', _error);
+        console.error('Failed to persist updated history to cloud backend', _error);
         addError(
           'Failed to update game history in the cloud. Your local history is intact.',
         );
@@ -491,7 +481,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       }
 
       void saveGameToSupabaseHelper({
-        supabase,
+        backend,
         user,
         saveGameState,
         clearGameState,

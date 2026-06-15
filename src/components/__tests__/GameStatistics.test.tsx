@@ -40,19 +40,9 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock Supabase with chainable query builder (including upsert for save on login)
-const mockSupabase = {
-  from: vi.fn(() => {
-    const query: any = {
-      select: vi.fn(() => query),
-      eq: vi.fn(() => query),
-      single: vi.fn(async () => ({ data: null, error: null })),
-      upsert: vi.fn(async () => ({ data: null, error: null })),
-      insert: vi.fn(async () => ({ data: null, error: null })),
-      order: vi.fn(async () => ({ data: [], error: null })),
-    };
-    return query;
-  }),
+const mockBackend = {
+  getGame: vi.fn(async () => null),
+  saveGame: vi.fn(async () => undefined),
 };
 
 const mockGameData: GameData = {
@@ -94,6 +84,8 @@ const mockGameData: GameData = {
 describe('GameStatistics Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockBackend.getGame.mockResolvedValue(null);
+    mockBackend.saveGame.mockResolvedValue(undefined);
     localStorage.clear();
   });
 
@@ -101,7 +93,7 @@ describe('GameStatistics Component', () => {
     render(
       <GameStatistics
         gameId="game-1"
-        supabase={mockSupabase as any}
+        backend={mockBackend as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
@@ -121,7 +113,7 @@ describe('GameStatistics Component', () => {
     render(
       <GameStatistics
         gameId=""
-        supabase={mockSupabase as any}
+        backend={mockBackend as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
@@ -139,7 +131,7 @@ describe('GameStatistics Component', () => {
     render(
       <GameStatistics
         gameId="game-1"
-        supabase={mockSupabase as any}
+        backend={mockBackend as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
@@ -158,7 +150,7 @@ describe('GameStatistics Component', () => {
     render(
       <GameStatistics
         gameId="game-1"
-        supabase={mockSupabase as any}
+        backend={mockBackend as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={null}
@@ -176,7 +168,7 @@ describe('GameStatistics Component', () => {
     render(
       <GameStatistics
         gameId="game-1"
-        supabase={mockSupabase as any}
+        backend={mockBackend as any}
         startNewGame={vi.fn()}
         viewHistory={vi.fn()}
         user={{ id: 'user-1' } as any}

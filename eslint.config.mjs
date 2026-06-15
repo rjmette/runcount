@@ -21,7 +21,7 @@ export default tseslint.config(
     languageOptions: {
       sourceType: 'module',
       parserOptions: {
-        project: ['./tsconfig.json'],
+        project: ['./tsconfig.json', './infra/tsconfig.json'],
         tsconfigRootDir: __dirname,
       },
     },
@@ -37,7 +37,7 @@ export default tseslint.config(
       },
       'import/resolver': {
         typescript: {
-          project: ['./tsconfig.json'],
+          project: ['./tsconfig.json', './infra/tsconfig.json'],
         },
       },
     },
@@ -142,6 +142,17 @@ export default tseslint.config(
       globals: {
         module: 'readonly',
         require: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['infra/lambda/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        console: 'readonly',
+        crypto: 'readonly',
+        process: 'readonly',
       },
     },
   },
