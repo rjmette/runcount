@@ -4,6 +4,12 @@ import { type SupabaseClient } from '@supabase/supabase-js';
 
 import { getAuthCallbackUrl } from '../../utils/authRedirect';
 
+import {
+  getPasswordPolicyError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+} from './passwordPolicy';
+
 import type { AwsAuthOperations } from './Auth';
 
 interface SignUpProps {
@@ -35,6 +41,14 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, awsAuth, onSuccess }) => {
     if (password !== confirmPassword) {
       setError("Passwords don't match");
       return;
+    }
+
+    if (awsAuth) {
+      const passwordPolicyError = getPasswordPolicyError(password);
+      if (passwordPolicyError) {
+        setError(passwordPolicyError);
+        return;
+      }
     }
 
     try {
@@ -130,7 +144,10 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, awsAuth, onSuccess }) => {
   return (
     <div className="space-y-5">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in">
+        <div
+          role="alert"
+          className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in"
+        >
           {error}
         </div>
       )}
@@ -215,11 +232,20 @@ const SignUp: React.FC<SignUpProps> = ({ supabase, awsAuth, onSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={awsAuth ? PASSWORD_MIN_LENGTH : 6}
+              aria-describedby={awsAuth ? 'sign-up-password-help' : undefined}
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
               placeholder="Create a password"
               disabled={loading}
             />
+            {awsAuth && (
+              <p
+                id="sign-up-password-help"
+                className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              >
+                {PASSWORD_POLICY_MESSAGE}
+              </p>
+            )}
           </div>
 
           <div>

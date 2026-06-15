@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 
 import { type SupabaseClient } from '@supabase/supabase-js';
 
+import {
+  getPasswordPolicyError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+} from './passwordPolicy';
+
 import type { AwsAuthOperations } from './Auth';
 
 interface ResetPasswordProps {
@@ -82,6 +88,14 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({
       return;
     }
 
+    if (awsAuth) {
+      const passwordPolicyError = getPasswordPolicyError(newPassword);
+      if (passwordPolicyError) {
+        setError(passwordPolicyError);
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -120,7 +134,10 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({
   return (
     <div className="space-y-5">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in">
+        <div
+          role="alert"
+          className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm animate-fade-in"
+        >
           {error}
         </div>
       )}
@@ -169,11 +186,20 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={awsAuth ? PASSWORD_MIN_LENGTH : 6}
+              aria-describedby={awsAuth ? 'reset-password-help' : undefined}
               className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200"
               placeholder="Enter your new password"
               disabled={loading}
             />
+            {awsAuth && (
+              <p
+                id="reset-password-help"
+                className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              >
+                {PASSWORD_POLICY_MESSAGE}
+              </p>
+            )}
           </div>
 
           <div>

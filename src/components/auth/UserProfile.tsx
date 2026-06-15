@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 
 import { formatGameDateTime } from '../../utils/formatGameDate';
 
+import {
+  getPasswordPolicyError,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_POLICY_MESSAGE,
+} from './passwordPolicy';
+
 import type { GameBackend } from '../../backend/types';
 import type { AppUser } from '../../types/auth';
 
@@ -154,6 +160,9 @@ const UserProfile: React.FC<UserProfileProps> = ({
   } = useProfileStats(backend, user);
   const canUpdateEmail = Boolean(backend.updateEmail);
   const canUpdatePassword = Boolean(backend.updatePassword);
+  const usesCognitoPasswordPolicy = Boolean(
+    backend.requiresCurrentPasswordForPasswordUpdate,
+  );
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,6 +226,14 @@ const UserProfile: React.FC<UserProfileProps> = ({
     if (newPassword !== confirmPassword) {
       setError("Passwords don't match");
       return;
+    }
+
+    if (usesCognitoPasswordPolicy) {
+      const passwordPolicyError = getPasswordPolicyError(newPassword);
+      if (passwordPolicyError) {
+        setError(passwordPolicyError);
+        return;
+      }
     }
 
     try {
@@ -409,9 +426,21 @@ const UserProfile: React.FC<UserProfileProps> = ({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
+                  minLength={usesCognitoPasswordPolicy ? PASSWORD_MIN_LENGTH : undefined}
+                  aria-describedby={
+                    usesCognitoPasswordPolicy ? 'profile-password-help' : undefined
+                  }
                   disabled={loading}
                   className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
                 />
+                {usesCognitoPasswordPolicy && (
+                  <p
+                    id="profile-password-help"
+                    className="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    {PASSWORD_POLICY_MESSAGE}
+                  </p>
+                )}
               </div>
               <div>
                 <label

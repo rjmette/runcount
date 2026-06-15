@@ -41,6 +41,13 @@ export class AuthStack extends Stack {
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },
+      passwordPolicy: {
+        minLength: 8,
+        requireLowercase: true,
+        requireUppercase: true,
+        requireDigits: true,
+        requireSymbols: true,
+      },
       standardAttributes: {
         email: { required: true, mutable: true },
         givenName: { required: false, mutable: true },

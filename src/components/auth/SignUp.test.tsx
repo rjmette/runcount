@@ -79,15 +79,15 @@ describe('SignUp', () => {
       target: { value: 'player@example.com' },
     });
     fireEvent.change(screen.getByLabelText(/^password$/i), {
-      target: { value: 'secret123' },
+      target: { value: 'StrongPass1!' },
     });
     fireEvent.change(screen.getByLabelText(/confirm password/i), {
-      target: { value: 'secret123' },
+      target: { value: 'StrongPass1!' },
     });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
     await waitFor(() => {
-      expect(awsAuth.signUp).toHaveBeenCalledWith('player@example.com', 'secret123');
+      expect(awsAuth.signUp).toHaveBeenCalledWith('player@example.com', 'StrongPass1!');
     });
     expect(
       await screen.findByText('Check your email for the verification code.'),
@@ -106,6 +106,35 @@ describe('SignUp', () => {
     ).toBeInTheDocument();
   });
 
+  test('blocks AWS signup before submit when the password misses Cognito policy', async () => {
+    const awsAuth = {
+      signInWithPassword: vi.fn(),
+      signInWithGoogle: vi.fn(),
+      signUp: vi.fn(),
+      confirmSignUp: vi.fn(),
+      forgotPassword: vi.fn(),
+      confirmForgotPassword: vi.fn(),
+    };
+
+    render(<SignUp awsAuth={awsAuth} />);
+
+    fireEvent.change(screen.getByLabelText(/^email$/i), {
+      target: { value: 'player@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/^password$/i), {
+      target: { value: 'secret123' },
+    });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: 'secret123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
+
+    expect(awsAuth.signUp).not.toHaveBeenCalled();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Use at least 8 characters with uppercase, lowercase, a number, and a symbol.',
+    );
+  });
+
   test('shows AWS signup errors', async () => {
     const awsAuth = {
       signInWithPassword: vi.fn(),
@@ -122,10 +151,10 @@ describe('SignUp', () => {
       target: { value: 'player@example.com' },
     });
     fireEvent.change(screen.getByLabelText(/^password$/i), {
-      target: { value: 'secret123' },
+      target: { value: 'StrongPass1!' },
     });
     fireEvent.change(screen.getByLabelText(/confirm password/i), {
-      target: { value: 'secret123' },
+      target: { value: 'StrongPass1!' },
     });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
 
