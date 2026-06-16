@@ -17,5 +17,4 @@ interface ImportMetaEnv {
   readonly VITE_COGNITO_REDIRECT_URI?: string;
   readonly VITE_COGNITO_LOGOUT_URI?: string;
   readonly VITE_SENTRY_DSN?: string;
-  readonly VITE_DISABLE_SUPABASE_REALTIME?: string;
 }

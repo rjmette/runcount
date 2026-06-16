@@ -5,14 +5,6 @@ import { createMockGameData } from '../../../../testing/factories';
 import { useGameHistory } from '../useGameHistory';
 
 describe('useGameHistory', () => {
-  beforeEach(() => {
-    vi.stubEnv('VITE_DISABLE_SUPABASE_REALTIME', 'true');
-  });
-
-  afterEach(() => {
-    vi.unstubAllEnvs();
-  });
-
   test('loads valid games from backend', async () => {
     const validGame = createMockGameData({ id: 'valid-game' });
     const invalidGame = { id: 'invalid-game', players: [] };

@@ -56,34 +56,6 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
     };
 
     fetchGames();
-
-    if (
-      import.meta.env.VITE_DISABLE_SUPABASE_REALTIME === 'true' ||
-      !backend.subscribeToGames
-    ) {
-      return undefined;
-    }
-
-    const subscription = backend.subscribeToGames(user, ({ type, game }) => {
-      if (type === 'INSERT') {
-        if (!game.deleted) {
-          setGames((prevGames) => [game, ...prevGames]);
-        }
-      } else if (type === 'UPDATE') {
-        setGames((prevGames) => {
-          if (game.deleted) {
-            return prevGames.filter((entry) => entry.id !== game.id);
-          }
-          return prevGames.map((entry) => (entry.id === game.id ? game : entry));
-        });
-      } else if (type === 'DELETE') {
-        setGames((prevGames) => prevGames.filter((entry) => entry.id !== game.id));
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [backend, user]);
 
   const deleteGame = async (gameId: string) => {

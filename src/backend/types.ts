@@ -6,10 +6,6 @@ export interface ProfileStats {
   lastGameDate: string | null;
 }
 
-export interface GameSubscription {
-  unsubscribe: () => void;
-}
-
 export interface GameBackend {
   listGames: (user: AppUser | null) => Promise<GameData[]>;
   getGame: (gameId: string) => Promise<GameData | null>;
@@ -20,8 +16,4 @@ export interface GameBackend {
   verifyEmailUpdate?: (code: string) => Promise<void>;
   updatePassword?: (password: string, currentPassword?: string) => Promise<void>;
   requiresCurrentPasswordForPasswordUpdate?: boolean;
-  subscribeToGames?: (
-    user: AppUser | null,
-    onChange: (event: { type: 'INSERT' | 'UPDATE' | 'DELETE'; game: GameData }) => void,
-  ) => GameSubscription;
 }

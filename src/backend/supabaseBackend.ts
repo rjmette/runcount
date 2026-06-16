@@ -84,35 +84,5 @@ export function createSupabaseBackend(supabase: SupabaseClient): GameBackend {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
     },
-
-    subscribeToGames(user, onChange) {
-      const subscription = supabase
-        .channel('games-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'games',
-            filter: user?.id ? `owner_id=eq.${user.id}` : undefined,
-          },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              onChange({ type: 'INSERT', game: payload.new as unknown as GameData });
-            } else if (payload.eventType === 'UPDATE') {
-              onChange({ type: 'UPDATE', game: payload.new as unknown as GameData });
-            } else if (payload.eventType === 'DELETE') {
-              onChange({ type: 'DELETE', game: payload.old as unknown as GameData });
-            }
-          },
-        )
-        .subscribe();
-
-      return {
-        unsubscribe: () => {
-          supabase.removeChannel(subscription);
-        },
-      };
-    },
   };
 }
