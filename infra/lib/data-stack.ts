@@ -26,6 +26,7 @@ export class DataStack extends Stack {
       sortKey: { name: 'gameId', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
       encryption: TableEncryption.AWS_MANAGED,
+      timeToLiveAttribute: 'ttl',
       pointInTimeRecoverySpecification: {
         pointInTimeRecoveryEnabled: !isDev,
       },

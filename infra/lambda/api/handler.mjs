@@ -1,24 +1,27 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
   QueryCommand,
-} from "@aws-sdk/lib-dynamodb";
+} from '@aws-sdk/lib-dynamodb';
 
-const region = process.env.AWS_REGION ?? "us-east-1";
+const region = process.env.AWS_REGION ?? 'us-east-1';
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region }));
+const ACTIVE_GAME_FILTER = 'attribute_not_exists(deleted) OR deleted = :false';
+const SOFT_DELETE_TTL_SECONDS = 90 * 24 * 60 * 60;
+const INVALID_JSON = Symbol('invalid-json');
 
 function json(statusCode, body) {
   return {
     statusCode,
-    headers: { "Content-Type": "application/json" },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   };
 }
 
 function noContent() {
-  return { statusCode: 204, headers: {}, body: "" };
+  return { statusCode: 204, headers: {}, body: '' };
 }
 
 function error(statusCode, message) {
@@ -28,7 +31,7 @@ function error(statusCode, message) {
 function envConfig() {
   const gamesTable = process.env.GAMES_TABLE;
   if (!gamesTable) {
-    throw new Error("GAMES_TABLE must be set");
+    throw new Error('GAMES_TABLE must be set');
   }
   return { gamesTable };
 }
@@ -43,28 +46,26 @@ function userClaimsOf(event) {
 
 function userSubOf(claims) {
   const sub = claims?.sub;
-  if (typeof sub !== "string" || !sub) {
+  if (typeof sub !== 'string' || !sub) {
     return null;
   }
   return sub;
 }
 
 function gameIdParam(event) {
-  return typeof event.pathParameters?.id === "string"
-    ? event.pathParameters.id
-    : "";
+  return typeof event.pathParameters?.id === 'string' ? event.pathParameters.id : '';
 }
 
 function parseJsonBody(event) {
   if (!event.body) return null;
   const raw = event.isBase64Encoded
-    ? Buffer.from(event.body, "base64").toString("utf8")
+    ? Buffer.from(event.body, 'base64').toString('utf8')
     : event.body;
   if (!raw.trim()) return null;
   try {
     return JSON.parse(raw);
   } catch {
-    return null;
+    return INVALID_JSON;
   }
 }
 
@@ -91,8 +92,8 @@ function gameFromRow(row) {
 }
 
 function rowFromGame(userId, gameId, body) {
-  if (!body || typeof body !== "object") {
-    throw new Error("request body must be a game object");
+  if (!body || typeof body !== 'object') {
+    throw new Error('request body must be a game object');
   }
   const date = body.date ?? new Date().toISOString();
   const now = new Date().toISOString();
@@ -115,47 +116,117 @@ function rowFromGame(userId, gameId, body) {
 }
 
 async function listGames(env, userId) {
-  const out = await ddb.send(
-    new QueryCommand({
-      TableName: env.gamesTable,
-      IndexName: "GamesByDate",
-      KeyConditionExpression: "userId = :u",
-      FilterExpression: "attribute_not_exists(deleted) OR deleted = :false",
-      ExpressionAttributeValues: {
-        ":u": userId,
-        ":false": false,
-      },
-      ScanIndexForward: false,
-    }),
-  );
+  const items = [];
+  let lastEvaluatedKey;
 
-  return { games: (out.Items ?? []).map(gameFromRow).filter(Boolean) };
+  do {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: env.gamesTable,
+        IndexName: 'GamesByDate',
+        KeyConditionExpression: 'userId = :u',
+        FilterExpression: ACTIVE_GAME_FILTER,
+        ExpressionAttributeValues: {
+          ':u': userId,
+          ':false': false,
+        },
+        ScanIndexForward: false,
+        ExclusiveStartKey: lastEvaluatedKey,
+      }),
+    );
+    items.push(...(out.Items ?? []));
+    lastEvaluatedKey = out.LastEvaluatedKey;
+  } while (lastEvaluatedKey);
+
+  return { games: items.map(gameFromRow).filter(Boolean) };
+}
+
+async function countActiveGames(env, userId) {
+  let totalGames = 0;
+  let lastEvaluatedKey;
+
+  do {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: env.gamesTable,
+        IndexName: 'GamesByDate',
+        KeyConditionExpression: 'userId = :u',
+        FilterExpression: ACTIVE_GAME_FILTER,
+        ExpressionAttributeValues: {
+          ':u': userId,
+          ':false': false,
+        },
+        Select: 'COUNT',
+        ExclusiveStartKey: lastEvaluatedKey,
+      }),
+    );
+    totalGames += out.Count ?? 0;
+    lastEvaluatedKey = out.LastEvaluatedKey;
+  } while (lastEvaluatedKey);
+
+  return totalGames;
+}
+
+async function latestActiveGame(env, userId) {
+  let lastEvaluatedKey;
+
+  do {
+    const out = await ddb.send(
+      new QueryCommand({
+        TableName: env.gamesTable,
+        IndexName: 'GamesByDate',
+        KeyConditionExpression: 'userId = :u',
+        FilterExpression: ACTIVE_GAME_FILTER,
+        ExpressionAttributeValues: {
+          ':u': userId,
+          ':false': false,
+        },
+        ProjectionExpression: 'gameId, userId, #date, dateEpoch, deleted',
+        ExpressionAttributeNames: {
+          '#date': 'date',
+        },
+        ScanIndexForward: false,
+        Limit: 1,
+        ExclusiveStartKey: lastEvaluatedKey,
+      }),
+    );
+    const [item] = out.Items ?? [];
+    if (item) return item;
+    lastEvaluatedKey = out.LastEvaluatedKey;
+  } while (lastEvaluatedKey);
+
+  return null;
 }
 
 async function getGame(env, userId, gameId) {
-  if (!gameId) return error(400, "game id is required");
+  if (!gameId) return error(400, 'game id is required');
   const out = await ddb.send(
     new GetCommand({ TableName: env.gamesTable, Key: { userId, gameId } }),
   );
   const game = gameFromRow(out.Item);
-  if (!game || game.deleted) return error(404, "game not found");
+  if (!game || game.deleted) return error(404, 'game not found');
   return { game };
 }
 
 async function putGame(env, userId, gameId, body) {
-  if (!gameId) return error(400, "game id is required");
-  const row = rowFromGame(userId, gameId, body);
+  if (!gameId) return error(400, 'game id is required');
+  let row;
+  try {
+    row = rowFromGame(userId, gameId, body);
+  } catch (e) {
+    return error(400, e instanceof Error ? e.message : 'request body is invalid');
+  }
   await ddb.send(new PutCommand({ TableName: env.gamesTable, Item: row }));
   return { game: gameFromRow(row) };
 }
 
 async function postGame(env, userId, body) {
-  const gameId = typeof body?.id === "string" && body.id ? body.id : crypto.randomUUID();
+  const gameId = typeof body?.id === 'string' && body.id ? body.id : crypto.randomUUID();
   return putGame(env, userId, gameId, body);
 }
 
 async function deleteGame(env, userId, gameId) {
-  if (!gameId) return error(400, "game id is required");
+  if (!gameId) return error(400, 'game id is required');
   const existing = await ddb.send(
     new GetCommand({ TableName: env.gamesTable, Key: { userId, gameId } }),
   );
@@ -167,6 +238,7 @@ async function deleteGame(env, userId, gameId) {
       Item: {
         ...existing.Item,
         deleted: true,
+        ttl: Math.floor(Date.now() / 1000) + SOFT_DELETE_TTL_SECONDS,
         updatedAt: new Date().toISOString(),
       },
     }),
@@ -175,23 +247,25 @@ async function deleteGame(env, userId, gameId) {
 }
 
 async function getCurrentUser(env, claims, userId) {
-  const games = await listGames(env, userId);
-  const lastGame = games.games[0] ?? null;
+  const [totalGames, lastGame] = await Promise.all([
+    countActiveGames(env, userId),
+    latestActiveGame(env, userId),
+  ]);
   return {
     user: {
       userId,
-      email: typeof claims.email === "string" ? claims.email : null,
-      givenName: typeof claims.given_name === "string" ? claims.given_name : null,
-      familyName: typeof claims.family_name === "string" ? claims.family_name : null,
+      email: typeof claims.email === 'string' ? claims.email : null,
+      givenName: typeof claims.given_name === 'string' ? claims.given_name : null,
+      familyName: typeof claims.family_name === 'string' ? claims.family_name : null,
       displayName:
-        typeof claims.name === "string"
+        typeof claims.name === 'string'
           ? claims.name
-          : typeof claims.email === "string"
+          : typeof claims.email === 'string'
             ? claims.email
-            : "RunCount user",
+            : 'RunCount user',
     },
     stats: {
-      totalGames: games.games.length,
+      totalGames,
       lastGameDate: lastGame?.date ?? null,
     },
   };
@@ -201,23 +275,29 @@ async function dispatch(event) {
   const env = envConfig();
   const claims = userClaimsOf(event);
   const userId = userSubOf(claims);
-  if (!userId) return error(401, "missing user sub");
+  if (!userId) return error(401, 'missing user sub');
 
-  const method = event.requestContext?.http?.method ?? "";
+  const method = event.requestContext?.http?.method ?? '';
   const routeKey = event.routeKey ?? `${method} ${event.rawPath}`;
 
   switch (routeKey) {
-    case "GET /users/me":
+    case 'GET /users/me':
       return getCurrentUser(env, claims, userId);
-    case "GET /games":
+    case 'GET /games':
       return listGames(env, userId);
-    case "POST /games":
-      return postGame(env, userId, parseJsonBody(event));
-    case "GET /games/{id}":
+    case 'POST /games': {
+      const body = parseJsonBody(event);
+      if (body === INVALID_JSON) return error(400, 'request body must be valid JSON');
+      return postGame(env, userId, body);
+    }
+    case 'GET /games/{id}':
       return getGame(env, userId, gameIdParam(event));
-    case "PUT /games/{id}":
-      return putGame(env, userId, gameIdParam(event), parseJsonBody(event));
-    case "DELETE /games/{id}":
+    case 'PUT /games/{id}': {
+      const body = parseJsonBody(event);
+      if (body === INVALID_JSON) return error(400, 'request body must be valid JSON');
+      return putGame(env, userId, gameIdParam(event), body);
+    }
+    case 'DELETE /games/{id}':
       return deleteGame(env, userId, gameIdParam(event));
     default:
       return error(404, `No route for ${routeKey}`);
@@ -227,10 +307,10 @@ async function dispatch(event) {
 export async function handler(event) {
   try {
     const result = await dispatch(event);
-    if (result && typeof result.statusCode === "number") return result;
+    if (result && typeof result.statusCode === 'number') return result;
     return json(200, result);
   } catch (e) {
-    console.error("api error", e);
-    return error(500, e instanceof Error ? e.message : "Internal server error");
+    console.error('api error', e);
+    return error(500, e instanceof Error ? e.message : 'Internal server error');
   }
 }

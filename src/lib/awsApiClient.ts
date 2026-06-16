@@ -17,6 +17,7 @@ export interface CurrentUserResponse {
 const rawApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 export const apiUrl = rawApiUrl?.replace(/\/$/, '') ?? '';
 export const isApiConfigured = apiUrl.length > 0;
+const API_REQUEST_TIMEOUT_MS = 15_000;
 
 interface RequestOptions {
   method?: string;
@@ -30,8 +31,11 @@ async function apiRequest<T>(
 ): Promise<T> {
   if (!apiUrl) throw new Error('VITE_API_URL is not configured.');
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
   const init: RequestInit = {
     method: opts.method ?? 'GET',
+    signal: controller.signal,
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -40,7 +44,18 @@ async function apiRequest<T>(
 
   if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
 
-  const res = await fetch(`${apiUrl}${path}`, init);
+  let res: Response;
+  try {
+    res = await fetch(`${apiUrl}${path}`, init);
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('API request timed out. Check your connection and try again.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
   const text = await res.text();
   let data: unknown = null;
   if (text) {
@@ -52,6 +67,10 @@ async function apiRequest<T>(
   }
 
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error('Your session has expired. Please sign in again.');
+    }
+
     const message =
       data && typeof data === 'object' && data !== null && 'error' in data
         ? String((data as { error: unknown }).error)
