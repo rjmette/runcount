@@ -41,8 +41,14 @@ jobs:
 
       - name: Build web app
         env:
-          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          VITE_SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_BACKEND: aws
+          VITE_COGNITO_REGION: us-east-1
+          VITE_COGNITO_USER_POOL_ID: us-east-1_RhGVzVRp9
+          VITE_COGNITO_CLIENT_ID: 52tpeumvp9sdjrm025n0aj36da
+          VITE_COGNITO_DOMAIN: https://runcount-prod-107027.auth.us-east-1.amazoncognito.com
+          VITE_COGNITO_REDIRECT_URI: https://runcount.rbios.net/auth/callback
+          VITE_COGNITO_LOGOUT_URI: https://runcount.rbios.net/
+          VITE_API_URL: https://4efpwsj952.execute-api.us-east-1.amazonaws.com
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
         run: VITE_BASE=./ npm run build
 

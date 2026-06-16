@@ -82,10 +82,11 @@ GOOGLE_PLAY_SERVICE_ACCOUNT_JSON    # the service-account JSON contents
 # already present for the web deploy
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
-SUPABASE_URL
-SUPABASE_ANON_KEY
 VITE_SENTRY_DSN
 ```
+
+Production web, iOS, and Android builds compile with `VITE_BACKEND=aws` and the
+production Cognito/API values defined in the GitHub Actions workflows.
 
 Sanity check: `gh secret list` should show fresh timestamps for all of the above.
 
