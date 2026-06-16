@@ -128,7 +128,24 @@ export async function getFreshIdToken(
   }
 }
 
-export async function completeAwsCallback(): Promise<string> {
+let inFlightCallback: Promise<string> | null = null;
+
+// React StrictMode (and any accidental double-mount) runs the auth effect
+// twice in dev. The PKCE verifier and authorization code are single-use, so a
+// second run would find the PKCE already consumed and throw. Dedupe so both
+// invocations share one in-flight exchange; reset on failure so a later
+// sign-in attempt can retry cleanly.
+export function completeAwsCallback(): Promise<string> {
+  if (!inFlightCallback) {
+    inFlightCallback = runAwsCallback();
+    inFlightCallback.catch(() => {
+      inFlightCallback = null;
+    });
+  }
+  return inFlightCallback;
+}
+
+async function runAwsCallback(): Promise<string> {
   const params = new URLSearchParams(window.location.search);
   const error = params.get('error');
   if (error) {
