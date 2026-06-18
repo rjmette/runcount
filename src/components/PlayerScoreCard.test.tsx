@@ -55,8 +55,7 @@ describe('PlayerScoreCard Component', () => {
     // Check score is displayed
     expect(screen.getByText('25')).toBeInTheDocument();
 
-    // Check other stats are displayed
-    expect(screen.getByText('5')).toBeInTheDocument(); // Innings
+    // Check metadata stats are displayed
     expect(screen.getByText('8')).toBeInTheDocument(); // High Run
     expect(screen.getByText('5.00')).toBeInTheDocument(); // BPI (25/5 = 5.00)
 

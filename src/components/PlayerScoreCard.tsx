@@ -47,15 +47,15 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
     <div
       data-testid="player-card"
       aria-current={isActive ? 'true' : undefined}
-      className={`rounded-lg p-3 mb-2 transition-all duration-300 ${
+      className={`rounded-lg border p-3 transition-all duration-300 ${
         isActive
-          ? 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/60 dark:to-blue-800/60 border-2 border-blue-500 shadow-lg shadow-blue-200/50 dark:shadow-blue-900/30'
-          : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-sm'
+          ? 'bg-white dark:bg-gray-800 border-blue-500 shadow-md shadow-blue-100/70 ring-2 ring-blue-100/80 dark:shadow-blue-900/30 dark:ring-blue-900/40'
+          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm'
       }`}
     >
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-2 flex items-start justify-between gap-3">
         <h3
-          className={`text-2xl dark:text-white ${
+          className={`min-w-0 truncate text-xl dark:text-white ${
             isActive ? 'font-extrabold' : 'font-semibold text-gray-700 dark:text-gray-300'
           }`}
         >
@@ -64,34 +64,34 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             <span className="ml-1 text-yellow-500">🏆</span>
           )}
         </h3>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
           {isActive === true && !needsReBreak && isInitialBreak && (
             <button
               onClick={onBreakClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-xs transition-colors cursor-pointer"
+              className="rounded bg-blue-600 px-2 py-0.5 text-xs text-white transition-colors hover:bg-blue-700"
               title="Click to change breaking player"
             >
               Break
             </button>
           )}
           {needsReBreak && (
-            <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+            <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white">
               Re-Break
             </span>
           )}
           {player.consecutiveFouls >= 2 && (
-            <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs">
+            <span className="rounded bg-red-500 px-2 py-0.5 text-xs text-white">
               2 Fouls
             </span>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4 text-center">
-        <div>
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
           <span
             data-testid={`player-score-${player.id}`}
-            className={`block text-6xl font-bold ${
+            className={`block font-mono text-7xl font-black leading-none sm:text-8xl ${
               player.score >= targetScore
                 ? 'text-green-600 dark:text-green-500'
                 : player.score < 0
@@ -104,41 +104,66 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
             {animatedScore < 0 && '-'}
             {Math.abs(animatedScore)}
           </span>
-        </div>
-
-        <div>
-          <span className="block text-xl font-bold dark:text-white">
-            {player.innings}
-          </span>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Innings
+          <span className="mt-1 block text-sm font-semibold text-gray-500 dark:text-gray-400">
+            of {targetScore}
           </span>
         </div>
 
-        <div>
-          <span className="block text-xl font-bold dark:text-white">
-            {player.highRun}
-          </span>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            High Run
-          </span>
-        </div>
+        <div className="grid shrink-0 grid-cols-6 gap-1.5 text-center sm:gap-2">
+          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
+            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
+              {player.highRun}
+            </span>
+            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
+              High
+            </span>
+          </div>
 
-        <div>
-          <span className="block text-xl font-bold dark:text-white">{bpi}</span>
-          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            BPI
-          </span>
+          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
+            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
+              {bpi}
+            </span>
+            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
+              BPI
+            </span>
+          </div>
+
+          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
+            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
+              {player.safeties}
+            </span>
+            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
+              Safe
+            </span>
+          </div>
+
+          <div className="col-span-2 col-start-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
+            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
+              {player.fouls}
+            </span>
+            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
+              Foul
+            </span>
+          </div>
+
+          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
+            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
+              {player.missedShots}
+            </span>
+            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
+              Miss
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-4 mb-1">
+      <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
         <div
           className={`${
             player.score >= targetScore
               ? 'bg-green-600 dark:bg-green-500'
               : 'bg-blue-600 dark:bg-blue-500'
-          } h-2 rounded-full`}
+          } h-full rounded-full`}
           style={{ width: `${percentage}%` }}
           role="progressbar"
           aria-valuenow={percentage}
@@ -146,21 +171,6 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           aria-valuemax={100}
           aria-label={`Score progress: ${player.score} of ${targetScore} points (${percentage}%)`}
         />
-      </div>
-
-      <div className="mt-3 grid grid-cols-3 gap-1 text-center text-sm text-gray-500 dark:text-gray-400">
-        <div>
-          <span className="font-bold dark:text-gray-300">{player.safeties}</span>{' '}
-          <span className="font-medium">Safeties</span>
-        </div>
-        <div>
-          <span className="font-bold dark:text-gray-300">{player.fouls}</span>{' '}
-          <span className="font-medium">Fouls</span>
-        </div>
-        <div>
-          <span className="font-bold dark:text-gray-300">{player.missedShots}</span>{' '}
-          <span className="font-medium">Misses</span>
-        </div>
       </div>
     </div>
   );

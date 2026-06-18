@@ -54,26 +54,26 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = memo(
       elapsedSeconds >= Math.floor((shotClockSeconds ?? 0) * 0.75);
 
     const timerTextColor = isOverLimit
-      ? 'text-red-300'
+      ? 'text-red-600 dark:text-red-300'
       : isApproaching
-        ? 'text-amber-300'
-        : 'text-blue-300';
+        ? 'text-amber-600 dark:text-amber-300'
+        : 'text-blue-600 dark:text-blue-300';
 
     const timerBadgeCls = isOverLimit
-      ? 'bg-red-700/70 text-red-100'
+      ? 'bg-red-100 text-red-700 dark:bg-red-700/70 dark:text-red-100'
       : isApproaching
-        ? 'bg-amber-700/70 text-amber-100'
-        : 'bg-white/10 text-gray-300';
+        ? 'bg-amber-100 text-amber-700 dark:bg-amber-700/70 dark:text-amber-100'
+        : 'bg-blue-50 text-blue-700 dark:bg-white/10 dark:text-gray-300';
 
     return (
-      <div className="mt-3 rounded-xl bg-slate-800 dark:bg-slate-900 border border-slate-700 px-4 py-3 flex items-center gap-0">
+      <div className="mt-3 flex items-center gap-0 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
         {/* Balls on Table */}
-        <div className="flex flex-col items-center flex-1 gap-0.5">
-          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+        <div className="flex flex-1 flex-col items-center gap-0.5">
+          <span className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-400">
             Balls on Table
           </span>
           <span
-            className="text-5xl font-black text-white font-mono leading-none"
+            className="font-mono text-3xl font-black leading-none text-gray-900 dark:text-white"
             data-testid="bot-indicator"
             aria-label={`Balls on Table: ${ballsOnTable}`}
           >
@@ -82,11 +82,11 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = memo(
         </div>
 
         {/* Divider */}
-        <div className="w-px self-stretch bg-slate-600 mx-3 flex-shrink-0" />
+        <div className="mx-3 w-px flex-shrink-0 self-stretch bg-gray-200 dark:bg-slate-700" />
 
         {/* Turn Timer */}
-        <div className="flex flex-col items-center flex-1 gap-0.5">
-          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+        <div className="flex flex-1 flex-col items-center gap-0.5">
+          <span className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-400">
             Turn
           </span>
           <div className="flex items-center gap-1.5">
@@ -105,7 +105,7 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = memo(
               />
             </svg>
             <span
-              className={`text-4xl font-black font-mono leading-none ${timerTextColor}`}
+              className={`font-mono text-2xl font-black leading-none ${timerTextColor}`}
               data-testid="turn-timer"
             >
               {turnTime}
@@ -122,18 +122,18 @@ export const GameStatusBar: React.FC<GameStatusBarProps> = memo(
         </div>
 
         {/* Divider */}
-        <div className="w-px self-stretch bg-slate-600 mx-3 flex-shrink-0" />
+        <div className="mx-3 w-px flex-shrink-0 self-stretch bg-gray-200 dark:bg-slate-700" />
 
         {/* Inning + Rack */}
-        <div className="flex flex-col items-center flex-1 gap-1">
-          <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+        <div className="flex flex-1 flex-col items-center gap-1">
+          <span className="text-[10px] font-bold uppercase text-gray-500 dark:text-slate-400">
             Game
           </span>
           <div className="flex flex-col items-center gap-0.5">
-            <span className="text-white text-sm font-bold leading-none">
+            <span className="text-sm font-bold leading-none text-gray-800 dark:text-white">
               Inning {currentInning}
             </span>
-            <span className="text-slate-400 text-xs font-medium leading-none">
+            <span className="text-xs font-medium leading-none text-gray-500 dark:text-slate-400">
               Rack {rackNumber}
             </span>
           </div>

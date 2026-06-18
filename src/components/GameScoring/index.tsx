@@ -505,9 +505,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const isBreakShot =
     (actions.length === 0 && currentInning === 1) ||
     playerNeedsReBreak === playerData[activePlayerIndex]?.id;
+  const canStartNewRack = ballsOnTable === 2;
 
   // Handle action button clicks
   const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
+    if (action === 'newrack' && !canStartNewRack) {
+      return;
+    }
+
     dispatchFoulFlow({ type: 'setAction', action });
 
     // If it's a foul on a break shot, show penalty selection modal first
@@ -646,7 +651,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     actions.filter((a) => a.type === 'score' && a.value === 0).length + 1;
 
   return (
-    <div className="max-w-4xl w-full mx-auto my-auto">
+    <div className="mx-auto my-auto w-full max-w-4xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {playerData.map((player, index) => (
           <PlayerScoreCard
@@ -677,13 +682,13 @@ const GameScoring: React.FC<GameScoringProps> = ({
       />
 
       {/* Active-player action zone: end-of-inning actions */}
-      <div className="mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="sticky bottom-2 z-30 mt-3 rounded-lg border border-blue-200 bg-white p-3 shadow-lg shadow-blue-900/10 dark:border-blue-900/60 dark:bg-gray-800 md:static">
         <div className="space-y-2">
           {/* Primary end-of-inning action */}
           <button
             type="button"
             onClick={() => handleActionClick('miss')}
-            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 text-sm font-semibold shadow-sm transition-colors"
+            className="w-full rounded-lg bg-blue-600 px-4 py-5 text-xl font-black text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900"
           >
             Miss
           </button>
@@ -693,21 +698,31 @@ const GameScoring: React.FC<GameScoringProps> = ({
             <button
               type="button"
               onClick={() => handleActionClick('safety')}
-              className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 px-3 py-2.5 text-sm font-medium transition-colors"
+              className="rounded-lg bg-gray-100 px-3 py-4 text-base font-bold text-gray-800 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 dark:focus:ring-gray-900"
             >
               Safety
             </button>
             <button
               type="button"
               onClick={() => handleActionClick('foul')}
-              className="rounded-lg bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-700 dark:bg-gray-700 dark:hover:bg-red-900/40 dark:text-gray-100 dark:hover:text-red-200 px-3 py-2.5 text-sm font-medium transition-colors"
+              className="rounded-lg bg-gray-100 px-3 py-4 text-base font-bold text-gray-800 transition-colors hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-red-900/40 dark:hover:text-red-200 dark:focus:ring-red-950"
             >
               Foul
             </button>
             <button
               type="button"
+              disabled={!canStartNewRack}
               onClick={() => handleActionClick('newrack')}
-              className="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 dark:text-emerald-200 px-3 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1"
+              className={`flex items-center justify-center gap-1 rounded-lg px-3 py-4 text-base font-bold transition-colors focus:outline-none focus:ring-4 ${
+                canStartNewRack
+                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 focus:ring-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-200 dark:hover:bg-emerald-900/60 dark:focus:ring-emerald-950'
+                  : 'cursor-not-allowed bg-gray-50 text-gray-400 dark:bg-gray-800 dark:text-gray-600'
+              }`}
+              title={
+                canStartNewRack
+                  ? 'Start a new rack'
+                  : 'New rack is available when 2 balls remain'
+              }
             >
               <span aria-hidden="true">+</span>Rack
             </button>
@@ -744,10 +759,10 @@ const GameScoring: React.FC<GameScoringProps> = ({
           type="button"
           onClick={handleUndoLastAction}
           disabled={!isUndoEnabled}
-          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-bold transition-colors ${
             isUndoEnabled
-              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200'
-              : 'bg-gray-50 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
+              ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-4 focus:ring-amber-100 dark:bg-amber-900/50 dark:text-amber-100 dark:hover:bg-amber-900/70 dark:focus:ring-amber-950'
+              : 'cursor-not-allowed bg-gray-50 text-gray-400 dark:bg-gray-800 dark:text-gray-600'
           }`}
           title="Undo last action"
           aria-label="Undo last action"

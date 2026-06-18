@@ -28,33 +28,35 @@ describe('BallsOnTableModal', () => {
     expect(screen.queryByTestId('balls-on-table-modal')).not.toBeInTheDocument();
   });
 
-  it('shows zero and one options for non-rack actions when few balls remain', () => {
+  it('does not show values below two for non-rack actions', () => {
     render(<BallsOnTableModal {...baseProps} currentBallsOnTable={1} action="safety" />);
 
-    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '0' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
   });
 
-  it('limits rack flow to 0 or 1 only', () => {
-    render(<BallsOnTableModal {...baseProps} action="newrack" />);
+  it('shows zero and one for a rack action when two balls remain', () => {
+    render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={2} />);
 
     expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
   });
 
-  it('limits rack flow to 0 only when no balls remain on the table', () => {
+  it('keeps two available when a rack action is not at the two-ball rack point', () => {
     render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={0} />);
 
-    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '0' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
   });
 
   it('calls onClose when cancel is pressed', () => {
     const onClose = vi.fn();
     render(<BallsOnTableModal {...baseProps} onClose={onClose} action="miss" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Cancel' })[0]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -88,8 +90,6 @@ describe('BallsOnTableModal', () => {
   it('explains how BOT scoring works', () => {
     render(<BallsOnTableModal {...baseProps} action="miss" />);
 
-    expect(
-      screen.getByText(/RunCount uses this count to calculate the run that just ended/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Tap the count remaining on the table/i)).toBeInTheDocument();
   });
 });

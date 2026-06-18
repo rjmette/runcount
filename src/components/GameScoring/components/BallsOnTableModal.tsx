@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
 
+const MIN_SELECTABLE_BALLS = 2;
+const NEW_RACK_ENDING_VALUES = [0, 1] as const;
+
 interface BallsOnTableModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,7 +20,9 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
 }) => {
   if (!isOpen || !action) return null;
 
-  const isRackAction = action === 'newrack';
+  const isRackActionAtRackPoint =
+    action === 'newrack' && currentBallsOnTable === MIN_SELECTABLE_BALLS;
+
   if (
     process.env.NODE_ENV !== 'production' &&
     typeof currentBallsOnTable === 'number' &&
@@ -25,39 +30,59 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
   ) {
     console.warn('BallsOnTableModal received negative currentBallsOnTable value');
   }
-  const maxAvailableBalls = currentBallsOnTable < 0 ? 0 : currentBallsOnTable;
+  const maxAvailableBalls =
+    currentBallsOnTable < MIN_SELECTABLE_BALLS
+      ? MIN_SELECTABLE_BALLS
+      : currentBallsOnTable;
 
   const availableValues = useMemo(() => {
-    if (isRackAction) {
-      return maxAvailableBalls === 0 ? [0] : [0, 1];
+    if (isRackActionAtRackPoint) {
+      return [...NEW_RACK_ENDING_VALUES];
     }
 
-    return Array.from({ length: maxAvailableBalls + 1 }, (_, i) => i);
-  }, [isRackAction, maxAvailableBalls]);
+    return Array.from(
+      { length: maxAvailableBalls - MIN_SELECTABLE_BALLS + 1 },
+      (_, index) => index + MIN_SELECTABLE_BALLS,
+    );
+  }, [isRackActionAtRackPoint, maxAvailableBalls]);
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="balls-on-table-title"
       data-testid="balls-on-table-modal"
     >
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 dark:text-white">
-        <h3 id="balls-on-table-title" className="text-xl font-bold mb-4">
-          Balls on table?
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-          Enter how many object balls remain. RunCount uses this count to calculate the
-          run that just ended.
-        </p>
+      <div className="w-full max-w-md rounded-xl bg-white p-4 shadow-2xl dark:bg-gray-800 dark:text-white sm:p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h3 id="balls-on-table-title" className="text-2xl font-black">
+              Balls left
+            </h3>
+            <p className="mt-1 text-sm font-medium text-gray-600 dark:text-gray-300">
+              Tap the count remaining on the table.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-lg border border-gray-300 px-3 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
+          >
+            Cancel
+          </button>
+        </div>
 
-        <div className="grid grid-cols-4 gap-3 mb-6" data-testid="bot-grid">
+        <div
+          className="grid grid-cols-4 gap-3 rounded-2xl bg-emerald-950 p-3 shadow-inner shadow-black/30 dark:bg-emerald-950"
+          data-testid="bot-grid"
+        >
           {availableValues.map((num) => (
             <button
               key={num}
+              type="button"
               onClick={() => onSubmit(num)}
-              className="aspect-square rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-100 font-bold text-xl flex items-center justify-center transition-colors"
+              className="flex aspect-square items-center justify-center rounded-full border-4 border-white/90 bg-gray-50 font-mono text-3xl font-black leading-none text-gray-950 shadow-md shadow-black/30 transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 active:scale-95 dark:border-gray-100 dark:bg-gray-100 dark:text-gray-950 sm:text-4xl"
             >
               {num}
             </button>
@@ -65,8 +90,9 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
         </div>
 
         <button
+          type="button"
           onClick={onClose}
-          className="w-full py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-lg font-medium text-gray-600 dark:text-gray-300 transition-colors"
+          className="mt-4 w-full rounded-lg border border-gray-300 py-4 text-lg font-black text-gray-700 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-gray-900"
         >
           Cancel
         </button>
