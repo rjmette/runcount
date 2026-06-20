@@ -79,4 +79,29 @@ describe('useGameHistory', () => {
     expect(backend.deleteGame).toHaveBeenCalledWith('game-to-delete');
     expect(result.current.games).toEqual([]);
   });
+
+  test('keeps the history view intact when a delete fails', async () => {
+    const game = createMockGameData({ id: 'game-to-delete' });
+    const backend = {
+      listGames: vi.fn().mockResolvedValue([game]),
+      deleteGame: vi.fn().mockRejectedValue(new Error('delete failed')),
+    };
+
+    const { result } = renderHook(() =>
+      useGameHistory({ backend: backend as never, user: null }),
+    );
+
+    await waitFor(() => expect(result.current.games).toHaveLength(1));
+
+    let outcome: boolean | undefined;
+    await act(async () => {
+      outcome = await result.current.deleteGame('game-to-delete');
+    });
+
+    // Failure is surfaced via the transient toast, not the hook's `error`
+    // state (which would replace the whole history view). The list is kept.
+    expect(outcome).toBe(false);
+    expect(result.current.error).toBe('');
+    expect(result.current.games).toHaveLength(1);
+  });
 });

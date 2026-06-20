@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 
+import { useError } from '../../../context/ErrorContext';
 import { type GameData } from '../../../types/game';
 
 import type { GameBackend } from '../../../backend/types';
@@ -14,6 +15,7 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
   const [games, setGames] = useState<GameData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { addError } = useError();
 
   useEffect(() => {
     const fetchGames = async () => {
@@ -67,8 +69,10 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
 
       return true;
     } catch (err) {
+      // Surface as a transient toast rather than the hook's `error` state,
+      // which replaces the entire history view with a full-page error.
       console.error('Error deleting game:', err);
-      setError('Failed to delete game');
+      addError('Failed to delete game. Please try again.');
       return false;
     }
   };

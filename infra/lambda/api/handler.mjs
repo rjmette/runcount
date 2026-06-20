@@ -10,7 +10,11 @@ const region = process.env.AWS_REGION ?? 'us-east-1';
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region }));
 const ACTIVE_GAME_FILTER = 'attribute_not_exists(deleted) OR deleted = :false';
 const SOFT_DELETE_TTL_SECONDS = 90 * 24 * 60 * 60;
+const MAX_BODY_BYTES = 512 * 1024;
+const MAX_PLAYERS = 16;
+const MAX_ACTIONS = 50_000;
 const INVALID_JSON = Symbol('invalid-json');
+const OVERSIZED_BODY = Symbol('oversized-body');
 
 function json(statusCode, body) {
   return {
@@ -62,6 +66,7 @@ function parseJsonBody(event) {
     ? Buffer.from(event.body, 'base64').toString('utf8')
     : event.body;
   if (!raw.trim()) return null;
+  if (Buffer.byteLength(raw, 'utf8') > MAX_BODY_BYTES) return OVERSIZED_BODY;
   try {
     return JSON.parse(raw);
   } catch {
@@ -94,6 +99,18 @@ function gameFromRow(row) {
 function rowFromGame(userId, gameId, body) {
   if (!body || typeof body !== 'object') {
     throw new Error('request body must be a game object');
+  }
+  if (body.players !== undefined && !Array.isArray(body.players)) {
+    throw new Error('players must be an array');
+  }
+  if (Array.isArray(body.players) && body.players.length > MAX_PLAYERS) {
+    throw new Error(`players exceeds the maximum of ${MAX_PLAYERS}`);
+  }
+  if (body.actions !== undefined && !Array.isArray(body.actions)) {
+    throw new Error('actions must be an array');
+  }
+  if (Array.isArray(body.actions) && body.actions.length > MAX_ACTIONS) {
+    throw new Error(`actions exceeds the maximum of ${MAX_ACTIONS}`);
   }
   const date = body.date ?? new Date().toISOString();
   const now = new Date().toISOString();
@@ -287,6 +304,7 @@ async function dispatch(event) {
       return listGames(env, userId);
     case 'POST /games': {
       const body = parseJsonBody(event);
+      if (body === OVERSIZED_BODY) return error(413, 'request body is too large');
       if (body === INVALID_JSON) return error(400, 'request body must be valid JSON');
       return postGame(env, userId, body);
     }
@@ -294,6 +312,7 @@ async function dispatch(event) {
       return getGame(env, userId, gameIdParam(event));
     case 'PUT /games/{id}': {
       const body = parseJsonBody(event);
+      if (body === OVERSIZED_BODY) return error(413, 'request body is too large');
       if (body === INVALID_JSON) return error(400, 'request body must be valid JSON');
       return putGame(env, userId, gameIdParam(event), body);
     }

@@ -246,4 +246,66 @@ describe('AWS API handler', () => {
     expect(parseBody(response)).toEqual({ error: 'request body must be a game object' });
     expect(ddbMock.calls()).toHaveLength(0);
   });
+
+  it('returns 413 when the request body exceeds the size limit', async () => {
+    const oversized = `{"filler":"${'x'.repeat(512 * 1024)}"}`;
+    const response = await handler(
+      eventFor('PUT /games/{id}', { id: 'game-1', rawBody: oversized }),
+    );
+
+    expect(response.statusCode).toBe(413);
+    expect(parseBody(response)).toEqual({ error: 'request body is too large' });
+    expect(ddbMock.calls()).toHaveLength(0);
+  });
+
+  it('rejects game writes with too many players', async () => {
+    const response = await handler(
+      eventFor('PUT /games/{id}', {
+        id: 'game-1',
+        body: {
+          players: Array.from({ length: 17 }, (_, i) => ({ id: i, name: `P${i}` })),
+          actions: [],
+        },
+      }),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(parseBody(response)).toEqual({
+      error: 'players exceeds the maximum of 16',
+    });
+    expect(ddbMock.calls()).toHaveLength(0);
+  });
+
+  it('rejects game writes with too many actions', async () => {
+    const response = await handler(
+      eventFor('PUT /games/{id}', {
+        id: 'game-1',
+        body: {
+          players: [{ id: 0, name: 'Alice' }],
+          // Small per-element values so the count limit trips before the
+          // overall body-size limit.
+          actions: Array.from({ length: 50_001 }, () => 0),
+        },
+      }),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(parseBody(response)).toEqual({
+      error: 'actions exceeds the maximum of 50000',
+    });
+    expect(ddbMock.calls()).toHaveLength(0);
+  });
+
+  it('rejects game writes where players is not an array', async () => {
+    const response = await handler(
+      eventFor('PUT /games/{id}', {
+        id: 'game-1',
+        body: { players: 'nope', actions: [] },
+      }),
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(parseBody(response)).toEqual({ error: 'players must be an array' });
+    expect(ddbMock.calls()).toHaveLength(0);
+  });
 });
