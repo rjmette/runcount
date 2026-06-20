@@ -144,10 +144,10 @@ Verifies formatting without writing changes. This is useful inside CI or before 
   - Tailwind CSS for responsive styling
   - React Context API for state management
 
-- **Backend**:
-  - Supabase for authentication, database, and storage
-  - PostgreSQL database with JSON support
-  - Row Level Security (RLS) for data protection
+- **Backend** (AWS, provisioned via CDK — see [`infra/`](infra/README.md)):
+  - Amazon Cognito for authentication (Hosted UI + PKCE, Google IdP)
+  - API Gateway (HTTP API) + Lambda for game persistence and stats
+  - DynamoDB for storage; ownership derived from the Cognito JWT
 
 - **Deployment**:
   - AWS S3 static website hosting
@@ -185,7 +185,7 @@ The application uses automated deployment via GitHub Actions with the following 
 
 ### Manual Deployment
 
-You can trigger deployment manually:
+You can trigger a **frontend** deployment manually:
 
 ```bash
 # Via GitHub CLI
@@ -194,6 +194,30 @@ gh workflow run deploy.yml
 # Or via legacy script (if AWS CLI configured locally)
 ./scripts/deploy.sh
 ```
+
+> **Two `deploy.sh` scripts, different jobs:**
+>
+> - `./scripts/deploy.sh` — **frontend only.** Builds and syncs the static site
+>   to S3 + invalidates CloudFront. This is also what `deploy.yml` runs on push.
+> - `infra/scripts/deploy.sh` — **backend only.** Runs `cdk deploy` for the
+>   Cognito / API Gateway / Lambda / DynamoDB stacks. See below.
+
+### Backend Infrastructure (CDK)
+
+The AWS backend (Cognito, API Gateway, Lambda, DynamoDB) lives in
+[`infra/`](infra/README.md) as a CDK app. It is **not** deployed by the GitHub
+Actions pipeline — backend changes (e.g. Lambda handler or table updates) go
+live only via a manual CDK deploy:
+
+```bash
+cd infra
+scripts/deploy.sh prod --diff   # preview changes
+scripts/deploy.sh prod          # deploy all prod stacks
+```
+
+Per-environment, non-secret config is committed under `infra/config/<env>.json`
+(no AWS account id, no client secret). Full details — config keys, the deploy
+wrapper, and npm scripts — are in [`infra/README.md`](infra/README.md).
 
 ### Infrastructure Setup
 

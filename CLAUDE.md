@@ -81,6 +81,20 @@ aws cloudfront list-distributions --output table
 aws cloudfront create-invalidation --distribution-id E3FN1GEXG15HYW --paths "/*"
 ```
 
+### Backend Infrastructure (CDK)
+
+- The AWS backend (Cognito, API Gateway, Lambda, DynamoDB) is a CDK app in `infra/`. Full docs: `infra/README.md`.
+- **`deploy.yml` ships the frontend ONLY.** Backend changes (Lambda handler, DynamoDB table, API/auth config) go live only via a manual `cdk deploy`.
+- Deploy the backend with the wrapper (defaults `AWS_PROFILE=zeroadmin`):
+  ```bash
+  cd infra
+  scripts/deploy.sh prod --diff   # preview
+  scripts/deploy.sh prod          # deploy all prod stacks
+  scripts/deploy.sh prod RunCount-prod-Api   # single stack
+  ```
+- Per-env, non-secret config is committed at `infra/config/<env>.json` (no AWS account id, no Google client secret). CLI `-c key=value` still overrides.
+- **Two `deploy.sh` scripts, do not confuse them:** root `scripts/deploy.sh` = frontend S3 sync; `infra/scripts/deploy.sh` = backend CDK deploy.
+
 ### Memory Management
 
 - Store user preferences and project context in memory
