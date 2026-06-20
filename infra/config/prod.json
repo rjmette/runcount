@@ -1,0 +1,7 @@
+{
+  "googleClientId": "859313995332-7eeop13tmn6235o5l3j2ml59snhj649g.apps.googleusercontent.com",
+  "googleSecretName": "runcount/prod/google-oauth",
+  "callbackUrls": ["https://runcount.rbios.net/auth/callback"],
+  "logoutUrls": ["https://runcount.rbios.net/"],
+  "webOrigins": ["https://runcount.rbios.net"]
+}

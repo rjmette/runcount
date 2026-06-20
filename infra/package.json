@@ -9,8 +9,14 @@
     "build": "tsc",
     "watch": "tsc -w",
     "synth": "cdk synth",
+    "synth:dev": "cdk synth -c envName=dev",
+    "synth:prod": "cdk synth -c envName=prod",
     "diff": "cdk diff",
+    "diff:dev": "cdk diff -c envName=dev",
+    "diff:prod": "cdk diff -c envName=prod",
     "deploy": "cdk deploy --all",
+    "deploy:dev": "cdk deploy -c envName=dev",
+    "deploy:prod": "cdk deploy -c envName=prod",
     "destroy": "cdk destroy --all"
   },
   "devDependencies": {

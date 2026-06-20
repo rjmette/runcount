@@ -1,0 +1,10 @@
+{
+  "googleClientId": "859313995332-c027t7rltd5l0mbv312fs3f1u9b669vt.apps.googleusercontent.com",
+  "googleSecretName": "runcount/dev/google-oauth",
+  "callbackUrls": [
+    "http://localhost:3000/runcount/auth/callback",
+    "http://localhost:3000/auth/callback"
+  ],
+  "logoutUrls": ["http://localhost:3000/runcount/", "http://localhost:3000/"],
+  "webOrigins": ["http://localhost:3000"]
+}
