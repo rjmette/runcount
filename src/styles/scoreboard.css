@@ -1,0 +1,880 @@
+/**
+ * Scoreboard visual system — "RunCount Polished" design handoff.
+ *
+ * A single-accent, tabular-numeral scoreboard skin for the in-game scoring
+ * screen plus the shared top bar. Dark mode mirrors the handoff prototype
+ * exactly; light mode derives a matching variant from the same accent so the
+ * existing dark/light toggle keeps working.
+ *
+ * Tokens live on :root (light) and html.dark (the faithful prototype). Both
+ * the global top bar (.rc-topbar) and the scoring screen (.rc-scope) consume
+ * them. Colours that can't be reused verbatim across themes (anything mixed
+ * with #fff, which only reads on a dark surface) are exposed as semantic
+ * tokens and set per-theme.
+ */
+
+:root {
+  /* base palette — light */
+  --rc-accent: #4d7cff;
+  --rc-accent-strong: #2f55e6;
+  --rc-surface: #ffffff;
+  --rc-surface-2: #eef2f8;
+  --rc-txt: #1b2330;
+  --rc-muted: #64748b;
+  --rc-muted-2: #94a3b8;
+  --rc-line: rgba(15, 23, 42, 0.09);
+  --rc-line-2: rgba(15, 23, 42, 0.14);
+
+  /* semantic — light */
+  --rc-card-bg: linear-gradient(180deg, #ffffff, #fbfcff);
+  --rc-card-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 10px 26px rgba(15, 23, 42, 0.08);
+  --rc-card-active-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rc-accent) 45%, transparent),
+    0 0 26px color-mix(in srgb, var(--rc-accent) 12%, transparent),
+    0 10px 26px rgba(15, 23, 42, 0.1);
+  --rc-strip-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+  --rc-score-active: var(--rc-accent-strong);
+  --rc-progress-track: rgba(15, 23, 42, 0.08);
+  --rc-progress-fill: linear-gradient(90deg, var(--rc-accent-strong), var(--rc-accent));
+  --rc-progress-glow: 0 0 8px color-mix(in srgb, var(--rc-accent) 35%, transparent);
+  --rc-clock-color: var(--rc-accent-strong);
+  --rc-act-hover: #e3e9f3;
+
+  /* +Rack green — light */
+  --rc-rack-txt: #15803d;
+  --rc-rack-bg: #ecfdf3;
+  --rc-rack-border: rgba(22, 163, 74, 0.3);
+  --rc-rack-bg-hover: #d6f5e1;
+  --rc-rack-border-hover: rgba(22, 163, 74, 0.5);
+
+  /* Undo amber — light */
+  --rc-undo-txt: #b45309;
+  --rc-undo-bg: #fffbeb;
+  --rc-undo-border: rgba(217, 119, 6, 0.32);
+  --rc-undo-bg-hover: #fef3c7;
+  --rc-undo-press: rgba(217, 119, 6, 0.12);
+
+  /* live indicator green (both themes) */
+  --rc-live: #16a34a;
+  --rc-live-glow: 0 0 9px rgba(22, 163, 74, 0.5);
+
+  /* mobile bottom bar surface — light */
+  --rc-bottombar-bg: color-mix(in srgb, var(--rc-surface) 94%, #000 6%);
+}
+
+html.dark {
+  /* base palette — faithful prototype (dark) */
+  --rc-accent: #4d7cff;
+  --rc-accent-strong: #2f55e6;
+  --rc-surface: #141b28;
+  --rc-surface-2: #1a2230;
+  --rc-txt: #e8edf5;
+  --rc-muted: #7a879b;
+  --rc-muted-2: #5c6678;
+  --rc-line: rgba(255, 255, 255, 0.07);
+  --rc-line-2: rgba(255, 255, 255, 0.1);
+
+  /* semantic — dark */
+  --rc-card-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--rc-surface) 100%, #fff 3%),
+    var(--rc-surface)
+  );
+  --rc-card-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.22);
+  --rc-card-active-shadow:
+    0 0 0 1px color-mix(in srgb, var(--rc-accent) 40%, transparent),
+    0 0 36px color-mix(in srgb, var(--rc-accent) 18%, transparent),
+    0 10px 30px rgba(0, 0, 0, 0.25);
+  --rc-strip-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  --rc-score-active: color-mix(in srgb, var(--rc-accent) 78%, #fff 8%);
+  --rc-progress-track: rgba(255, 255, 255, 0.06);
+  --rc-progress-fill: linear-gradient(
+    90deg,
+    var(--rc-accent),
+    color-mix(in srgb, var(--rc-accent) 60%, #fff 25%)
+  );
+  --rc-progress-glow: 0 0 10px color-mix(in srgb, var(--rc-accent) 55%, transparent);
+  --rc-clock-color: color-mix(in srgb, var(--rc-accent) 75%, #fff 10%);
+  --rc-act-hover: color-mix(in srgb, var(--rc-surface-2) 100%, #fff 5%);
+
+  /* +Rack green — dark */
+  --rc-rack-txt: #4ade80;
+  --rc-rack-bg: rgba(34, 80, 52, 0.32);
+  --rc-rack-border: rgba(74, 222, 128, 0.28);
+  --rc-rack-bg-hover: rgba(34, 80, 52, 0.5);
+  --rc-rack-border-hover: rgba(74, 222, 128, 0.45);
+
+  /* Undo amber — dark */
+  --rc-undo-txt: #f0b35a;
+  --rc-undo-bg: rgba(86, 57, 12, 0.4);
+  --rc-undo-border: rgba(217, 119, 6, 0.4);
+  --rc-undo-bg-hover: rgba(110, 72, 14, 0.55);
+  --rc-undo-press: rgba(217, 119, 6, 0.12);
+
+  /* live indicator green */
+  --rc-live: #34d27b;
+  --rc-live-glow: 0 0 9px rgba(52, 210, 123, 0.7);
+
+  /* mobile bottom bar surface — dark */
+  --rc-bottombar-bg: color-mix(in srgb, var(--rc-surface) 92%, #000 8%);
+}
+
+/* ===================== shared top bar ===================== */
+.rc-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  background: linear-gradient(180deg, var(--rc-accent) 0%, var(--rc-accent-strong) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.rc-brand {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.rc-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rc-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rc-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.rc-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.rc-signin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 9px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.rc-signin svg {
+  width: 17px;
+  height: 17px;
+}
+.rc-signin:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+@media (max-width: 700px) {
+  .rc-topbar {
+    padding: 11px 14px;
+  }
+  .rc-brand {
+    font-size: 19px;
+  }
+  .rc-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .rc-signin {
+    font-size: 13px;
+    padding: 7px 12px;
+  }
+}
+
+/* ===================== scoring screen ===================== */
+.rc-scope {
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  font-feature-settings: 'tnum' 1;
+  color: var(--rc-txt);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.rc-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- player cards ---------- */
+.rc-players {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.rc-card {
+  position: relative;
+  background: var(--rc-card-bg);
+  border: 1px solid var(--rc-line);
+  border-radius: 16px;
+  padding: 26px 28px 22px;
+  box-shadow: var(--rc-card-shadow);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.rc-card.active {
+  border-color: color-mix(in srgb, var(--rc-accent) 65%, transparent);
+  box-shadow: var(--rc-card-active-shadow);
+}
+
+.rc-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  min-height: 34px;
+}
+.rc-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.rc-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rc-name-dot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rc-muted-2);
+}
+.rc-card.active .rc-name-dot {
+  background: var(--rc-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--rc-accent) 70%, transparent);
+}
+.rc-attable {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rc-accent);
+  background: color-mix(in srgb, var(--rc-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--rc-accent) 35%, transparent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+/* status badges (re-break, two-foul) reuse the chip footprint */
+.rc-chip {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  color: #fff;
+}
+.rc-chip.rebreak {
+  background: #d97706;
+}
+.rc-chip.fouls {
+  background: #dc2626;
+}
+.rc-break-btn {
+  flex-shrink: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--rc-accent);
+  border: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: filter 0.15s;
+}
+.rc-break-btn:hover {
+  filter: brightness(1.08);
+}
+
+.rc-score-block {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-width: 0;
+}
+.rc-score {
+  font-size: clamp(54px, 8.5vw, 112px);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.04em;
+  color: var(--rc-muted);
+  font-variant-numeric: tabular-nums;
+}
+.rc-card.active .rc-score {
+  color: var(--rc-score-active);
+}
+.rc-card .rc-score.win {
+  color: #16a34a;
+}
+html.dark .rc-card .rc-score.win {
+  color: #22c55e;
+}
+.rc-card .rc-score.negative {
+  color: #dc2626;
+}
+html.dark .rc-card .rc-score.negative {
+  color: #f87171;
+}
+.rc-of {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--rc-muted);
+  white-space: nowrap;
+}
+.rc-trophy {
+  margin-left: 8px;
+  font-size: 0.5em;
+  line-height: 1;
+}
+
+.rc-progress {
+  margin-top: 18px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--rc-progress-track);
+  overflow: hidden;
+}
+.rc-progress > div {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--rc-progress-fill);
+  box-shadow: var(--rc-progress-glow);
+  transition: width 0.4s ease;
+}
+
+/* stat strip (subtle, under progress) */
+.rc-statstrip {
+  display: flex;
+  margin-top: 16px;
+}
+.rc-statstrip .si {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  padding: 2px 4px;
+}
+.rc-statstrip .si + .si {
+  border-left: 1px solid var(--rc-line);
+}
+.rc-statstrip .si i {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rc-muted);
+}
+.rc-statstrip .si b {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rc-txt);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- meta strip ---------- */
+.rc-metastrip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-line);
+  border-radius: 16px;
+  box-shadow: var(--rc-strip-shadow);
+  overflow: hidden;
+}
+.rc-meta-cell {
+  padding: 16px 20px;
+  text-align: center;
+}
+.rc-meta-cell + .rc-meta-cell {
+  border-left: 1px solid var(--rc-line);
+}
+.rc-meta-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rc-muted);
+}
+.rc-meta-value {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--rc-txt);
+  min-height: 38px;
+}
+.rc-meta-value .big {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+}
+.rc-meta-value .mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 600;
+  color: var(--rc-clock-color);
+  letter-spacing: -0.01em;
+}
+.rc-meta-value .mono.warn {
+  color: #d97706;
+}
+.rc-meta-value .mono.over {
+  color: #dc2626;
+}
+.rc-meta-ic {
+  color: var(--rc-accent);
+  display: grid;
+  place-items: center;
+}
+.rc-meta-ic svg {
+  width: 22px;
+  height: 22px;
+}
+.rc-meta-ic.warn {
+  color: #d97706;
+}
+.rc-meta-ic.over {
+  color: #dc2626;
+}
+.rc-meta-value .game-main {
+  font-size: 22px;
+  white-space: nowrap;
+}
+.rc-meta-value .game-sub {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rc-muted);
+  align-self: center;
+}
+.rc-clock-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rc-accent) 16%, transparent);
+  color: var(--rc-clock-color);
+}
+.rc-clock-badge.warn {
+  background: rgba(217, 119, 6, 0.16);
+  color: #d97706;
+}
+.rc-clock-badge.over {
+  background: rgba(220, 38, 38, 0.16);
+  color: #dc2626;
+}
+
+/* ---------- actions ---------- */
+.rc-actions {
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-line);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--rc-strip-shadow);
+}
+.rc-miss {
+  width: 100%;
+  padding: 26px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--rc-accent), var(--rc-accent-strong));
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 8px 22px color-mix(in srgb, var(--rc-accent-strong) 35%, transparent);
+  transition:
+    filter 0.15s,
+    transform 0.05s;
+}
+.rc-miss:hover {
+  filter: brightness(1.07);
+}
+.rc-miss:active {
+  transform: translateY(1px);
+}
+.rc-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.rc-act {
+  padding: 20px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--rc-surface-2);
+  border: 1px solid var(--rc-line-2);
+  color: var(--rc-txt);
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.rc-act:hover {
+  background: var(--rc-act-hover);
+  border-color: color-mix(in srgb, var(--rc-line-2) 100%, var(--rc-txt) 12%);
+}
+.rc-act.rack {
+  color: var(--rc-rack-txt);
+  border-color: var(--rc-rack-border);
+  background: var(--rc-rack-bg);
+}
+.rc-act.rack:hover {
+  background: var(--rc-rack-bg-hover);
+  border-color: var(--rc-rack-border-hover);
+}
+.rc-act:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.rc-act:disabled:hover {
+  background: var(--rc-surface-2);
+  border-color: var(--rc-line-2);
+}
+
+/* ---------- toolbar ---------- */
+.rc-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding-top: 6px;
+}
+.rc-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rc-txt);
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-line-2);
+  padding: 11px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.rc-pill svg {
+  width: 17px;
+  height: 17px;
+  color: var(--rc-muted);
+  flex-shrink: 0;
+}
+.rc-pill:hover {
+  background: var(--rc-surface-2);
+  border-color: color-mix(in srgb, var(--rc-line-2) 100%, var(--rc-txt) 12%);
+}
+.rc-pill.icon-only {
+  padding: 11px;
+}
+.rc-pill-mob {
+  display: none;
+}
+.rc-pill.undo {
+  color: var(--rc-undo-txt);
+  border-color: var(--rc-undo-border);
+  background: var(--rc-undo-bg);
+}
+.rc-pill.undo svg {
+  color: var(--rc-undo-txt);
+}
+.rc-pill.undo:hover {
+  background: var(--rc-undo-bg-hover);
+}
+.rc-pill:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.rc-toolbar-sep {
+  width: 1px;
+  height: 26px;
+  background: var(--rc-line-2);
+  margin: 0 4px;
+}
+.rc-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  background: var(--rc-surface);
+  border: 1px solid var(--rc-line-2);
+}
+.rc-timer .mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--rc-txt);
+  font-variant-numeric: tabular-nums;
+}
+.rc-timer-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rc-live);
+  box-shadow: var(--rc-live-glow);
+}
+.rc-timer-dot.paused {
+  background: var(--rc-muted-2);
+  box-shadow: none;
+}
+
+/* ---------- mobile: keep both players visible, shrink everything ---------- */
+@media (max-width: 700px) {
+  .rc-scope {
+    gap: 12px;
+    /* clear the fixed bottom bar */
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+  .rc-players {
+    gap: 10px;
+  }
+  .rc-card {
+    padding: 13px 14px 14px;
+    border-radius: 13px;
+  }
+  .rc-card-top {
+    margin-bottom: 6px;
+    gap: 8px;
+    min-height: 0;
+  }
+  .rc-name {
+    font-size: 17px;
+    gap: 7px;
+  }
+  .rc-name-dot {
+    width: 7px;
+    height: 7px;
+  }
+  .rc-attable,
+  .rc-chip {
+    font-size: 8px;
+    padding: 3px 7px;
+    letter-spacing: 0.06em;
+  }
+  .rc-break-btn {
+    font-size: 10px;
+    padding: 3px 9px;
+  }
+  .rc-score-block {
+    gap: 8px;
+  }
+  .rc-of {
+    font-size: 12px;
+  }
+  .rc-progress {
+    margin-top: 12px;
+    height: 4px;
+  }
+
+  .rc-statstrip {
+    margin-top: 11px;
+  }
+  .rc-statstrip .si {
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    padding: 0 2px;
+  }
+  .rc-statstrip .si i {
+    font-size: 10px;
+  }
+  .rc-statstrip .si b {
+    font-size: 14px;
+  }
+
+  .rc-metastrip {
+    border-radius: 13px;
+  }
+  .rc-meta-cell {
+    padding: 10px 8px;
+  }
+  .rc-meta-label {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+  .rc-meta-value {
+    margin-top: 4px;
+    font-size: 20px;
+    gap: 6px;
+    min-height: 26px;
+  }
+  .rc-meta-value .big {
+    font-size: 22px;
+  }
+  .rc-meta-ic svg {
+    width: 16px;
+    height: 16px;
+  }
+  .rc-meta-value .game-main {
+    font-size: 16px;
+  }
+  .rc-meta-value .game-sub {
+    font-size: 11px;
+  }
+  .rc-clock-badge {
+    font-size: 9px;
+    padding: 1px 5px;
+  }
+
+  .rc-actions {
+    padding: 10px;
+    gap: 9px;
+    border-radius: 13px;
+  }
+  .rc-miss {
+    padding: 16px;
+    font-size: 18px;
+    border-radius: 11px;
+  }
+  .rc-actions-row {
+    gap: 9px;
+  }
+  .rc-act {
+    padding: 13px 6px;
+    font-size: 14px;
+    border-radius: 11px;
+  }
+
+  /* utility row becomes a fixed, thumb-reachable bottom bar */
+  .rc-toolbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    flex-wrap: wrap;
+    gap: 0;
+    justify-content: stretch;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px));
+    background: var(--rc-bottombar-bg);
+    border-top: 1px solid var(--rc-line-2);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .rc-toolbar-sep {
+    display: none;
+  }
+  .rc-pill {
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 7px 4px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--rc-muted);
+  }
+  .rc-pill svg {
+    width: 20px;
+    height: 20px;
+    color: var(--rc-txt);
+  }
+  .rc-pill:hover,
+  .rc-pill:active {
+    background: color-mix(in srgb, var(--rc-txt) 6%, transparent);
+    border-color: transparent;
+  }
+  .rc-pill.icon-only {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 4px;
+  }
+  .rc-pill-mob {
+    display: block;
+  }
+  .rc-pill.undo {
+    background: transparent;
+    border: none;
+    color: var(--rc-undo-txt);
+  }
+  .rc-pill.undo svg {
+    color: var(--rc-undo-txt);
+  }
+  .rc-pill.undo:active {
+    background: var(--rc-undo-press);
+  }
+  /* live timer as a slim status line across the top of the bar */
+  .rc-timer {
+    order: -1;
+    flex-basis: 100%;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0 0 8px;
+    gap: 7px;
+    border-bottom: 1px solid var(--rc-line);
+    margin-bottom: 4px;
+  }
+  .rc-timer .mono {
+    font-size: 14px;
+    color: var(--rc-muted);
+  }
+}
+
+/* very narrow portrait — trim the score so two cards still fit cleanly */
+@media (max-width: 420px) {
+  .rc-score {
+    font-size: clamp(40px, 13vw, 60px);
+  }
+  .rc-statstrip .si i {
+    font-size: 9px;
+  }
+  .rc-statstrip .si b {
+    font-size: 13px;
+  }
+}

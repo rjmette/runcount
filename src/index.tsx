@@ -5,6 +5,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import ReactDOM from 'react-dom/client';
 
 import './index.css';
+import './styles/scoreboard.css';
 import App from './App';
 import { initSentry } from './lib/sentry';
 import reportWebVitals from './reportWebVitals';

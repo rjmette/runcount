@@ -43,127 +43,55 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
     return { bpi: bpiValue, percentage: percentageValue };
   }, [player.score, player.innings, targetScore]);
 
+  const hasWon = player.score >= targetScore;
+  const scoreStateClass = hasWon ? 'win' : player.score < 0 ? 'negative' : '';
+
   return (
     <div
       data-testid="player-card"
       aria-current={isActive ? 'true' : undefined}
-      className={`rounded-lg border p-3 transition-all duration-300 ${
-        isActive
-          ? 'bg-white dark:bg-gray-800 border-blue-500 shadow-md shadow-blue-100/70 ring-2 ring-blue-100/80 dark:shadow-blue-900/30 dark:ring-blue-900/40'
-          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm'
-      }`}
+      className={`rc-card ${isActive ? 'active' : ''}`}
     >
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <h3
-          className={`min-w-0 truncate text-xl dark:text-white ${
-            isActive ? 'font-extrabold' : 'font-semibold text-gray-700 dark:text-gray-300'
-          }`}
-        >
-          {player.name}
-          {player.score >= targetScore && (
-            <span className="ml-1 text-yellow-500">🏆</span>
-          )}
+      <div className="rc-card-top">
+        <h3 className="rc-name">
+          <span className="rc-name-dot" />
+          <span className="rc-name-text">{player.name}</span>
         </h3>
-        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-          {isActive === true && !needsReBreak && isInitialBreak && (
-            <button
-              onClick={onBreakClick}
-              className="rounded bg-blue-600 px-2 py-0.5 text-xs text-white transition-colors hover:bg-blue-700"
-              title="Click to change breaking player"
-            >
-              Break
-            </button>
-          )}
-          {needsReBreak && (
-            <span className="rounded-full bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white">
-              Re-Break
-            </span>
-          )}
-          {player.consecutiveFouls >= 2 && (
-            <span className="rounded bg-red-500 px-2 py-0.5 text-xs text-white">
-              2 Fouls
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <span
-            data-testid={`player-score-${player.id}`}
-            className={`block font-mono text-7xl font-black leading-none sm:text-8xl ${
-              player.score >= targetScore
-                ? 'text-green-600 dark:text-green-500'
-                : player.score < 0
-                  ? 'text-red-600 dark:text-red-500'
-                  : isActive
-                    ? 'text-blue-700 dark:text-blue-300'
-                    : 'text-gray-500 dark:text-gray-400'
-            }`}
+        {isActive && <span className="rc-attable">At table</span>}
+        {isActive && !needsReBreak && isInitialBreak && (
+          <button
+            onClick={onBreakClick}
+            className="rc-break-btn"
+            title="Click to change breaking player"
           >
-            {animatedScore < 0 && '-'}
-            {Math.abs(animatedScore)}
-          </span>
-          <span className="mt-1 block text-sm font-semibold text-gray-500 dark:text-gray-400">
-            of {targetScore}
-          </span>
-        </div>
-
-        <div className="grid shrink-0 grid-cols-6 gap-1.5 text-center sm:gap-2">
-          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
-            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
-              {player.highRun}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
-              High
-            </span>
-          </div>
-
-          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
-            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
-              {bpi}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
-              BPI
-            </span>
-          </div>
-
-          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
-            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
-              {player.safeties}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
-              Safe
-            </span>
-          </div>
-
-          <div className="col-span-2 col-start-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
-            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
-              {player.fouls}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
-              Foul
-            </span>
-          </div>
-
-          <div className="col-span-2 min-w-14 rounded-md bg-gray-50 px-2 py-1.5 dark:bg-gray-900/40">
-            <span className="block text-lg font-bold leading-none text-gray-700 dark:text-gray-200">
-              {player.missedShots}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500 dark:text-gray-500">
-              Miss
-            </span>
-          </div>
-        </div>
+            Break
+          </button>
+        )}
+        {needsReBreak && <span className="rc-chip rebreak">Re-Break</span>}
+        {player.consecutiveFouls >= 2 && <span className="rc-chip fouls">2 Fouls</span>}
       </div>
 
-      <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="rc-score-block">
+        <span
+          data-testid={`player-score-${player.id}`}
+          className={`rc-score ${scoreStateClass}`}
+        >
+          {animatedScore < 0 && '-'}
+          {Math.abs(animatedScore)}
+        </span>
+        <span className="rc-of">
+          of {targetScore}
+          {hasWon && (
+            <span className="rc-trophy" aria-hidden="true">
+              {' '}
+              🏆
+            </span>
+          )}
+        </span>
+      </div>
+
+      <div className="rc-progress">
         <div
-          className={`${
-            player.score >= targetScore
-              ? 'bg-green-600 dark:bg-green-500'
-              : 'bg-blue-600 dark:bg-blue-500'
-          } h-full rounded-full`}
           style={{ width: `${percentage}%` }}
           role="progressbar"
           aria-valuenow={percentage}
@@ -171,6 +99,25 @@ const PlayerScoreCard: React.FC<PlayerScoreCardProps> = ({
           aria-valuemax={100}
           aria-label={`Score progress: ${player.score} of ${targetScore} points (${percentage}%)`}
         />
+      </div>
+
+      <div className="rc-statstrip">
+        <span className="si">
+          <i>High</i>
+          <b>{player.highRun}</b>
+        </span>
+        <span className="si">
+          <i>BPI</i>
+          <b>{bpi}</b>
+        </span>
+        <span className="si">
+          <i>Safe</i>
+          <b>{player.safeties}</b>
+        </span>
+        <span className="si">
+          <i>Foul</i>
+          <b>{player.fouls}</b>
+        </span>
       </div>
     </div>
   );
