@@ -49,7 +49,7 @@ Integration tests check that different parts of the application work well togeth
    - Add new helpers alongside factories when you spot duplication (e.g., render helpers, auth stubs)
 
 4. **Mock external dependencies**
-   - Stub Supabase/network calls and heavy child components to focus on the unit under test
+   - Stub AWS auth/API clients, network calls, and heavy child components to focus on the unit under test
 
 5. **Keep tests independent**
    - Reset mocks with `beforeEach`, avoid stateful singletons, and prefer `userEvent` for realistic input
@@ -59,13 +59,13 @@ Integration tests check that different parts of the application work well togeth
 
 ## Mocking Strategy
 
-### Mocking Supabase
+### Mocking AWS Auth And API
 
-For most tests, mock the Supabase client (or the hooks that depend on it) so no real API calls leave your machine. Vitest's `vi.mock` mirrors Jest's API for these cases.
+For most tests, mock `AwsAuthContext`, `awsApiClient`, or the hooks that depend on them so no real API calls leave your machine. Vitest's `vi.mock` mirrors Jest's API for these cases.
 
 ### Mocking Authentication Context
 
-When a component depends on `useAuth`, create a lightweight mock that returns `{ user, loading, signOut: vi.fn() }` scoped to that test file. Reuse helpers if multiple tests share the same setup.
+When a component depends on `useAwsAuth`, create a lightweight mock that returns `{ user, loading, signOut: vi.fn(), getIdToken: vi.fn() }` plus any auth operations the component calls. Reuse helpers if multiple tests share the same setup.
 
 ## Test Coverage
 

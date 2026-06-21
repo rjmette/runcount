@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { saveGameToSupabaseHelper } from './useGameSave';
+import { persistGameHelper } from './useGameSave';
 
-describe('saveGameToSupabaseHelper', () => {
+describe('persistGameHelper', () => {
   const players = [{ id: 0, name: 'A' }];
   const actions: any[] = [];
   const gameId = 'game-123';
@@ -23,8 +23,8 @@ describe('saveGameToSupabaseHelper', () => {
     (window.localStorage.setItem as any).mockClear();
   });
 
-  it('saves to localStorage and context but not Supabase when user is null', async () => {
-    await saveGameToSupabaseHelper({
+  it('saves to localStorage and context but not backend when user is null', async () => {
+    await persistGameHelper({
       backend,
       user: null,
       saveGameState,
@@ -50,7 +50,7 @@ describe('saveGameToSupabaseHelper', () => {
   it('saves to cloud backend when user is present', async () => {
     const user = { id: 'user-42' };
 
-    await saveGameToSupabaseHelper({
+    await persistGameHelper({
       backend,
       user,
       saveGameState,
@@ -84,7 +84,7 @@ describe('saveGameToSupabaseHelper', () => {
   it('clears context when completed=true and still persists', async () => {
     const user = { id: 'user-42' };
 
-    await saveGameToSupabaseHelper({
+    await persistGameHelper({
       backend,
       user,
       saveGameState,

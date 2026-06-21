@@ -11,7 +11,7 @@ interface UseGameStateProps {
   setGameId: (id: string) => void;
   breakingPlayerId: number;
   getGameState: () => GameData | null;
-  saveGameToSupabase: (
+  persistGame: (
     gameId: string,
     players: Player[],
     actions: GameAction[],
@@ -29,7 +29,7 @@ export const useGameState = ({
   setGameId,
   breakingPlayerId,
   getGameState,
-  saveGameToSupabase,
+  persistGame,
 }: UseGameStateProps) => {
   const [activePlayerIndex, setActivePlayerIndexState] = useState(() => breakingPlayerId);
 
@@ -191,15 +191,7 @@ export const useGameState = ({
       setMatchEndTime(null);
       setTurnStartTime(startTime);
 
-      saveGameToSupabase(
-        newGameId,
-        initialPlayerData,
-        [],
-        false,
-        null,
-        startTime,
-        startTime,
-      );
+      persistGame(newGameId, initialPlayerData, [], false, null, startTime, startTime);
     }
   }, []); // Empty dependency array is intentional - we only want this to run once on mount
 

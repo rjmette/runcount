@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { type SupabaseClient } from '@supabase/supabase-js';
-
 import Login from './Login';
 import ResetPassword from './ResetPassword';
 import SignUp from './SignUp';
@@ -18,8 +16,7 @@ export interface AwsAuthOperations {
 }
 
 interface AuthProps {
-  supabase?: SupabaseClient;
-  awsAuth?: AwsAuthOperations;
+  awsAuth: AwsAuthOperations;
   /**
    * Active tab is owned by the parent (AuthModal) so it can also drive
    * the per-tab modal title and conditionally hide the benefits panel
@@ -48,7 +45,6 @@ const TABS: TabDefinition[] = [
 ];
 
 const Auth: React.FC<AuthProps> = ({
-  supabase,
   awsAuth,
   activeTab,
   onTabChange,
@@ -86,21 +82,14 @@ const Auth: React.FC<AuthProps> = ({
       <div>
         {activeTab === 'login' && (
           <Login
-            supabase={supabase}
             awsAuth={awsAuth}
             onSuccess={onAuthSuccess}
             onForgotPassword={() => onTabChange('reset-password')}
           />
         )}
-        {activeTab === 'signup' && (
-          <SignUp supabase={supabase} awsAuth={awsAuth} onSuccess={onAuthSuccess} />
-        )}
+        {activeTab === 'signup' && <SignUp awsAuth={awsAuth} onSuccess={onAuthSuccess} />}
         {activeTab === 'reset-password' && (
-          <ResetPassword
-            supabase={supabase}
-            awsAuth={awsAuth}
-            onSuccess={onAuthSuccess}
-          />
+          <ResetPassword awsAuth={awsAuth} onSuccess={onAuthSuccess} />
         )}
       </div>
     </div>

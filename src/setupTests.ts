@@ -5,8 +5,13 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-vi.stubEnv('VITE_SUPABASE_KEY', 'vitest-test-key');
-vi.stubEnv('VITE_SUPABASE_URL', 'http://127.0.0.1:54321');
+vi.stubEnv('VITE_API_URL', 'https://api.example.test');
+vi.stubEnv('VITE_COGNITO_REGION', 'us-east-1');
+vi.stubEnv('VITE_COGNITO_USER_POOL_ID', 'us-east-1_testpool');
+vi.stubEnv('VITE_COGNITO_CLIENT_ID', 'test-client-id');
+vi.stubEnv('VITE_COGNITO_DOMAIN', 'https://auth.example.test');
+vi.stubEnv('VITE_COGNITO_REDIRECT_URI', 'http://localhost/auth/callback');
+vi.stubEnv('VITE_COGNITO_LOGOUT_URI', 'http://localhost/');
 
 class MemoryStorage implements Storage {
   private store = new Map<string, string>();

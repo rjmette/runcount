@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 
-import { type SupabaseClient } from '@supabase/supabase-js';
-
-import { getAuthCallbackUrl } from '../../utils/authRedirect';
-
 import type { AwsAuthOperations } from './Auth';
 
 interface LoginProps {
-  supabase?: SupabaseClient;
-  awsAuth?: AwsAuthOperations;
+  awsAuth: AwsAuthOperations;
   onSuccess?: () => void;
   /**
    * Triggered by the "Forgot password?" link below the password field.
@@ -25,12 +20,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const Login: React.FC<LoginProps> = ({
-  supabase,
-  awsAuth,
-  onSuccess,
-  onForgotPassword,
-}) => {
+const Login: React.FC<LoginProps> = ({ awsAuth, onSuccess, onForgotPassword }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,18 +33,7 @@ const Login: React.FC<LoginProps> = ({
       setLoading(true);
       setError(null);
 
-      if (awsAuth) {
-        await awsAuth.signInWithPassword(email, password);
-      } else if (supabase) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-      } else {
-        throw new Error('Authentication is not configured.');
-      }
+      await awsAuth.signInWithPassword(email, password);
 
       if (onSuccess) {
         onSuccess();
@@ -66,30 +45,14 @@ const Login: React.FC<LoginProps> = ({
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+  const handleSocialLogin = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      if (awsAuth) {
-        if (provider !== 'google') {
-          throw new Error('Apple login is not configured for AWS mode.');
-        }
-        await awsAuth.signInWithGoogle();
-      } else if (supabase) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider,
-          options: {
-            redirectTo: getAuthCallbackUrl(),
-          },
-        });
-
-        if (error) throw error;
-      } else {
-        throw new Error('Authentication is not configured.');
-      }
+      await awsAuth.signInWithGoogle();
     } catch (error) {
-      setError(getErrorMessage(error, `An error occurred during ${provider} login`));
+      setError(getErrorMessage(error, 'An error occurred during Google login'));
     } finally {
       setLoading(false);
     }
@@ -201,10 +164,10 @@ const Login: React.FC<LoginProps> = ({
         </div>
       </div>
 
-      <div className={awsAuth ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-2 gap-3'}>
+      <div className="grid grid-cols-1 gap-3">
         <button
           type="button"
-          onClick={() => handleSocialLogin('google')}
+          onClick={handleSocialLogin}
           className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
           disabled={loading}
         >
@@ -217,23 +180,6 @@ const Login: React.FC<LoginProps> = ({
           </svg>
           <span className="ml-2">Google</span>
         </button>
-        {!awsAuth && (
-          <button
-            type="button"
-            onClick={() => handleSocialLogin('apple')}
-            className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200"
-            disabled={loading}
-          >
-            <svg
-              className="h-5 w-5 text-gray-500 dark:text-gray-300"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701z" />
-            </svg>
-            <span className="ml-2">Apple</span>
-          </button>
-        )}
       </div>
     </div>
   );

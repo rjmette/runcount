@@ -12,7 +12,7 @@ describe('formatGameDateTime', () => {
     expect(formatGameDateTime(sample)).toBe('Sun, May 4 · 3:18 PM');
   });
 
-  it('accepts a string input (Supabase returns ISO strings)', () => {
+  it('accepts a string input (backend returns ISO strings)', () => {
     const iso = sample.toISOString();
     const result = formatGameDateTime(iso);
     expect(result).toMatch(

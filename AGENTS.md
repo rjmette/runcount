@@ -8,7 +8,7 @@
 
 ## Build, Test, and Development Commands
 
-- `npm start` – runs the Vite dev server on http://localhost:5173 (use `.env.local` for Supabase).
+- `npm start` – runs the Vite dev server on http://localhost:5173 (use `.env.local` for AWS/Cognito config).
 - `npm run build` – produces an optimized bundle in `build/` for S3/CloudFront deploys.
 - `npm run preview` – serves the latest production build locally.
 - `npm run lint` / `npm run lint:fix` – checks or auto-fixes ESLint naming/import/React rules.
@@ -32,7 +32,7 @@
 
 - Write Vitest specs under `src/__tests__` or beside the component (`Component.test.tsx`).
 - Prefer Testing Library queries (`screen.getByRole`) over DOM selectors, and mirror user flows.
-- Maintain coverage for scoring logic, fouls, timers, and Supabase persistence; add regression tests for issue fixes.
+- Maintain coverage for scoring logic, fouls, timers, and AWS persistence; add regression tests for issue fixes.
 
 ## Issue Tracking & Workflow
 
@@ -48,5 +48,5 @@
 
 ## Configuration & Security Notes
 
-- Create `.env.local` with Supabase keys (`VITE_SUPABASE_KEY`, `VITE_SUPABASE_URL`). Do not commit credentials; rely on GitHub secrets for CI/CD.
-- When testing auth-dependent flows, seed Supabase with demo data or use the staging project referenced in `App.tsx`.
+- Create `.env.local` with AWS API and Cognito values from `.env.example`. Do not commit credentials; rely on GitHub secrets for CI/CD.
+- When testing auth-dependent flows locally, use Cognito mock mode or a staging AWS environment.

@@ -10,7 +10,7 @@ interface UseGameActionsProps {
   actions: GameAction[];
   gameId: string;
   currentInning: number;
-  saveGameToSupabase: (
+  persistGame: (
     gameId: string,
     players: Player[],
     actions: GameAction[],
@@ -48,7 +48,7 @@ export const useGameActions = ({
   actions,
   gameId,
   currentInning,
-  saveGameToSupabase,
+  persistGame,
   setPlayerData,
   setActions,
   setBallsOnTable,
@@ -109,15 +109,9 @@ export const useGameActions = ({
       setGameWinner(winner);
       setMatchEndTime(new Date());
       setShowEndGameModal(true);
-      saveGameToSupabase(
-        gameId,
-        updatedPlayerData,
-        [...actions, newAction],
-        true,
-        winner.id,
-      );
+      persistGame(gameId, updatedPlayerData, [...actions, newAction], true, winner.id);
     } else {
-      saveGameToSupabase(gameId, updatedPlayerData, [...actions, newAction], false, null);
+      persistGame(gameId, updatedPlayerData, [...actions, newAction], false, null);
     }
 
     return { needsBOTInput: false };
@@ -281,7 +275,7 @@ export const useGameActions = ({
       setGameWinner(winner);
       setMatchEndTime(new Date());
       setShowEndGameModal(true);
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],
@@ -290,7 +284,7 @@ export const useGameActions = ({
         newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],
@@ -361,7 +355,7 @@ export const useGameActions = ({
       setGameWinner(winner);
       setMatchEndTime(new Date());
       setShowEndGameModal(true);
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],
@@ -370,7 +364,7 @@ export const useGameActions = ({
         newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],
@@ -441,7 +435,7 @@ export const useGameActions = ({
       setGameWinner(winner);
       setMatchEndTime(new Date());
       setShowEndGameModal(true);
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],
@@ -450,7 +444,7 @@ export const useGameActions = ({
         newTurnStartTime,
       );
     } else {
-      saveGameToSupabase(
+      persistGame(
         gameId,
         updatedPlayerData,
         [...actions, newAction],

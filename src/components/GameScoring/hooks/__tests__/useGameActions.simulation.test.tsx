@@ -29,7 +29,7 @@ interface SimulationHarness {
   handleAddFoul: ReturnType<typeof useGameActions>['handleAddFoul'];
   handleAddSafety: ReturnType<typeof useGameActions>['handleAddSafety'];
   handleAddMiss: ReturnType<typeof useGameActions>['handleAddMiss'];
-  saveGameToSupabase: Mock;
+  persistGame: Mock;
   state: SimulationState;
 }
 
@@ -117,7 +117,7 @@ const useSimulationHarness = (): SimulationHarness => {
   const [isUndoEnabled, setIsUndoEnabled] = useState(false);
   const [matchEndTime, setMatchEndTime] = useState<Date | null>(null);
   const [turnStartTime, setTurnStartTime] = useState<Date | null>(new Date());
-  const saveGameToSupabase = useRef(vi.fn()).current;
+  const persistGame = useRef(vi.fn()).current;
 
   const handlers = useGameActions({
     playerData,
@@ -127,7 +127,7 @@ const useSimulationHarness = (): SimulationHarness => {
     actions,
     gameId: 'simulation-game',
     currentInning,
-    saveGameToSupabase,
+    persistGame,
     setPlayerData,
     setActions,
     setBallsOnTable,
@@ -147,7 +147,7 @@ const useSimulationHarness = (): SimulationHarness => {
 
   return {
     ...handlers,
-    saveGameToSupabase,
+    persistGame,
     state: {
       actions,
       activePlayerIndex,
@@ -176,7 +176,7 @@ const assertSimulationInvariants = (harness: SimulationHarness) => {
   expect(state.ballsOnTable).toBeLessThanOrEqual(15);
   expect(state.currentInning).toBeGreaterThanOrEqual(1);
   expect(state.currentRun).toBeGreaterThanOrEqual(0);
-  expect(harness.saveGameToSupabase).toHaveBeenCalledTimes(state.actions.length);
+  expect(harness.persistGame).toHaveBeenCalledTimes(state.actions.length);
 
   state.actions.forEach((action) => {
     expect(playerIds.has(action.playerId)).toBe(true);
@@ -211,7 +211,7 @@ const assertSimulationInvariants = (harness: SimulationHarness) => {
     expect(state.isEndGameModalOpen).toBe(true);
     expect(state.matchEndTime).toBeInstanceOf(Date);
 
-    const lastSaveCall = harness.saveGameToSupabase.mock.lastCall;
+    const lastSaveCall = harness.persistGame.mock.lastCall;
     expect(lastSaveCall).toBeDefined();
     expect(lastSaveCall?.[3]).toBe(true);
     expect(lastSaveCall?.[4]).toBe(state.gameWinner.id);

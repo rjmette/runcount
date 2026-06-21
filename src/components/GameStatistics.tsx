@@ -60,7 +60,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showDescriptionsModal, setShowDescriptionsModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [savedToSupabase, setSavedToSupabase] = useState(false);
+  const [savedToCloud, setSavedToCloud] = useState(false);
 
   useEffect(() => {
     const fetchGameData = async () => {
@@ -87,10 +87,10 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
             return;
           } catch (e) {
             console.error('Failed to parse local game data:', e);
-            console.log('Trying Supabase as fallback');
+            console.log('Trying backend as fallback');
           }
         } else {
-          console.log('No game found in localStorage, trying Supabase');
+          console.log('No game found in localStorage, trying backend');
         }
 
         // If no local data, try cloud backend
@@ -111,7 +111,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
   // Effect to save game to cloud backend when user logs in
   useEffect(() => {
-    if (user && gameData && !savedToSupabase) {
+    if (user && gameData && !savedToCloud) {
       const saveGameToCloud = async () => {
         try {
           console.log('Saving game to cloud backend after login on results screen');
@@ -123,7 +123,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
           await backend.saveGame(payload, user);
           console.log('Successfully saved game to cloud backend after login');
-          setSavedToSupabase(true);
+          setSavedToCloud(true);
         } catch (err) {
           console.error('Error saving game to cloud backend after login:', err);
         }
@@ -131,7 +131,7 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
 
       saveGameToCloud();
     }
-  }, [user, gameData, backend, savedToSupabase]);
+  }, [user, gameData, backend, savedToCloud]);
 
   const formatGameResultsForEmail = useMemo(() => {
     if (!gameData) return '';

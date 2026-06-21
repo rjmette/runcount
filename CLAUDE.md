@@ -36,7 +36,7 @@
 
 - React 19 with TypeScript
 - Tailwind CSS for styling
-- Supabase for backend/auth
+- AWS API Gateway/Lambda/DynamoDB for backend persistence and Cognito for auth
 - Jest and React Testing Library for tests
 
 ## Deployment Infrastructure
@@ -58,7 +58,7 @@
 
 ### Deployment Process
 
-1. **Tests run** with dummy Supabase credentials
+1. **Tests run** with mocked AWS/Cognito frontend configuration
 2. **Build** creates optimized production bundle
 3. **S3 sync** uploads files (excluding index.html)
 4. **Cache-busting** deploys index.html with max-age=0

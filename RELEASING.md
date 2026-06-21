@@ -85,8 +85,8 @@ AWS_SECRET_ACCESS_KEY
 VITE_SENTRY_DSN
 ```
 
-Production web, iOS, and Android builds compile with `VITE_BACKEND=aws` and the
-production Cognito/API values defined in the GitHub Actions workflows.
+Production web, iOS, and Android builds compile with the production Cognito/API
+values defined in the GitHub Actions workflows.
 
 Sanity check: `gh secret list` should show fresh timestamps for all of the above.
 

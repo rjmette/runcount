@@ -14,7 +14,7 @@ type UseGameSaveArgs = {
 
 type WinnerId = number | string | null;
 
-export const saveGameToSupabaseHelper = async (options: {
+export const persistGameHelper = async (options: {
   backend: GameBackend;
   user: AppUser | null;
   saveGameState: (state: GameData) => void;
@@ -133,7 +133,7 @@ export const useGameSave = ({
   matchStartTime,
   matchEndTime,
 }: UseGameSaveArgs) => {
-  const saveGameToSupabase = async (
+  const persistGame = async (
     gameId: string,
     players: Player[],
     actions: GameAction[],
@@ -142,7 +142,7 @@ export const useGameSave = ({
     startTime?: string,
     endTime?: string,
   ) => {
-    await saveGameToSupabaseHelper({
+    await persistGameHelper({
       backend,
       user,
       saveGameState,
@@ -157,7 +157,7 @@ export const useGameSave = ({
     });
   };
 
-  return { saveGameToSupabase };
+  return { persistGame };
 };
 
 export default useGameSave;

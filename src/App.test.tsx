@@ -5,13 +5,25 @@ import { vi } from 'vitest';
 
 import App from './App';
 
-// Mock context to bypass Supabase auth
-vi.mock('./context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useAuth: () => ({
+// Mock auth to bypass backend auth
+vi.mock('./aws-auth/AwsAuthContext', () => ({
+  AwsAuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useAwsAuth: () => ({
     user: null,
+    session: null,
     loading: false,
+    getIdToken: vi.fn().mockResolvedValue(null),
+    signIn: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    confirmSignUp: vi.fn(),
+    forgotPassword: vi.fn(),
+    confirmForgotPassword: vi.fn(),
+    updateEmail: vi.fn(),
+    verifyEmailUpdate: vi.fn(),
+    updatePassword: vi.fn(),
     signOut: vi.fn(),
+    refreshSession: vi.fn(),
   }),
 }));
 

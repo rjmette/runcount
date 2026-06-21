@@ -8,7 +8,7 @@ interface UseGameScoringHistoryProps {
   breakingPlayerId: number;
   actions: GameAction[];
   gameId: string;
-  saveGameToSupabase: (
+  persistGame: (
     gameId: string,
     players: Player[],
     actions: GameAction[],
@@ -31,7 +31,7 @@ export const useGameScoringHistory = ({
   breakingPlayerId,
   actions,
   gameId,
-  saveGameToSupabase,
+  persistGame,
   setPlayerData,
   setActions,
   setActivePlayerIndex,
@@ -188,7 +188,7 @@ export const useGameScoringHistory = ({
     }
 
     // Update game in database
-    saveGameToSupabase(gameId, updatedPlayerData, previousActions, false, null);
+    persistGame(gameId, updatedPlayerData, previousActions, false, null);
   };
 
   return {

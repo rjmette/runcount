@@ -12,7 +12,6 @@
     "@modelcontextprotocol/sdk": "^1.7.0",
     "@sentry/react": "^10.45.0",
     "@smithery/sdk": "^1.0.2",
-    "@supabase/supabase-js": "^2.49.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
