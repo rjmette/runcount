@@ -34,7 +34,7 @@ const helpItems = [
   {
     term: '+Rack',
     description:
-      'Use when the shooter reaches the end of the rack and continues after the re-rack hold-out decision.',
+      'Re-rack and keep shooting. Available at any time during a run — tap it when you reach the end of a rack, then record how many balls were left (the break ball carries into the new rack).',
   },
   {
     term: 'Break',
@@ -42,6 +42,16 @@ const helpItems = [
       'Shows who opens the match and who must re-break after a re-break penalty.',
   },
 ];
+
+const scoringRules = [
+  '1 point per ball legally pocketed (WPA 4.7).',
+  'Standard foul: −1 point (WPA 4.9).',
+  'Illegal break: −2 points; a scratch on an otherwise legal break is a −1 standard foul (WPA 4.3/4.10).',
+  'Three consecutive standard fouls: −1 for the third foul plus an extra −15, then all 15 balls are re-racked and the offender re-breaks. Breaking fouls do not count toward the three (WPA 4.11).',
+  'Re-rack after 14 balls are pocketed; the 15th stays as the break ball (WPA 4.2/4.4).',
+];
+
+const WPA_RULES_URL = 'https://wpapool.com/rules-of-play/';
 
 export const GameHelpModal: React.FC<GameHelpModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -54,7 +64,7 @@ export const GameHelpModal: React.FC<GameHelpModalProps> = ({ isOpen, onClose })
       aria-labelledby="game-help-title"
       data-testid="game-help-modal"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 dark:text-white">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 dark:text-white max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h3 id="game-help-title" className="text-xl font-bold">
@@ -98,6 +108,29 @@ export const GameHelpModal: React.FC<GameHelpModalProps> = ({ isOpen, onClose })
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-6">
+          <h4 className="font-semibold text-gray-900 dark:text-white">
+            Scoring at a glance
+          </h4>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-300">
+            {scoringRules.map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+            Full ruleset:{' '}
+            <a
+              href={WPA_RULES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-blue-600 underline hover:text-blue-700 dark:text-blue-400"
+            >
+              WPA Official Rules of Play
+            </a>{' '}
+            (Section 4, 14.1 Continuous Pool).
+          </p>
         </div>
 
         <div className="flex justify-end mt-6">

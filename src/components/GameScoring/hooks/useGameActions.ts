@@ -132,8 +132,6 @@ export const useGameActions = ({
         : activePlayerIndex;
     const playerIndex = actingPlayerIndex === -1 ? activePlayerIndex : actingPlayerIndex;
 
-    const isThirdConsecutiveFoul = playerData[playerIndex].consecutiveFouls === 2;
-
     // Check if this is the first action of the game (i.e., the opening break)
     // or if the player needs to re-break
     const isOpeningBreak =
@@ -143,6 +141,14 @@ export const useGameActions = ({
     // Use the provided penalty, or default to -2 for break fouls, -1 for regular
     const penaltyValue =
       foulPenalty !== undefined ? -Math.abs(foulPenalty) : isOpeningBreak ? -2 : -1;
+
+    // Per WPA 4.10/4.11, a "breaking foul" is the 2-point illegal-break penalty.
+    // It does NOT count toward the three-consecutive-foul rule — only standard
+    // fouls do (including a 1-point scratch on an otherwise legal break).
+    const isBreakingFoul = isOpeningBreak && Math.abs(penaltyValue) === 2;
+
+    const isThirdConsecutiveFoul =
+      playerData[playerIndex].consecutiveFouls === 2 && !isBreakingFoul;
 
     const manualDecision = options?.manualConsecutiveDecision;
     const isManualThreeFoul = manualDecision === 'threeFoul';
@@ -178,7 +184,11 @@ export const useGameActions = ({
     }
 
     const previousConsecutiveFouls = updatedPlayerData[playerIndex].consecutiveFouls;
-    updatedPlayerData[playerIndex].consecutiveFouls = previousConsecutiveFouls + 1;
+    // A breaking foul is still a foul (counts toward total fouls) but does not
+    // advance the consecutive-foul count under WPA 4.11.
+    if (!isBreakingFoul) {
+      updatedPlayerData[playerIndex].consecutiveFouls = previousConsecutiveFouls + 1;
+    }
     updatedPlayerData[playerIndex].fouls += 1;
 
     if (manualDecision === 'regular') {

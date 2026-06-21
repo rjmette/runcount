@@ -204,6 +204,11 @@ describe('GameScoring integration', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/Balls Per Inning/i)).toBeInTheDocument();
+
+    // Scoring summary + link to the official ruleset
+    expect(screen.getByText(/Scoring at a glance/i)).toBeInTheDocument();
+    const rulesLink = screen.getByRole('link', { name: /WPA Official Rules of Play/i });
+    expect(rulesLink).toHaveAttribute('href', 'https://wpapool.com/rules-of-play/');
   });
 
   test('does not offer fewer than two balls in the BOT dialog', async () => {
@@ -269,7 +274,7 @@ describe('GameScoring integration', () => {
     expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
   });
 
-  test('does not open Rack flow before the two-ball rack point', async () => {
+  test('opens Rack flow at any ball count (no rack-point gating)', async () => {
     render(
       <GameScoring
         players={['Alice', 'Bob']}
@@ -296,10 +301,14 @@ describe('GameScoring integration', () => {
     await userEvent.click(await screen.findByRole('button', { name: '5' }));
 
     const rackButton = screen.getByRole('button', { name: /Rack/i });
-    expect(rackButton).toBeDisabled();
+    expect(rackButton).toBeEnabled();
 
     await userEvent.click(rackButton);
-    expect(screen.queryByTestId('balls-on-table-modal')).not.toBeInTheDocument();
+    // The shooter can re-rack at any time; the BOT dialog opens offering the
+    // remaining count (minimum two) rather than being blocked.
+    expect(await screen.findByTestId('balls-on-table-modal')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '5' })).toBeInTheDocument();
   });
 
   test('shows BOT in a dedicated status strip above the action buttons', async () => {

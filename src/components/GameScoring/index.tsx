@@ -505,14 +505,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const isBreakShot =
     (actions.length === 0 && currentInning === 1) ||
     playerNeedsReBreak === playerData[activePlayerIndex]?.id;
-  const canStartNewRack = ballsOnTable === 2;
 
   // Handle action button clicks
   const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
-    if (action === 'newrack' && !canStartNewRack) {
-      return;
-    }
-
     dispatchFoulFlow({ type: 'setAction', action });
 
     // If it's a foul on a break shot, show penalty selection modal first
@@ -710,14 +705,9 @@ const GameScoring: React.FC<GameScoringProps> = ({
           </button>
           <button
             type="button"
-            disabled={!canStartNewRack}
             onClick={() => handleActionClick('newrack')}
             className="rc-act rack"
-            title={
-              canStartNewRack
-                ? 'Start a new rack'
-                : 'New rack is available when 2 balls remain'
-            }
+            title="Start a new rack"
           >
             <span aria-hidden="true">+ </span>Rack
           </button>

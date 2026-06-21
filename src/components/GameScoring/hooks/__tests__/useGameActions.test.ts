@@ -174,7 +174,8 @@ describe('useGameActions', () => {
     // Break foul logic: adds balls pocketed (1) then subtracts break foul penalty (-2) = -1 total
     expect(players[0].score).toBe(-1); // 1 ball pocketed - 2 break foul penalty = -1
     expect(players[0].fouls).toBe(1);
-    expect(players[0].consecutiveFouls).toBe(1);
+    // WPA 4.11: a breaking foul (-2) does not count toward consecutive fouls
+    expect(players[0].consecutiveFouls).toBe(0);
   });
 
   test('handleAddFoul applies 1-point break foul penalty when specified', () => {
@@ -187,6 +188,8 @@ describe('useGameActions', () => {
     // Break foul with 1-point penalty: adds balls pocketed (1) then subtracts 1-point penalty = 0 total
     expect(players[0].score).toBe(0); // 1 ball pocketed - 1 break foul penalty = 0
     expect(players[0].fouls).toBe(1);
+    // A 1-point scratch on an otherwise legal break is a standard foul, so it
+    // does count toward consecutive fouls (WPA 4.11)
     expect(players[0].consecutiveFouls).toBe(1);
   });
 
@@ -199,7 +202,8 @@ describe('useGameActions', () => {
 
     expect(players[0].score).toBe(-2);
     expect(players[0].fouls).toBe(1);
-    expect(players[0].consecutiveFouls).toBe(1);
+    // WPA 4.11: a breaking foul (-2) does not count toward consecutive fouls
+    expect(players[0].consecutiveFouls).toBe(0);
   });
 
   test('handleAddFoul records opening-break fouls distinctly and keeps the breaker active', () => {
@@ -236,8 +240,11 @@ describe('useGameActions', () => {
     expect(players[0].consecutiveFouls).toBe(1);
   });
 
-  test('handleAddFoul handles three consecutive fouls with 15-point penalty', () => {
-    const { result, players, mocks } = setup();
+  test('handleAddFoul handles three consecutive standard fouls with 15-point penalty', () => {
+    const { result, players, mocks } = setup({
+      // Prior score action so this is a regular (standard) foul, not an opening break
+      actions: [{ type: 'score', playerId: 0, value: 5, timestamp: new Date() }],
+    });
 
     // Set player to have 2 consecutive fouls already
     players[0].consecutiveFouls = 2;
@@ -246,11 +253,31 @@ describe('useGameActions', () => {
       result.current.handleAddFoul(14);
     });
 
-    // Three consecutive fouls: adds balls pocketed (1) - break foul (-2) - three foul penalty (-15) = -16
-    expect(players[0].score).toBe(-16); // 1 ball pocketed - 2 break foul - 15 three consecutive fouls = -16
+    // Three consecutive standard fouls: balls pocketed (1) - standard foul (-1) - three foul penalty (-15) = -15
+    expect(players[0].score).toBe(-15);
     expect(players[0].consecutiveFouls).toBe(0); // reset after penalty
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
     expect(mocks.setAlertMessage).toHaveBeenCalledWith(
+      expect.stringContaining('three consecutive fouls'),
+    );
+  });
+
+  test('breaking foul does not count toward three consecutive fouls (WPA 4.11)', () => {
+    const { result, players, mocks } = setup();
+
+    // Player already on two standard fouls; an illegal break (-2) must NOT
+    // become the third consecutive foul.
+    players[0].consecutiveFouls = 2;
+
+    act(() => {
+      result.current.handleAddFoul(14, 2); // illegal break, -2 penalty
+    });
+
+    // No 15-point penalty: balls pocketed (1) - break foul (-2) = -1
+    expect(players[0].score).toBe(-1);
+    // Consecutive-foul count is unchanged (neither advanced to 3 nor reset)
+    expect(players[0].consecutiveFouls).toBe(2);
+    expect(mocks.setAlertMessage).not.toHaveBeenCalledWith(
       expect.stringContaining('three consecutive fouls'),
     );
   });
@@ -427,7 +454,10 @@ describe('useGameActions', () => {
   });
 
   test('shows two-foul warning after second consecutive foul', () => {
-    const { result, players, mocks } = setup();
+    const { result, players, mocks } = setup({
+      // Prior score action so this is a regular (standard) foul, not an opening break
+      actions: [{ type: 'score', playerId: 0, value: 5, timestamp: new Date() }],
+    });
     players[0].consecutiveFouls = 1; // Already has one foul
 
     act(() => {
