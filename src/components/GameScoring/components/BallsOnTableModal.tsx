@@ -20,8 +20,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
 }) => {
   if (!isOpen || !action) return null;
 
-  const isRackActionAtRackPoint =
-    action === 'newrack' && currentBallsOnTable === MIN_SELECTABLE_BALLS;
+  const isRackAction = action === 'newrack';
 
   if (
     process.env.NODE_ENV !== 'production' &&
@@ -36,7 +35,10 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
       : currentBallsOnTable;
 
   const availableValues = useMemo(() => {
-    if (isRackActionAtRackPoint) {
+    // Starting a new rack means the shooter cleared the rack — they left either
+    // the break ball (1, the common case) or nothing (0). Turn-ending actions
+    // (miss/safety/foul) never go below two balls.
+    if (isRackAction) {
       return [...NEW_RACK_ENDING_VALUES];
     }
 
@@ -44,7 +46,7 @@ export const BallsOnTableModal: React.FC<BallsOnTableModalProps> = ({
       { length: maxAvailableBalls - MIN_SELECTABLE_BALLS + 1 },
       (_, index) => index + MIN_SELECTABLE_BALLS,
     );
-  }, [isRackActionAtRackPoint, maxAvailableBalls]);
+  }, [isRackAction, maxAvailableBalls]);
 
   return (
     <div

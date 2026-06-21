@@ -36,7 +36,7 @@ describe('BallsOnTableModal', () => {
     expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
   });
 
-  it('shows zero and one for a rack action when two balls remain', () => {
+  it('offers only zero and one for a rack action (cleared all, or all but the break ball)', () => {
     render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={2} />);
 
     expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
@@ -44,12 +44,15 @@ describe('BallsOnTableModal', () => {
     expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
   });
 
-  it('keeps two available when a rack action is not at the two-ball rack point', () => {
-    render(<BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={0} />);
+  it('offers zero and one for a rack action regardless of balls on table', () => {
+    render(
+      <BallsOnTableModal {...baseProps} action="newrack" currentBallsOnTable={12} />,
+    );
 
-    expect(screen.queryByRole('button', { name: '0' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '12' })).not.toBeInTheDocument();
   });
 
   it('calls onClose when cancel is pressed', () => {

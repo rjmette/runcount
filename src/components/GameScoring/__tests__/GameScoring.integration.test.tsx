@@ -304,11 +304,12 @@ describe('GameScoring integration', () => {
     expect(rackButton).toBeEnabled();
 
     await userEvent.click(rackButton);
-    // The shooter can re-rack at any time; the BOT dialog opens offering the
-    // remaining count (minimum two) rather than being blocked.
+    // The shooter can re-rack at any time; a new rack always offers the rack
+    // endings (1 = left the break ball, 0 = cleared all), never 2+.
     expect(await screen.findByTestId('balls-on-table-modal')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '5' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '5' })).not.toBeInTheDocument();
   });
 
   test('shows BOT in a dedicated status strip above the action buttons', async () => {
