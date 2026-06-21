@@ -17,7 +17,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   webServer: {
-    command: 'npm start -- --host 127.0.0.1 --port 5173',
+    // Invoke the dev script directly (not `npm start`, which is `npm run dev`):
+    // nesting `npm run` swallows the `--host`/`--port` flags, so Vite would
+    // bind to its default host and CI's 127.0.0.1 probe would time out.
+    command: 'npm run dev -- --host 127.0.0.1 --port 5173',
     env: {
       VITE_AUTH_MOCK: '1',
       VITE_API_URL: 'https://api.example.test',
