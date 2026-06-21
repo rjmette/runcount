@@ -61,6 +61,14 @@ npm install
 npm start
 ```
 
+The app opens at [http://localhost:5173](http://localhost:5173). If you are
+switching between a Codex-managed server and a separate terminal, check whether
+one is already running first:
+
+```bash
+npm run dev:status
+```
+
 ## Usage
 
 1. **Game Setup**
@@ -91,7 +99,17 @@ npm start
 #### `npm start`
 
 Runs the app in development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+
+#### `npm run dev:status`
+
+Checks whether the local development server is already responding at
+[http://localhost:5173](http://localhost:5173).
+
+#### `npm run dev:host`
+
+Runs the development server on the local network for testing from another
+device.
 
 #### `npm test`
 

@@ -102,9 +102,9 @@ describe('Game Scoring Integration Tests', () => {
     // Bob plays a safety
     await userEvent.click(screen.getByRole('button', { name: /Safety/i }));
 
-    // Safety counter should be visible in the UI
+    // Safety counter should be visible in the compact stat cards
     await waitFor(() => {
-      expect(screen.getAllByText('Safeties').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('Safe').length).toBeGreaterThan(0);
     });
   });
 

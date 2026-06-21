@@ -206,7 +206,7 @@ describe('GameScoring integration', () => {
     expect(screen.getByText(/Balls Per Inning/i)).toBeInTheDocument();
   });
 
-  test('resets live BOT display to 15 after a table-clearing miss', async () => {
+  test('does not offer fewer than two balls in the BOT dialog', async () => {
     render(
       <GameScoring
         players={['Alice', 'Bob']}
@@ -230,13 +230,76 @@ describe('GameScoring integration', () => {
     );
 
     await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
-    await userEvent.click(await screen.findByRole('button', { name: '0' }));
 
-    await waitFor(() => {
-      expect(
-        within(screen.getByTestId('bot-indicator')).getByText('15'),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByRole('button', { name: '2' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '0' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '1' })).not.toBeInTheDocument();
+  });
+
+  test('offers zero or one after tapping Rack with two balls on the table', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 100, Bob: 100 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        backend={backend}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={15}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '2' }));
+
+    await userEvent.click(screen.getByRole('button', { name: /Rack/i }));
+
+    expect(await screen.findByRole('button', { name: '0' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '2' })).not.toBeInTheDocument();
+  });
+
+  test('does not open Rack flow before the two-ball rack point', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 100, Bob: 100 }}
+        gameId={null}
+        setGameId={() => {}}
+        finishGame={() => {}}
+        backend={backend}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={15}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /^Miss$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '5' }));
+
+    const rackButton = screen.getByRole('button', { name: /Rack/i });
+    expect(rackButton).toBeDisabled();
+
+    await userEvent.click(rackButton);
+    expect(screen.queryByTestId('balls-on-table-modal')).not.toBeInTheDocument();
   });
 
   test('shows BOT in a dedicated status strip above the action buttons', async () => {

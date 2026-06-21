@@ -48,17 +48,12 @@ export const MatchTimer: React.FC<MatchTimerProps> = memo(
       }
     }, [startTime, endTime, isRunning]);
 
+    const live = isRunning && !endTime;
     return (
-      <div className="flex items-center gap-1.5 sm:gap-3 bg-gray-100 dark:bg-gray-700 px-2 py-1 sm:px-3 sm:py-2 rounded-lg">
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isRunning && !endTime ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-          }`}
-        />
-        <span className="text-sm sm:text-lg font-mono font-bold text-gray-800 dark:text-gray-200">
-          {elapsedTime}
-        </span>
-      </div>
+      <span className="rc-timer">
+        <span className={`rc-timer-dot ${live ? '' : 'paused'}`} />
+        <span className="mono">{elapsedTime}</span>
+      </span>
     );
   },
 );

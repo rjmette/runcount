@@ -505,9 +505,14 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const isBreakShot =
     (actions.length === 0 && currentInning === 1) ||
     playerNeedsReBreak === playerData[activePlayerIndex]?.id;
+  const canStartNewRack = ballsOnTable === 2;
 
   // Handle action button clicks
   const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
+    if (action === 'newrack' && !canStartNewRack) {
+      return;
+    }
+
     dispatchFoulFlow({ type: 'setAction', action });
 
     // If it's a foul on a break shot, show penalty selection modal first
@@ -646,8 +651,8 @@ const GameScoring: React.FC<GameScoringProps> = ({
     actions.filter((a) => a.type === 'score' && a.value === 0).length + 1;
 
   return (
-    <div className="max-w-4xl w-full mx-auto my-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="mx-auto w-full max-w-[1180px] rc-scope">
+      <div className="rc-players">
         {playerData.map((player, index) => (
           <PlayerScoreCard
             key={player.id}
@@ -677,64 +682,67 @@ const GameScoring: React.FC<GameScoringProps> = ({
       />
 
       {/* Active-player action zone: end-of-inning actions */}
-      <div className="mt-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <div className="space-y-2">
-          {/* Primary end-of-inning action */}
+      <div className="rc-actions">
+        {/* Primary end-of-inning action */}
+        <button
+          type="button"
+          onClick={() => handleActionClick('miss')}
+          className="rc-miss"
+        >
+          Miss
+        </button>
+
+        {/* Qualifiers / alternative end-of-inning markers */}
+        <div className="rc-actions-row">
           <button
             type="button"
-            onClick={() => handleActionClick('miss')}
-            className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-3 py-3 text-sm font-semibold shadow-sm transition-colors"
+            onClick={() => handleActionClick('safety')}
+            className="rc-act"
           >
-            Miss
+            Safety
           </button>
-
-          {/* Qualifiers / alternative end-of-inning markers */}
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => handleActionClick('safety')}
-              className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100 px-3 py-2.5 text-sm font-medium transition-colors"
-            >
-              Safety
-            </button>
-            <button
-              type="button"
-              onClick={() => handleActionClick('foul')}
-              className="rounded-lg bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-700 dark:bg-gray-700 dark:hover:bg-red-900/40 dark:text-gray-100 dark:hover:text-red-200 px-3 py-2.5 text-sm font-medium transition-colors"
-            >
-              Foul
-            </button>
-            <button
-              type="button"
-              onClick={() => handleActionClick('newrack')}
-              className="rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:hover:bg-emerald-900/60 dark:text-emerald-200 px-3 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-1"
-            >
-              <span aria-hidden="true">+</span>Rack
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleActionClick('foul')}
+            className="rc-act"
+          >
+            Foul
+          </button>
+          <button
+            type="button"
+            disabled={!canStartNewRack}
+            onClick={() => handleActionClick('newrack')}
+            className="rc-act rack"
+            title={
+              canStartNewRack
+                ? 'Start a new rack'
+                : 'New rack is available when 2 balls remain'
+            }
+          >
+            <span aria-hidden="true">+ </span>Rack
+          </button>
         </div>
       </div>
 
-      {/* Utility row + timers */}
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+      {/* Utility row + timers (fixed bottom tab bar on phones) */}
+      <div className="rc-toolbar">
         <button
           type="button"
           onClick={() => setShowInningsModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 text-xs font-medium transition-colors"
+          className="rc-pill"
           title="View game innings"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5"
-            fill="none"
             viewBox="0 0 24 24"
+            fill="none"
             stroke="currentColor"
+            strokeWidth={1.8}
           >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
             />
           </svg>
           Innings
@@ -744,26 +752,22 @@ const GameScoring: React.FC<GameScoringProps> = ({
           type="button"
           onClick={handleUndoLastAction}
           disabled={!isUndoEnabled}
-          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-            isUndoEnabled
-              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200'
-              : 'bg-gray-50 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600'
-          }`}
+          className="rc-pill undo"
           title="Undo last action"
           aria-label="Undo last action"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5"
-            fill="none"
             viewBox="0 0 24 24"
+            fill="none"
             stroke="currentColor"
+            strokeWidth={1.8}
           >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6" />
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth={2}
-              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              d="M3 13a9 9 0 1 0 3-7.7L3 8"
             />
           </svg>
           Undo
@@ -772,21 +776,16 @@ const GameScoring: React.FC<GameScoringProps> = ({
         <button
           type="button"
           onClick={() => setShowEndGameModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 px-3 py-1.5 text-xs font-medium transition-colors"
+          className="rc-pill"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3.5 w-3.5"
-            fill="none"
             viewBox="0 0 24 24"
+            fill="none"
             stroke="currentColor"
+            strokeWidth={1.8}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
           </svg>
           End Game
         </button>
@@ -794,17 +793,28 @@ const GameScoring: React.FC<GameScoringProps> = ({
         <button
           type="button"
           onClick={() => setShowHelpModal(true)}
-          className="inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 w-7 h-7 text-xs font-bold transition-colors"
+          className="rc-pill icon-only"
           title="Show straight pool help"
           aria-label="Show help"
         >
-          ?
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.8}
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7M12 17h.01"
+            />
+          </svg>
+          <span className="rc-pill-mob">Help</span>
         </button>
 
-        <span
-          className="mx-1 hidden h-5 w-px bg-gray-300 dark:bg-gray-600 sm:inline-block"
-          aria-hidden="true"
-        />
+        <span className="rc-toolbar-sep" aria-hidden="true" />
 
         <MatchTimer
           startTime={matchStartTime}

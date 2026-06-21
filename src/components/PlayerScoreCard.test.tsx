@@ -55,15 +55,15 @@ describe('PlayerScoreCard Component', () => {
     // Check score is displayed
     expect(screen.getByText('25')).toBeInTheDocument();
 
-    // Check other stats are displayed
-    expect(screen.getByText('5')).toBeInTheDocument(); // Innings
+    // Check metadata stats are displayed
     expect(screen.getByText('8')).toBeInTheDocument(); // High Run
     expect(screen.getByText('5.00')).toBeInTheDocument(); // BPI (25/5 = 5.00)
 
-    // Check counters are shown
+    // Check counters are shown (the per-player "Miss" stat was removed in the
+    // scoreboard refresh — only High, BPI, Safe, Foul remain)
     expect(screen.getByText('2')).toBeInTheDocument(); // Fouls
     expect(screen.getByText('1')).toBeInTheDocument(); // Safeties
-    expect(screen.getByText('3')).toBeInTheDocument(); // Misses
+    expect(screen.queryByText('Miss')).not.toBeInTheDocument();
 
     // Check progress percentage (25/75 = 33%) using semantic queries
     const progressBar = screen.getByRole('progressbar');
