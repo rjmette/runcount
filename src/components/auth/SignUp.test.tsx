@@ -1,77 +1,26 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-import { getAuthCallbackUrl } from '../../utils/authRedirect';
-
 import SignUp from './SignUp';
 
+import type { AwsAuthOperations } from './Auth';
+
+const buildAwsAuth = (overrides: Partial<AwsAuthOperations> = {}): AwsAuthOperations => ({
+  signInWithPassword: vi.fn(),
+  signInWithGoogle: vi.fn().mockResolvedValue(undefined),
+  signUp: vi.fn().mockResolvedValue({ userConfirmed: false }),
+  confirmSignUp: vi.fn().mockResolvedValue(undefined),
+  forgotPassword: vi.fn(),
+  confirmForgotPassword: vi.fn(),
+  ...overrides,
+});
+
 describe('SignUp', () => {
-  const signUp = vi.fn();
-  const signInWithOAuth = vi.fn();
-  const onSuccess = vi.fn();
-
-  const supabase = {
-    auth: {
-      signUp,
-      signInWithOAuth,
-    },
-  } as any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    signUp.mockResolvedValue({ error: null });
-    signInWithOAuth.mockResolvedValue({ error: null });
   });
 
-  test('uses the auth callback URL for email confirmation', async () => {
-    render(<SignUp supabase={supabase} onSuccess={onSuccess} />);
-
-    fireEvent.change(screen.getByLabelText(/^email$/i), {
-      target: { value: 'player@example.com' },
-    });
-    fireEvent.change(screen.getByLabelText(/^password$/i), {
-      target: { value: 'secret123' },
-    });
-    fireEvent.change(screen.getByLabelText(/confirm password/i), {
-      target: { value: 'secret123' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /create account/i }));
-
-    await waitFor(() => {
-      expect(signUp).toHaveBeenCalledWith({
-        email: 'player@example.com',
-        password: 'secret123',
-        options: {
-          emailRedirectTo: getAuthCallbackUrl(),
-        },
-      });
-    });
-    expect(onSuccess).toHaveBeenCalledTimes(1);
-  });
-
-  test('uses the auth callback URL for Apple OAuth sign-up', async () => {
-    render(<SignUp supabase={supabase} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /^apple$/i }));
-
-    await waitFor(() => {
-      expect(signInWithOAuth).toHaveBeenCalledWith({
-        provider: 'apple',
-        options: {
-          redirectTo: getAuthCallbackUrl(),
-        },
-      });
-    });
-  });
-
-  test('starts AWS signup and confirms the emailed verification code', async () => {
-    const awsAuth = {
-      signInWithPassword: vi.fn(),
-      signInWithGoogle: vi.fn(),
-      signUp: vi.fn().mockResolvedValue({ userConfirmed: false }),
-      confirmSignUp: vi.fn().mockResolvedValue(undefined),
-      forgotPassword: vi.fn(),
-      confirmForgotPassword: vi.fn(),
-    };
+  test('starts signup and confirms the emailed verification code', async () => {
+    const awsAuth = buildAwsAuth();
 
     render(<SignUp awsAuth={awsAuth} />);
 
@@ -106,15 +55,8 @@ describe('SignUp', () => {
     ).toBeInTheDocument();
   });
 
-  test('blocks AWS signup before submit when the password misses Cognito policy', async () => {
-    const awsAuth = {
-      signInWithPassword: vi.fn(),
-      signInWithGoogle: vi.fn(),
-      signUp: vi.fn(),
-      confirmSignUp: vi.fn(),
-      forgotPassword: vi.fn(),
-      confirmForgotPassword: vi.fn(),
-    };
+  test('blocks signup before submit when the password misses Cognito policy', async () => {
+    const awsAuth = buildAwsAuth();
 
     render(<SignUp awsAuth={awsAuth} />);
 
@@ -135,15 +77,23 @@ describe('SignUp', () => {
     );
   });
 
-  test('shows AWS signup errors', async () => {
-    const awsAuth = {
-      signInWithPassword: vi.fn(),
-      signInWithGoogle: vi.fn(),
+  test('starts Google sign-up through hosted auth', async () => {
+    const awsAuth = buildAwsAuth();
+
+    render(<SignUp awsAuth={awsAuth} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^google$/i }));
+
+    await waitFor(() => {
+      expect(awsAuth.signInWithGoogle).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByRole('button', { name: /^apple$/i })).not.toBeInTheDocument();
+  });
+
+  test('shows signup errors', async () => {
+    const awsAuth = buildAwsAuth({
       signUp: vi.fn().mockRejectedValue(new Error('User already exists')),
-      confirmSignUp: vi.fn(),
-      forgotPassword: vi.fn(),
-      confirmForgotPassword: vi.fn(),
-    };
+    });
 
     render(<SignUp awsAuth={awsAuth} />);
 

@@ -14,7 +14,7 @@
 
 - `/src`: Contains the main application source code.
   - `/src/components`: Reusable UI components, organized by feature (e.g., `auth`, `GameHistory`, `GameScoring`, `GameStatistics`).
-  - `/src/context`: React Context API for global state management (e.g., `AuthContext`, `GamePersistContext`).
+  - `/src/context`: React Context API for shared state (e.g., `GamePersistContext`).
   - `/src/types`: TypeScript type definitions (e.g., `game.ts`).
   - `/src/utils`: Utility functions (e.g., `copyToClipboard.ts`).
 - `/public`: Static assets (e.g., `favicon.ico`, `manifest.json`).

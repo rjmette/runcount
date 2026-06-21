@@ -71,7 +71,7 @@ describe('useGameActions', () => {
       actions,
       gameId: 'game-1',
       currentInning: 1,
-      saveGameToSupabase: vi.fn(),
+      persistGame: vi.fn(),
       setPlayerData,
       setActions,
       setBallsOnTable,

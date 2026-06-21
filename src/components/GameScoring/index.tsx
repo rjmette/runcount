@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useReducer } from 'react';
 
 import { useError } from '../../context/ErrorContext';
 import { useGamePersist } from '../../context/GamePersistContext';
-import { saveGameToSupabaseHelper } from '../../hooks/useGameSave';
+import { persistGameHelper } from '../../hooks/useGameSave';
 import { type GameScoringProps } from '../../types/game';
 import BreakDialog from '../BreakDialog';
 import { InningsModal } from '../GameStatistics/components/InningsModal';
@@ -182,7 +182,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setGameId,
     breakingPlayerId,
     getGameState,
-    saveGameToSupabase: async (
+    persistGame: async (
       gameId,
       players,
       actions,
@@ -192,7 +192,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       matchStartTimeOverride,
     ) => {
       try {
-        await saveGameToSupabaseHelper({
+        await persistGameHelper({
           backend,
           user,
           saveGameState,
@@ -233,7 +233,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       gameId: gameId || '',
       currentInning,
-      saveGameToSupabase: async (
+      persistGame: async (
         gameId,
         players,
         actions,
@@ -243,7 +243,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         matchStartTimeOverride,
       ) => {
         try {
-          await saveGameToSupabaseHelper({
+          await persistGameHelper({
             backend,
             user,
             saveGameState,
@@ -296,7 +296,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     breakingPlayerId,
     actions,
     gameId: gameId || '',
-    saveGameToSupabase: async (
+    persistGame: async (
       gameId,
       players,
       actions,
@@ -306,7 +306,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       matchStartTimeOverride,
     ) => {
       try {
-        await saveGameToSupabaseHelper({
+        await persistGameHelper({
           backend,
           user,
           saveGameState,
@@ -480,7 +480,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         setMatchEndTime(endTime);
       }
 
-      void saveGameToSupabaseHelper({
+      void persistGameHelper({
         backend,
         user,
         saveGameState,

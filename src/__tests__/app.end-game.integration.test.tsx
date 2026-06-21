@@ -4,44 +4,25 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-const { mockQuery, mockSupabase } = vi.hoisted(() => {
-  const query = {
-    select: vi.fn(),
-    eq: vi.fn(),
-    single: vi.fn(),
-    upsert: vi.fn(),
-    insert: vi.fn(),
-    order: vi.fn(),
-  };
-
-  return {
-    mockQuery: query,
-    mockSupabase: {
-      from: vi.fn(() => query),
-    },
-  };
-});
-
-vi.mock('@supabase/supabase-js', async () => {
-  const actual = await vi.importActual('@supabase/supabase-js');
-
-  return {
-    ...actual,
-    createClient: vi.fn(() => mockSupabase),
-  };
-});
-
-vi.mock('../context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useAuth: () => ({
+vi.mock('../aws-auth/AwsAuthContext', () => ({
+  AwsAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAwsAuth: () => ({
     user: null,
+    session: null,
     loading: false,
+    getIdToken: vi.fn().mockResolvedValue(null),
+    signIn: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    confirmSignUp: vi.fn(),
+    forgotPassword: vi.fn(),
+    confirmForgotPassword: vi.fn(),
+    updateEmail: vi.fn(),
+    verifyEmailUpdate: vi.fn(),
+    updatePassword: vi.fn(),
     signOut: vi.fn(),
+    refreshSession: vi.fn(),
   }),
-}));
-
-vi.mock('../components/modals/AuthModal', () => ({
-  AuthModal: () => null,
 }));
 
 vi.mock('../components/modals/ProfileModal', () => ({
@@ -54,13 +35,6 @@ describe('App end-game flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-
-    mockQuery.select.mockImplementation(() => mockQuery);
-    mockQuery.eq.mockImplementation(() => mockQuery);
-    mockQuery.single.mockResolvedValue({ data: null, error: null });
-    mockQuery.upsert.mockResolvedValue({ data: null, error: null });
-    mockQuery.insert.mockResolvedValue({ data: null, error: null });
-    mockQuery.order.mockResolvedValue({ data: [], error: null });
   });
 
   const startGame = async (options?: {

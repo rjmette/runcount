@@ -31,7 +31,6 @@ jobs:
 
       - name: Build web app
         env:
-          VITE_BACKEND: aws
           VITE_COGNITO_REGION: us-east-1
           VITE_COGNITO_USER_POOL_ID: us-east-1_RhGVzVRp9
           VITE_COGNITO_CLIENT_ID: 52tpeumvp9sdjrm025n0aj36da

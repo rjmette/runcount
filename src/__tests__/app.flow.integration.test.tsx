@@ -6,9 +6,25 @@ import { vi } from 'vitest';
 import App from '../App';
 
 // Mock contexts and heavy components to keep this fast and deterministic
-vi.mock('../context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useAuth: () => ({ user: null, loading: false, signOut: vi.fn() }),
+vi.mock('../aws-auth/AwsAuthContext', () => ({
+  AwsAuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useAwsAuth: () => ({
+    user: null,
+    session: null,
+    loading: false,
+    getIdToken: vi.fn().mockResolvedValue(null),
+    signIn: vi.fn(),
+    signInWithPassword: vi.fn(),
+    signUp: vi.fn(),
+    confirmSignUp: vi.fn(),
+    forgotPassword: vi.fn(),
+    confirmForgotPassword: vi.fn(),
+    updateEmail: vi.fn(),
+    verifyEmailUpdate: vi.fn(),
+    updatePassword: vi.fn(),
+    signOut: vi.fn(),
+    refreshSession: vi.fn(),
+  }),
 }));
 
 vi.mock('../components/GameHistory', () => ({

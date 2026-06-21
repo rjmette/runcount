@@ -9,7 +9,6 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 describe('AwsAuthProvider mock-mode password sign-in', () => {
   beforeEach(() => {
     vi.resetModules();
-    vi.stubEnv('VITE_BACKEND', 'aws');
     vi.stubEnv('VITE_AUTH_MOCK', '1');
     localStorage.clear();
   });

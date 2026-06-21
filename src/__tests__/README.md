@@ -105,17 +105,19 @@ src/
 Always mock external services and heavy dependencies:
 
 ```typescript
-// Mock Supabase
-const mockSupabase = {
-  from: () => ({
-    upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
-    // ...
-  }),
+// Mock backend
+const mockBackend = {
+  listGames: vi.fn().mockResolvedValue([]),
+  saveGame: vi.fn().mockResolvedValue(undefined),
+  getGame: vi.fn().mockResolvedValue(null),
+  deleteGame: vi.fn().mockResolvedValue(undefined),
+  getProfileStats: vi.fn().mockResolvedValue({ totalGames: 0, lastGameDate: null }),
 };
 
 // Mock authentication
-vi.mock('../context/AuthContext', () => ({
-  useAuth: () => ({ user: null, loading: false }),
+vi.mock('../aws-auth/AwsAuthContext', () => ({
+  AwsAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAwsAuth: () => ({ user: null, loading: false, getIdToken: vi.fn() }),
 }));
 ```
 
@@ -191,7 +193,7 @@ fireEvent.change(input, { target: { value: 'Alice' } });
 ```typescript
 test('should handle errors gracefully', async () => {
   // Mock error condition
-  mockSupabase.from = () => ({
+  mockbackend.from = () => ({
     upsert: vi.fn().mockResolvedValue({
       data: null,
       error: new Error('Network error'),

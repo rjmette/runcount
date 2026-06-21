@@ -1,6 +1,6 @@
 # RunCount - Straight Pool (14.1) Scoring App
 
-A modern, mobile-responsive scoring application for the billiards game Straight Pool (14.1 continuous). Built with React 19, TypeScript, Tailwind CSS, and Supabase for real-time data synchronization and user authentication.
+A modern, mobile-responsive scoring application for the billiards game Straight Pool (14.1 continuous). Built with React 19, TypeScript, Tailwind CSS, AWS API Gateway/Lambda/DynamoDB persistence, and Cognito authentication.
 
 ## Features
 
@@ -10,7 +10,7 @@ A modern, mobile-responsive scoring application for the billiards game Straight 
 - **Target Score System**: Continuous ball count until the target score is reached
 - **User-Friendly Interface**: Intuitive scoring interface with easy undo functionality
 - **Detailed Analytics**: Game statistics tracking (innings, high runs, BPI, fouls, safeties, etc.)
-- **Game History**: Storage and review of past games via Supabase backend
+- **Game History**: Storage and review of past games via the AWS backend
 - **User Accounts**: Secure authentication for saving and accessing personal game history
 - **Responsive Design**: Fully optimized for tablets and smartphones with touch-friendly controls
 
@@ -24,7 +24,7 @@ A modern, mobile-responsive scoring application for the billiards game Straight 
 
 - Node.js (v18 or higher)
 - npm or yarn
-- Supabase account (for database and authentication)
+- AWS API and Cognito configuration for cloud history/authentication
 
 ### Installation
 
@@ -41,23 +41,18 @@ cd runcount
 npm install
 ```
 
-3. Configure Supabase
-   - Create a new Supabase project at [supabase.com](https://supabase.com)
-   - Create a `games` table with the following schema:
-     - id (uuid, primary key)
-     - date (timestamp with timezone)
-     - players (jsonb)
-     - actions (jsonb)
-     - completed (boolean)
-     - target_score (int)
-     - winner_id (int, nullable)
-     - owner_id (uuid, references auth.users.id)
-   - Enable Row Level Security (RLS) with appropriate policies
-   - Set up authentication providers (email, social logins)
-   - Create a `.env.local` file in the project root with your Supabase credentials:
+3. Configure AWS API + Cognito
+   - Deploy the backend CDK app in `infra/`, or use an existing deployed environment.
+   - Configure Cognito email/password and Google sign-in for the target environment.
+   - Create a `.env.local` file in the project root with your AWS frontend config:
      ```
-     VITE_SUPABASE_URL=your_supabase_url
-     VITE_SUPABASE_KEY=your_supabase_anon_key
+     VITE_API_URL=https://your-api-id.execute-api.us-east-1.amazonaws.com
+     VITE_COGNITO_REGION=us-east-1
+     VITE_COGNITO_USER_POOL_ID=your_pool_id
+     VITE_COGNITO_CLIENT_ID=your_client_id
+     VITE_COGNITO_DOMAIN=https://your-domain.auth.us-east-1.amazoncognito.com
+     VITE_COGNITO_REDIRECT_URI=http://localhost:3000/auth/callback
+     VITE_COGNITO_LOGOUT_URI=http://localhost:3000/
      ```
 
 4. Start the development server
@@ -262,6 +257,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Acknowledgements
 
 - [React](https://reactjs.org/)
-- [Supabase](https://supabase.com/)
+- [AWS](https://aws.amazon.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [TypeScript](https://www.typescriptlang.org/)

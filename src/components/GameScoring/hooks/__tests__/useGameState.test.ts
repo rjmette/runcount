@@ -27,7 +27,7 @@ describe('useGameState', () => {
   });
 
   test('initializes new game when no saved state', () => {
-    const saveGameToSupabase = vi.fn();
+    const persistGame = vi.fn();
     const setGameId = vi.fn();
 
     const { result } = renderHook(() =>
@@ -38,7 +38,7 @@ describe('useGameState', () => {
         setGameId,
         breakingPlayerId: 0,
         getGameState: () => null,
-        saveGameToSupabase,
+        persistGame,
       }),
     );
 
@@ -78,7 +78,7 @@ describe('useGameState', () => {
         setGameId,
         breakingPlayerId: 1,
         getGameState,
-        saveGameToSupabase: vi.fn(),
+        persistGame: vi.fn(),
       }),
     );
 
@@ -137,7 +137,7 @@ describe('useGameState', () => {
         setGameId: vi.fn(),
         breakingPlayerId: 0,
         getGameState,
-        saveGameToSupabase: vi.fn(),
+        persistGame: vi.fn(),
       }),
     );
 
@@ -183,7 +183,7 @@ describe('useGameState', () => {
         setGameId: vi.fn(),
         breakingPlayerId: 0,
         getGameState,
-        saveGameToSupabase: vi.fn(),
+        persistGame: vi.fn(),
       }),
     );
 
@@ -233,7 +233,7 @@ describe('useGameState', () => {
         setGameId: vi.fn(),
         breakingPlayerId: 0,
         getGameState,
-        saveGameToSupabase: vi.fn(),
+        persistGame: vi.fn(),
       }),
     );
 
@@ -242,7 +242,7 @@ describe('useGameState', () => {
   });
 
   test('does not initialize twice with ref guard', () => {
-    const saveGameToSupabase = vi.fn();
+    const persistGame = vi.fn();
     const setGameId = vi.fn();
 
     const { rerender } = renderHook(() =>
@@ -253,7 +253,7 @@ describe('useGameState', () => {
         setGameId,
         breakingPlayerId: 0,
         getGameState: () => null,
-        saveGameToSupabase,
+        persistGame,
       }),
     );
 
@@ -262,6 +262,6 @@ describe('useGameState', () => {
 
     // Should only initialize once
     expect(setGameId).toHaveBeenCalledTimes(1);
-    expect(saveGameToSupabase).toHaveBeenCalledTimes(1);
+    expect(persistGame).toHaveBeenCalledTimes(1);
   });
 });

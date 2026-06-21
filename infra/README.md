@@ -1,6 +1,6 @@
 # RunCount Infrastructure
 
-AWS CDK stack for the Supabase replacement work in issue #123.
+AWS CDK stack for RunCount's Cognito, API, data, and frontend infrastructure.
 
 ## Stacks
 

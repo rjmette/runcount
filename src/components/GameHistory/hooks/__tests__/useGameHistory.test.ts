@@ -5,13 +5,21 @@ import { createMockGameData } from '../../../../testing/factories';
 import { useGameHistory } from '../useGameHistory';
 
 describe('useGameHistory', () => {
-  test('loads valid games from backend', async () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  test('loads valid games from localStorage when signed out', async () => {
     const validGame = createMockGameData({ id: 'valid-game' });
-    const invalidGame = { id: 'invalid-game', players: [] };
     const backend = {
-      listGames: vi.fn().mockResolvedValue([validGame, invalidGame]),
+      listGames: vi.fn(),
       deleteGame: vi.fn(),
     };
+    localStorage.setItem(`runcount_game_${validGame.id}`, JSON.stringify(validGame));
+    localStorage.setItem(
+      'runcount_game_invalid',
+      JSON.stringify({ id: 'invalid-game', players: [] }),
+    );
 
     const { result } = renderHook(() =>
       useGameHistory({ backend: backend as never, user: null }),
@@ -19,7 +27,7 @@ describe('useGameHistory', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(backend.listGames).toHaveBeenCalledWith(null);
+    expect(backend.listGames).not.toHaveBeenCalled();
     expect(result.current.games).toEqual([validGame]);
     expect(result.current.error).toBe('');
   });
@@ -48,9 +56,10 @@ describe('useGameHistory', () => {
       listGames: vi.fn().mockRejectedValue(new Error('load failed')),
       deleteGame: vi.fn(),
     };
+    const user = { id: 'user-1' };
 
     const { result } = renderHook(() =>
-      useGameHistory({ backend: backend as never, user: null }),
+      useGameHistory({ backend: backend as never, user: user as never }),
     );
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -62,9 +71,10 @@ describe('useGameHistory', () => {
   test('soft deletes a game and removes it from local state', async () => {
     const game = createMockGameData({ id: 'game-to-delete' });
     const backend = {
-      listGames: vi.fn().mockResolvedValue([game]),
+      listGames: vi.fn(),
       deleteGame: vi.fn().mockResolvedValue(undefined),
     };
+    localStorage.setItem(`runcount_game_${game.id}`, JSON.stringify(game));
 
     const { result } = renderHook(() =>
       useGameHistory({ backend: backend as never, user: null }),
@@ -76,7 +86,8 @@ describe('useGameHistory', () => {
       await result.current.deleteGame('game-to-delete');
     });
 
-    expect(backend.deleteGame).toHaveBeenCalledWith('game-to-delete');
+    expect(backend.deleteGame).not.toHaveBeenCalled();
+    expect(localStorage.getItem(`runcount_game_${game.id}`)).toBeNull();
     expect(result.current.games).toEqual([]);
   });
 
@@ -86,9 +97,10 @@ describe('useGameHistory', () => {
       listGames: vi.fn().mockResolvedValue([game]),
       deleteGame: vi.fn().mockRejectedValue(new Error('delete failed')),
     };
+    const user = { id: 'user-1' };
 
     const { result } = renderHook(() =>
-      useGameHistory({ backend: backend as never, user: null }),
+      useGameHistory({ backend: backend as never, user: user as never }),
     );
 
     await waitFor(() => expect(result.current.games).toHaveLength(1));

@@ -1,5 +1,4 @@
 export const isAwsAuthMock = import.meta.env.VITE_AUTH_MOCK === '1';
-export const isAwsBackend = import.meta.env.VITE_BACKEND === 'aws';
 
 function optionalEnv(name: keyof ImportMetaEnv): string {
   return (import.meta.env[name] as string | undefined) ?? '';
@@ -8,11 +7,8 @@ function optionalEnv(name: keyof ImportMetaEnv): string {
 function requiredEnv(name: keyof ImportMetaEnv): string {
   const value = optionalEnv(name);
   if (isAwsAuthMock) return value || `mock-${String(name)}`;
-  if (!isAwsBackend) return value;
   if (!value) {
-    throw new Error(
-      `Missing required env var: ${String(name)}. Set VITE_BACKEND=aws only after configuring Cognito.`,
-    );
+    throw new Error(`Missing required env var: ${String(name)} for Cognito auth.`);
   }
   return value;
 }

@@ -1,21 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { FC } from 'react';
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
 import { AwsAuthProvider, useAwsAuth } from './aws-auth/AwsAuthContext';
-import { isAwsBackend } from './aws-auth/config';
 import { createAwsBackend } from './backend/awsBackend';
-import { createSupabaseBackend } from './backend/supabaseBackend';
 import Auth, { type AuthTab, type AwsAuthOperations } from './components/auth/Auth';
 import { GameRouter } from './components/GameRouter';
 import { Header } from './components/Header';
-import { AuthModal } from './components/modals/AuthModal';
 import { ProfileModal } from './components/modals/ProfileModal';
 import { Navigation } from './components/Navigation';
 import ErrorBanner from './components/shared/ErrorBanner';
 import { ErrorBoundary, ErrorEventsBridge } from './components/shared/ErrorBoundary';
-import { AuthProvider, useAuth } from './context/AuthContext';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import { GamePersistProvider } from './context/GamePersistContext';
 import { useFullscreen } from './hooks/useFullscreen';
@@ -28,79 +22,24 @@ import type { AppUser } from './types/auth';
 
 import './App.css';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || '';
-const supabase = isAwsBackend ? null : createClient(supabaseUrl, supabaseKey);
-
-const getSupabaseClient = (): SupabaseClient => {
-  if (!supabase) {
-    throw new Error('Supabase client is only available when VITE_BACKEND is not aws.');
-  }
-  return supabase;
-};
-
-// Main App Component - now just wraps the content with AuthProvider
 const App: FC = () => {
   return (
     <ErrorProvider>
       <ErrorBoundary>
         <ErrorEventsBridge>
-          {isAwsBackend ? (
-            <AwsAuthProvider>
-              <GamePersistProvider>
-                <AwsAppContent />
-                <ErrorBanner />
-              </GamePersistProvider>
-            </AwsAuthProvider>
-          ) : (
-            <SupabaseAppProviders />
-          )}
+          <AwsAuthProvider>
+            <GamePersistProvider>
+              <AppWithAwsBackend />
+              <ErrorBanner />
+            </GamePersistProvider>
+          </AwsAuthProvider>
         </ErrorEventsBridge>
       </ErrorBoundary>
     </ErrorProvider>
   );
 };
 
-const SupabaseAppProviders: FC = () => {
-  const supabaseClient = getSupabaseClient();
-
-  return (
-    <AuthProvider supabase={supabaseClient}>
-      <GamePersistProvider>
-        <SupabaseAppContent supabase={supabaseClient} />
-        <ErrorBanner />
-      </GamePersistProvider>
-    </AuthProvider>
-  );
-};
-
-interface SupabaseAppContentProps {
-  supabase: SupabaseClient;
-}
-
-const SupabaseAppContent: FC<SupabaseAppContentProps> = ({ supabase }) => {
-  const { user, loading, signOut } = useAuth();
-  const backend = useMemo(() => createSupabaseBackend(supabase), []);
-
-  return (
-    <AppContent
-      user={user}
-      loading={loading}
-      signOut={signOut}
-      backend={backend}
-      renderAuthModal={({ isOpen, gameState, onClose }) => (
-        <AuthModal
-          isOpen={isOpen}
-          gameState={gameState}
-          supabase={supabase}
-          onClose={onClose}
-        />
-      )}
-    />
-  );
-};
-
-const AwsAppContent: FC = () => {
+const AppWithAwsBackend: FC = () => {
   const {
     user,
     loading,
@@ -140,7 +79,7 @@ const AwsAppContent: FC = () => {
       signOut={signOut}
       backend={backend}
       renderAuthModal={({ isOpen, gameState, onClose }) => (
-        <AwsAuthModal
+        <AuthModal
           isOpen={isOpen}
           gameState={gameState}
           onClose={onClose}
@@ -364,14 +303,14 @@ const AppContent: FC<AppContentProps> = ({
   );
 };
 
-interface AwsAuthModalProps {
+interface AuthModalProps {
   isOpen: boolean;
   gameState: ReturnType<typeof useGameState>['gameState'];
   onClose: () => void;
   awsAuth: AwsAuthOperations;
 }
 
-const AwsAuthModal: FC<AwsAuthModalProps> = ({ isOpen, gameState, onClose, awsAuth }) => {
+const AuthModal: FC<AuthModalProps> = ({ isOpen, gameState, onClose, awsAuth }) => {
   const [activeTab, setActiveTab] = useState<AuthTab>('login');
 
   if (!isOpen) return null;

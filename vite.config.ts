@@ -36,7 +36,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
           'vendor-recharts': ['recharts'],
         },
       },
@@ -50,10 +49,6 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
-    env: {
-      VITE_SUPABASE_URL: 'https://test.supabase.co',
-      VITE_SUPABASE_KEY: 'test-dummy-key-for-ci-testing',
-    },
     exclude: ['.claude/**', 'tests/**', 'node_modules/**', '**/node_modules/**'],
     coverage: {
       provider: 'v8',
