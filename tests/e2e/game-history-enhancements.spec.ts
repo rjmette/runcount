@@ -1,5 +1,7 @@
 import { expect, test } from '../setup';
 
+import type { Page } from '@playwright/test';
+
 const createPlayer = (id: number, name: string, score: number, targetScore = 75) => ({
   id,
   name,
@@ -43,15 +45,18 @@ const gameHistory = [
   },
 ];
 
+const seedLocalHistory = async (page: Page, games: unknown[]) => {
+  await page.addInitScript((seedGames) => {
+    for (const game of seedGames) {
+      const id = (game as { id: string }).id;
+      localStorage.setItem(`runcount_game_${id}`, JSON.stringify(game));
+    }
+  }, games);
+};
+
 test.describe('Game history enhancements', () => {
   test('filters, sorts, visualizes, and exports game history', async ({ page }) => {
-    await page.route('http://127.0.0.1:54321/rest/v1/games**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(gameHistory),
-      });
-    });
+    await seedLocalHistory(page, gameHistory);
 
     await page.goto('/');
     await page.evaluate(() => window.dispatchEvent(new Event('switchToHistory')));

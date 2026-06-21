@@ -1,5 +1,7 @@
 import { expect, test } from '../setup';
 
+import type { Page } from '@playwright/test';
+
 const createPlayer = (id: number, name: string, score: number, highRun: number) => ({
   id,
   name,
@@ -43,15 +45,18 @@ const inProgressGame = {
   deleted: false,
 };
 
+const seedLocalHistory = async (page: Page, games: unknown[]) => {
+  await page.addInitScript((seedGames) => {
+    for (const game of seedGames) {
+      const id = (game as { id: string }).id;
+      localStorage.setItem(`runcount_game_${id}`, JSON.stringify(game));
+    }
+  }, games);
+};
+
 test.describe('Trends page', () => {
   test('renders empty state when there are no completed games', async ({ page }) => {
-    await page.route('http://127.0.0.1:54321/rest/v1/games**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([inProgressGame]),
-      });
-    });
+    await seedLocalHistory(page, [inProgressGame]);
 
     await page.goto('/');
     await page.evaluate(() => window.dispatchEvent(new Event('switchToHistory')));
@@ -62,13 +67,7 @@ test.describe('Trends page', () => {
   });
 
   test('shows summary cards and charts for the selected player', async ({ page }) => {
-    await page.route('http://127.0.0.1:54321/rest/v1/games**', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify([completedGameTwo, completedGameOne, inProgressGame]),
-      });
-    });
+    await seedLocalHistory(page, [completedGameTwo, completedGameOne, inProgressGame]);
 
     await page.goto('/');
     await page.evaluate(() => window.dispatchEvent(new Event('switchToHistory')));

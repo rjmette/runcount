@@ -11,6 +11,36 @@ interface UseGameHistoryProps {
   user: AppUser | null;
 }
 
+const LOCAL_GAME_PREFIX = 'runcount_game_';
+
+const isLocalGameKey = (key: string) =>
+  key.startsWith(LOCAL_GAME_PREFIX) && key !== 'runcount_game_settings';
+
+const loadLocalGames = () => {
+  const games: GameData[] = [];
+
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if (!key || !isLocalGameKey(key)) continue;
+
+    try {
+      const rawGame = localStorage.getItem(key);
+      if (!rawGame) continue;
+
+      const game = JSON.parse(rawGame) as GameData;
+      if (game && game.id && Array.isArray(game.players) && game.players.length > 0) {
+        games.push(game);
+      }
+    } catch (err) {
+      console.warn(`Skipping invalid local game history entry: ${key}`, err);
+    }
+  }
+
+  return games.sort(
+    (left, right) => new Date(right.date).getTime() - new Date(left.date).getTime(),
+  );
+};
+
 export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
   const [games, setGames] = useState<GameData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +52,7 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
       try {
         setLoading(true);
 
-        const data = await backend.listGames(user);
+        const data = user ? await backend.listGames(user) : loadLocalGames();
 
         // Type cast and filter out any potentially invalid data
         const validGames = (data || [])
@@ -62,7 +92,11 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
 
   const deleteGame = async (gameId: string) => {
     try {
-      await backend.deleteGame(gameId);
+      if (user) {
+        await backend.deleteGame(gameId);
+      } else {
+        localStorage.removeItem(`${LOCAL_GAME_PREFIX}${gameId}`);
+      }
 
       // Update local state
       setGames(games.filter((g) => g.id !== gameId));
