@@ -1,3 +1,5 @@
+import { writeValidated } from '../utils/storage';
+
 import type { GameBackend } from '../backend/types';
 import type { AppUser } from '../types/auth';
 import type { GameAction, GameData, Player } from '../types/game';
@@ -59,24 +61,18 @@ export const persistGameHelper = async (options: {
     });
   }
 
-  try {
-    const now = new Date();
-    localStorage.setItem(
-      `runcount_game_${gameId}`,
-      JSON.stringify({
-        id: gameId,
-        date: now.toISOString(),
-        players,
-        actions,
-        completed,
-        winner_id: winnerId,
-        startTime: matchStartTime,
-        endTime: matchEndTime,
-        turnStartTime: turnStartTime,
-      }),
-    );
-  } catch (err) {
-    console.error('Error saving game to localStorage history:', err);
+  const savedLocally = writeValidated(`runcount_game_${gameId}`, {
+    id: gameId,
+    date: new Date().toISOString(),
+    players,
+    actions,
+    completed,
+    winner_id: winnerId,
+    startTime: matchStartTime,
+    endTime: matchEndTime,
+    turnStartTime: turnStartTime,
+  });
+  if (!savedLocally) {
     try {
       const evt = new CustomEvent('appError', {
         detail: 'Unable to save game locally. Check storage settings.',

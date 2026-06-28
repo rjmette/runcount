@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState } from 'react';
 
 import { type GameData, type GameSettings } from '../types/game';
+import {
+  isValidGameData,
+  isValidGameSettings,
+  migrateGameData,
+} from '../utils/gameValidation';
+import { readValidated, safeRemove, writeValidated } from '../utils/storage';
 
 interface GamePersistContextType {
   saveGameState: (gameData: GameData) => void;
@@ -20,93 +26,68 @@ export const GamePersistProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [hasActiveGame, setHasActiveGame] = useState<boolean>(() => {
-    try {
-      const storedGame = localStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
-      if (storedGame) {
-        const parsedData = JSON.parse(storedGame) as GameData;
-        // Clean up if completed
-        if (parsedData.completed) {
-          localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
-          return false;
-        }
-        return true;
-      }
-    } catch (_error) {
-      // If parsing fails, clear the corrupted data
-      console.warn('Clearing invalid stored game data during init', _error);
-      localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+    const storedGame = readValidated(
+      ACTIVE_GAME_STORAGE_KEY,
+      isValidGameData,
+      null,
+      migrateGameData,
+    );
+    if (!storedGame) return false;
+    // Clean up if completed
+    if (storedGame.completed) {
+      safeRemove(ACTIVE_GAME_STORAGE_KEY);
+      return false;
     }
-    return false;
+    return true;
   });
 
   const saveGameState = (gameData: GameData) => {
-    try {
-      localStorage.setItem(ACTIVE_GAME_STORAGE_KEY, JSON.stringify(gameData));
+    if (writeValidated(ACTIVE_GAME_STORAGE_KEY, gameData)) {
       setHasActiveGame(true);
-    } catch (_error) {
-      console.error('Error saving game state to localStorage:', _error);
     }
   };
 
   const getGameState = (): GameData | null => {
-    try {
-      const gameData = localStorage.getItem(ACTIVE_GAME_STORAGE_KEY);
-      if (!gameData) return null;
+    const parsedData = readValidated(
+      ACTIVE_GAME_STORAGE_KEY,
+      isValidGameData,
+      null,
+      migrateGameData,
+    );
+    if (!parsedData) return null;
 
-      const parsedData = JSON.parse(gameData) as GameData;
+    // Convert string dates back to Date objects (validation already passed)
+    parsedData.date = new Date(parsedData.date);
+    parsedData.actions = parsedData.actions.map((action) => ({
+      ...action,
+      timestamp: new Date(action.timestamp),
+    }));
 
-      // Convert string dates back to Date objects
-      parsedData.date = new Date(parsedData.date);
-      parsedData.actions = parsedData.actions.map((action) => ({
-        ...action,
-        timestamp: new Date(action.timestamp),
-      }));
-
-      // Convert timing fields back to Date objects
-      if (parsedData.startTime) {
-        parsedData.startTime = new Date(parsedData.startTime);
-      }
-      if (parsedData.endTime) {
-        parsedData.endTime = new Date(parsedData.endTime);
-      }
-      if (parsedData.turnStartTime) {
-        parsedData.turnStartTime = new Date(parsedData.turnStartTime);
-      }
-
-      return parsedData;
-    } catch (_error) {
-      console.error('Error retrieving game state from localStorage:', _error);
-      return null;
+    // Convert timing fields back to Date objects
+    if (parsedData.startTime) {
+      parsedData.startTime = new Date(parsedData.startTime);
     }
+    if (parsedData.endTime) {
+      parsedData.endTime = new Date(parsedData.endTime);
+    }
+    if (parsedData.turnStartTime) {
+      parsedData.turnStartTime = new Date(parsedData.turnStartTime);
+    }
+
+    return parsedData;
   };
 
   const clearGameState = () => {
-    try {
-      localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
-      setHasActiveGame(false);
-    } catch (_error) {
-      console.error('Error clearing game state from localStorage:', _error);
-    }
+    safeRemove(ACTIVE_GAME_STORAGE_KEY);
+    setHasActiveGame(false);
   };
 
   const saveGameSettings = (settings: GameSettings) => {
-    try {
-      localStorage.setItem(GAME_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch (_error) {
-      console.error('Error saving game settings to localStorage:', _error);
-    }
+    writeValidated(GAME_SETTINGS_STORAGE_KEY, settings);
   };
 
-  const getGameSettings = (): GameSettings | null => {
-    try {
-      const settings = localStorage.getItem(GAME_SETTINGS_STORAGE_KEY);
-      if (!settings) return null;
-      return JSON.parse(settings) as GameSettings;
-    } catch (_error) {
-      console.error('Error retrieving game settings from localStorage:', _error);
-      return null;
-    }
-  };
+  const getGameSettings = (): GameSettings | null =>
+    readValidated(GAME_SETTINGS_STORAGE_KEY, isValidGameSettings, null);
 
   return (
     <GamePersistContext.Provider

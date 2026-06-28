@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 
 import { useError } from '../../../context/ErrorContext';
 import { type GameData } from '../../../types/game';
+import { isValidGameData } from '../../../utils/gameValidation';
+import { readValidated } from '../../../utils/storage';
 
 import type { GameBackend } from '../../../backend/types';
 import type { AppUser } from '../../../types/auth';
@@ -23,16 +25,10 @@ const loadLocalGames = () => {
     const key = localStorage.key(index);
     if (!key || !isLocalGameKey(key)) continue;
 
-    try {
-      const rawGame = localStorage.getItem(key);
-      if (!rawGame) continue;
-
-      const game = JSON.parse(rawGame) as GameData;
-      if (game && game.id && Array.isArray(game.players) && game.players.length > 0) {
-        games.push(game);
-      }
-    } catch (err) {
-      console.warn(`Skipping invalid local game history entry: ${key}`, err);
+    // readValidated parses, validates shape, and auto-clears corrupt entries.
+    const game = readValidated(key, isValidGameData, null);
+    if (game) {
+      games.push(game);
     }
   }
 

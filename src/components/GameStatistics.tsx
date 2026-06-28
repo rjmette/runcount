@@ -5,6 +5,8 @@ import { type GameStatisticsProps, type GameData, type Player } from '../types/g
 import { computeMatchLength } from '../utils/computeMatchLength';
 import { copyWithFeedback } from '../utils/copyToClipboard';
 import { formatGameDateLong } from '../utils/formatGameDate';
+import { isValidGameData } from '../utils/gameValidation';
+import { readValidated } from '../utils/storage';
 
 import { InningsModal } from './GameStatistics/components/InningsModal';
 import { StatDescriptionsModal } from './GameStatistics/components/StatDescriptionsModal';
@@ -75,23 +77,20 @@ const GameStatistics: React.FC<GameStatisticsProps> = ({
         setLoading(true);
         console.log('Fetching game data for ID:', gameId);
 
-        // First try to get game from localStorage if available
-        const localGameData = localStorage.getItem(`runcount_game_${gameId}`);
+        // First try to get game from localStorage if available.
+        // readValidated parses, validates the shape, and clears corrupt entries.
+        const localGameData = readValidated(
+          `runcount_game_${gameId}`,
+          isValidGameData,
+          null,
+        );
         if (localGameData) {
-          try {
-            console.log('Found game in localStorage:', localGameData);
-            const parsedData = JSON.parse(localGameData);
-            console.log('Parsed local game data:', parsedData);
-            setGameData(parsedData);
-            setLoading(false);
-            return;
-          } catch (e) {
-            console.error('Failed to parse local game data:', e);
-            console.log('Trying backend as fallback');
-          }
-        } else {
-          console.log('No game found in localStorage, trying backend');
+          console.log('Found valid game in localStorage');
+          setGameData(localGameData as GameData);
+          setLoading(false);
+          return;
         }
+        console.log('No valid game found in localStorage, trying backend');
 
         // If no local data, try cloud backend
         const data = await backend.getGame(gameId);

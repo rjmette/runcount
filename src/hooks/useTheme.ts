@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 
+import { safeGet, safeSet } from '../utils/storage';
+
 /**
  * Custom hook for managing dark mode theme
  * Persists theme preference to localStorage
  */
 export const useTheme = () => {
   const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('runcount_theme');
+    const savedTheme = safeGet('runcount_theme');
     return savedTheme ? savedTheme === 'dark' : true; // Default to dark if no theme is saved
   });
 
@@ -16,10 +18,10 @@ export const useTheme = () => {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('runcount_theme', 'dark');
+      safeSet('runcount_theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('runcount_theme', 'light');
+      safeSet('runcount_theme', 'light');
     }
   }, [darkMode]);
 

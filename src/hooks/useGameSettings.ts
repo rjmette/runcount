@@ -1,67 +1,62 @@
 import { useState, useEffect } from 'react';
 
 import { DEFAULT_SHOT_CLOCK_SECONDS } from '../constants/gameSettings';
+import {
+  isFiniteNumber,
+  isNullableFiniteNumber,
+  isNumberRecord,
+  isStringArray,
+  readValidated,
+  writeValidated,
+} from '../utils/storage';
 
 /**
  * Custom hook for managing and persisting game settings
  * Stores last used players, target scores, breaking player ID, and shot clock
+ *
+ * All reads go through validated storage helpers so corrupt or wrong-shaped
+ * localStorage entries fall back to defaults instead of crashing the app.
  */
 export const useGameSettings = () => {
-  const [lastPlayers, setLastPlayers] = useState<string[]>(() => {
-    const savedPlayers = localStorage.getItem('runcount_lastPlayers');
-    return savedPlayers ? JSON.parse(savedPlayers) : [];
-  });
+  const [lastPlayers, setLastPlayers] = useState<string[]>(() =>
+    readValidated('runcount_lastPlayers', isStringArray, []),
+  );
 
   const [lastPlayerTargetScores, setLastPlayerTargetScores] = useState<
     Record<string, number>
-  >(() => {
-    const savedTargetScores = localStorage.getItem('runcount_lastPlayerTargetScores');
-    return savedTargetScores ? JSON.parse(savedTargetScores) : {};
-  });
+  >(() => readValidated('runcount_lastPlayerTargetScores', isNumberRecord, {}));
 
-  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() => {
-    const savedBreakingPlayerId = localStorage.getItem('runcount_lastBreakingPlayerId');
-    return savedBreakingPlayerId ? JSON.parse(savedBreakingPlayerId) : 0;
-  });
+  const [lastBreakingPlayerId, setLastBreakingPlayerId] = useState<number>(() =>
+    readValidated('runcount_lastBreakingPlayerId', isFiniteNumber, 0),
+  );
 
-  const [lastShotClockSeconds, setLastShotClockSeconds] = useState<number | null>(() => {
-    const savedShotClockSeconds = localStorage.getItem('runcount_lastShotClockSeconds');
-
-    if (savedShotClockSeconds === null) {
-      return DEFAULT_SHOT_CLOCK_SECONDS;
-    }
-
-    return JSON.parse(savedShotClockSeconds) as number | null;
-  });
+  const [lastShotClockSeconds, setLastShotClockSeconds] = useState<number | null>(() =>
+    readValidated(
+      'runcount_lastShotClockSeconds',
+      isNullableFiniteNumber,
+      DEFAULT_SHOT_CLOCK_SECONDS,
+    ),
+  );
 
   // Persist game settings to localStorage
   useEffect(() => {
     if (lastPlayers.length > 0) {
-      localStorage.setItem('runcount_lastPlayers', JSON.stringify(lastPlayers));
+      writeValidated('runcount_lastPlayers', lastPlayers);
     }
   }, [lastPlayers]);
 
   useEffect(() => {
     if (Object.keys(lastPlayerTargetScores).length > 0) {
-      localStorage.setItem(
-        'runcount_lastPlayerTargetScores',
-        JSON.stringify(lastPlayerTargetScores),
-      );
+      writeValidated('runcount_lastPlayerTargetScores', lastPlayerTargetScores);
     }
   }, [lastPlayerTargetScores]);
 
   useEffect(() => {
-    localStorage.setItem(
-      'runcount_lastBreakingPlayerId',
-      JSON.stringify(lastBreakingPlayerId),
-    );
+    writeValidated('runcount_lastBreakingPlayerId', lastBreakingPlayerId);
   }, [lastBreakingPlayerId]);
 
   useEffect(() => {
-    localStorage.setItem(
-      'runcount_lastShotClockSeconds',
-      JSON.stringify(lastShotClockSeconds),
-    );
+    writeValidated('runcount_lastShotClockSeconds', lastShotClockSeconds);
   }, [lastShotClockSeconds]);
 
   return {
