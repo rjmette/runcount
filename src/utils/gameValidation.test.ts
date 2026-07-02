@@ -75,6 +75,11 @@ describe('isValidGameData', () => {
     expect(isValidGameData({ ...validGame(), winner_id: 'uuid-123' })).toBe(true);
   });
 
+  it('accepts numeric breakingPlayerId and rejects wrong types', () => {
+    expect(isValidGameData({ ...validGame(), breakingPlayerId: 1 })).toBe(true);
+    expect(isValidGameData({ ...validGame(), breakingPlayerId: '1' })).toBe(false);
+  });
+
   it('rejects empty id, empty players, bad actions', () => {
     expect(isValidGameData({ ...validGame(), id: '' })).toBe(false);
     expect(isValidGameData({ ...validGame(), players: [] })).toBe(false);

@@ -91,6 +91,30 @@ describe('useGameHistory', () => {
     expect(result.current.games).toEqual([]);
   });
 
+  test('removes the local copy after a successful cloud delete', async () => {
+    const game = createMockGameData({ id: 'synced-game-to-delete' });
+    const backend = {
+      listGames: vi.fn().mockResolvedValue([game]),
+      deleteGame: vi.fn().mockResolvedValue(undefined),
+    };
+    const user = { id: 'user-1' };
+    localStorage.setItem(`runcount_game_${game.id}`, JSON.stringify(game));
+
+    const { result } = renderHook(() =>
+      useGameHistory({ backend: backend as never, user: user as never }),
+    );
+
+    await waitFor(() => expect(result.current.games).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.deleteGame(game.id);
+    });
+
+    expect(backend.deleteGame).toHaveBeenCalledWith(game.id);
+    expect(localStorage.getItem(`runcount_game_${game.id}`)).toBeNull();
+    expect(result.current.games).toEqual([]);
+  });
+
   test('keeps the history view intact when a delete fails', async () => {
     const game = createMockGameData({ id: 'game-to-delete' });
     const backend = {

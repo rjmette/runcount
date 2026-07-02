@@ -22,6 +22,20 @@ interface UseGameStateProps {
   ) => void;
 }
 
+const getRestoredBreakingPlayerIndex = (
+  savedGameState: GameData,
+  fallbackBreakingPlayerId: number,
+) => {
+  if (typeof savedGameState.breakingPlayerId === 'number') {
+    return savedGameState.breakingPlayerId;
+  }
+
+  const inningPlayerIndex = savedGameState.players.findIndex(
+    (player) => player.innings > 0,
+  );
+  return inningPlayerIndex === -1 ? fallbackBreakingPlayerId : inningPlayerIndex;
+};
+
 export const useGameState = ({
   players,
   playerTargetScores,
@@ -31,7 +45,13 @@ export const useGameState = ({
   getGameState,
   persistGame,
 }: UseGameStateProps) => {
-  const [activePlayerIndex, setActivePlayerIndexState] = useState(() => breakingPlayerId);
+  const [activePlayerIndex, setActivePlayerIndexState] = useState(() => {
+    const saved = getGameState();
+    if (saved && saved.id === gameId) {
+      return getRestoredBreakingPlayerIndex(saved, breakingPlayerId);
+    }
+    return breakingPlayerId;
+  });
 
   const setActivePlayerIndex = (index: number) => {
     setActivePlayerIndexState(index);
@@ -88,7 +108,11 @@ export const useGameState = ({
       setActions(savedGameState.actions);
 
       // Calculate current state based on actions
-      let activePlayer = 0;
+      const restoredBreakingPlayer = getRestoredBreakingPlayerIndex(
+        savedGameState,
+        breakingPlayerId,
+      );
+      let activePlayer = restoredBreakingPlayer;
       let currentInningValue = 1;
       let currentRunValue = 0;
       let currentBOT = 15;

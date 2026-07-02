@@ -24,6 +24,7 @@ export const persistGameHelper = async (options: {
   matchStartTime?: string;
   matchEndTime?: string;
   turnStartTime?: string;
+  breakingPlayerId?: number;
   gameId: string;
   players: Player[];
   actions: GameAction[];
@@ -38,6 +39,7 @@ export const persistGameHelper = async (options: {
     matchStartTime,
     matchEndTime,
     turnStartTime,
+    breakingPlayerId,
     gameId,
     players,
     actions,
@@ -53,6 +55,7 @@ export const persistGameHelper = async (options: {
       date: new Date().toISOString(),
       players,
       actions,
+      breakingPlayerId,
       completed,
       winner_id: winnerId,
       startTime: matchStartTime,
@@ -66,6 +69,7 @@ export const persistGameHelper = async (options: {
     date: new Date().toISOString(),
     players,
     actions,
+    breakingPlayerId,
     completed,
     winner_id: winnerId,
     startTime: matchStartTime,
@@ -92,6 +96,7 @@ export const persistGameHelper = async (options: {
       date: now.toISOString(),
       players,
       actions,
+      breakingPlayerId,
       completed,
       winner_id: winnerId,
       deleted: false,

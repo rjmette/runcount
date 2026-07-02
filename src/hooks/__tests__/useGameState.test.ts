@@ -36,6 +36,7 @@ describe('useGameState', () => {
       createMockGameData({
         id: 'saved-game',
         completed: false,
+        breakingPlayerId: 1,
         players: [
           createMockPlayer({ id: 0, name: 'Alice', targetScore: 75 }),
           createMockPlayer({ id: 1, name: 'Bob', targetScore: 60 }),
@@ -51,8 +52,25 @@ describe('useGameState', () => {
     expect(result.current.players).toEqual(['Alice', 'Bob']);
     expect(result.current.playerTargetScores).toEqual({ Alice: 75, Bob: 60 });
     expect(result.current.currentGameId).toBe('saved-game');
+    expect(result.current.breakingPlayerId).toBe(1);
     expect(result.current.matchStartTime?.toISOString()).toBe('2026-01-01T00:00:00.000Z');
     expect(result.current.turnStartTime?.toISOString()).toBe('2026-01-01T00:01:00.000Z');
+  });
+
+  test('derives saved breaking player from innings when missing from legacy data', () => {
+    getGameState.mockReturnValue(
+      createMockGameData({
+        completed: false,
+        players: [
+          createMockPlayer({ id: 0, name: 'Alice', innings: 0 }),
+          createMockPlayer({ id: 1, name: 'Bob', innings: 1 }),
+        ],
+      }),
+    );
+
+    const { result } = renderHook(() => useGameState());
+
+    expect(result.current.breakingPlayerId).toBe(1);
   });
 
   test('clears completed active saved games and stays on setup', () => {

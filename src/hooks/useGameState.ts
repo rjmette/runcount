@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 
 import { useGamePersist } from '../context/GamePersistContext';
 
+import type { GameData } from '../types/game';
+
 // Game states
 export type GameState =
   | 'setup'
@@ -10,6 +12,14 @@ export type GameState =
   | 'history'
   | 'trends'
   | 'profile';
+
+const getRestoredBreakingPlayerId = (saved: GameData | null) => {
+  if (!saved || saved.completed) return 0;
+  if (typeof saved.breakingPlayerId === 'number') return saved.breakingPlayerId;
+
+  const breakingPlayerIndex = saved.players.findIndex((player) => player.innings > 0);
+  return breakingPlayerIndex === -1 ? 0 : breakingPlayerIndex;
+};
 
 /**
  * Custom hook for managing game state and related data
@@ -50,7 +60,9 @@ export const useGameState = () => {
     return saved && !saved.completed ? saved.id : null;
   });
 
-  const [breakingPlayerId, setBreakingPlayerId] = useState<number>(0);
+  const [breakingPlayerId, setBreakingPlayerId] = useState<number>(() =>
+    getRestoredBreakingPlayerId(getGameState()),
+  );
 
   // Timer state for header display during scoring
   const [matchStartTime, setMatchStartTime] = useState<Date | null>(() => {
