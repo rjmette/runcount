@@ -87,6 +87,64 @@ describe('useGameState', () => {
     expect(setGameId).not.toHaveBeenCalled(); // Should not generate new ID for existing game
   });
 
+  test('restores active player from saved breaking player before any actions', () => {
+    const now = new Date();
+    const saved: GameData = {
+      id: 'game-1',
+      date: now.toISOString(),
+      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      winner_id: null,
+      completed: false,
+      actions: [],
+      breakingPlayerId: 1,
+      startTime: now.toISOString(),
+    };
+
+    const { result } = renderHook(() =>
+      useGameState({
+        players: ['Alice', 'Bob'],
+        playerTargetScores: { Alice: 75, Bob: 60 },
+        gameId: 'game-1',
+        setGameId: vi.fn(),
+        breakingPlayerId: 0,
+        getGameState: () => saved,
+        persistGame: vi.fn(),
+      }),
+    );
+
+    expect(result.current.activePlayerIndex).toBe(1);
+  });
+
+  test('derives active player from saved innings when breaking player is missing', () => {
+    const now = new Date();
+    const saved: GameData = {
+      id: 'game-1',
+      date: now.toISOString(),
+      players: makePlayers(['Alice', 'Bob'], [75, 60]).map((player, index) => ({
+        ...player,
+        innings: index === 1 ? 1 : 0,
+      })) as Player[],
+      winner_id: null,
+      completed: false,
+      actions: [],
+      startTime: now.toISOString(),
+    };
+
+    const { result } = renderHook(() =>
+      useGameState({
+        players: ['Alice', 'Bob'],
+        playerTargetScores: { Alice: 75, Bob: 60 },
+        gameId: 'game-1',
+        setGameId: vi.fn(),
+        breakingPlayerId: 0,
+        getGameState: () => saved,
+        persistGame: vi.fn(),
+      }),
+    );
+
+    expect(result.current.activePlayerIndex).toBe(1);
+  });
+
   test('restores game state with actions and calculates current state correctly', () => {
     const now = new Date();
     const actions = [

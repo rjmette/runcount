@@ -34,15 +34,19 @@ describe('persistGameHelper', () => {
       gameId,
       players,
       actions,
+      breakingPlayerId: 1,
       completed: false,
       winner_id: null,
     });
 
     expect(saveGameState).toHaveBeenCalledTimes(1);
+    expect(saveGameState).toHaveBeenCalledWith(
+      expect.objectContaining({ breakingPlayerId: 1 }),
+    );
     expect(clearGameState).not.toHaveBeenCalled();
     expect(window.localStorage.setItem).toHaveBeenCalledWith(
       `runcount_game_${gameId}`,
-      expect.stringContaining('"id":"game-123"'),
+      expect.stringContaining('"breakingPlayerId":1'),
     );
     expect(saveGameSpy).not.toHaveBeenCalled();
   });
@@ -60,6 +64,7 @@ describe('persistGameHelper', () => {
       gameId,
       players,
       actions,
+      breakingPlayerId: 1,
       completed: false,
       winner_id: 0,
     });
@@ -71,6 +76,7 @@ describe('persistGameHelper', () => {
       id: gameId,
       players,
       actions,
+      breakingPlayerId: 1,
       completed: false,
       winner_id: 0,
       deleted: false,

@@ -133,6 +133,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             date: new Date().toISOString(),
             players: gameState.players,
             actions: gameState.actions,
+            breakingPlayerId: gameState.breakingPlayerId ?? currentBreakingPlayerId,
             completed: gameState.completed,
             winner_id: gameState.winner_id,
             deleted: false,
@@ -148,7 +149,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
       saveCurrentGameToCloud();
     }
-  }, [user, gameId, backend, getGameState, addError]);
+  }, [user, gameId, backend, getGameState, addError, currentBreakingPlayerId]);
 
   // Game state management
   const {
@@ -180,7 +181,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     playerTargetScores,
     gameId,
     setGameId,
-    breakingPlayerId,
+    breakingPlayerId: currentBreakingPlayerId,
     getGameState,
     persistGame: async (
       gameId,
@@ -211,6 +212,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           gameId,
           players,
           actions,
+          breakingPlayerId: currentBreakingPlayerId,
           completed,
           winner_id,
         });
@@ -262,6 +264,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
             gameId,
             players,
             actions,
+            breakingPlayerId: currentBreakingPlayerId,
             completed,
             winner_id,
           });
@@ -321,6 +324,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
           gameId,
           players,
           actions,
+          breakingPlayerId: currentBreakingPlayerId,
           completed,
           winner_id,
         });
@@ -410,6 +414,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       date: new Date().toISOString(),
       players: updatedPlayerData,
       actions,
+      breakingPlayerId: currentBreakingPlayerId,
       completed: false,
       winner_id: null,
       turnStartTime: newTurnStartTime,
@@ -427,6 +432,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     gameId,
     saveGameState,
     _setTurnStartTime,
+    currentBreakingPlayerId,
   ]);
 
   // Memoize require re-break handler
@@ -456,6 +462,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
       date: new Date().toISOString(),
       players: updatedPlayerData,
       actions,
+      breakingPlayerId: currentBreakingPlayerId,
       completed: false,
       winner_id: null,
     });
@@ -470,6 +477,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
     actions,
     gameId,
     saveGameState,
+    currentBreakingPlayerId,
   ]);
 
   const handleEndGame = () => {
@@ -491,6 +499,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         gameId,
         players: playerData,
         actions,
+        breakingPlayerId: currentBreakingPlayerId,
         completed: true,
         winner_id: gameWinner?.id ?? null,
       });
@@ -632,6 +641,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
         date: new Date().toISOString(),
         players: updatedPlayerData,
         actions,
+        breakingPlayerId: newBreakingPlayerId,
         completed: false,
         winner_id: null,
         turnStartTime: newTurnStartTime,

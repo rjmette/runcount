@@ -90,9 +90,8 @@ export const useGameHistory = ({ backend, user }: UseGameHistoryProps) => {
     try {
       if (user) {
         await backend.deleteGame(gameId);
-      } else {
-        localStorage.removeItem(`${LOCAL_GAME_PREFIX}${gameId}`);
       }
+      localStorage.removeItem(`${LOCAL_GAME_PREFIX}${gameId}`);
 
       // Update local state
       setGames(games.filter((g) => g.id !== gameId));

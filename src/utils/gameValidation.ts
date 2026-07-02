@@ -66,6 +66,12 @@ export const isValidGameData = (value: unknown): value is GameData => {
     return false;
   }
   if (typeof value.completed !== 'boolean') return false;
+  if (
+    value.breakingPlayerId !== undefined &&
+    typeof value.breakingPlayerId !== 'number'
+  ) {
+    return false;
+  }
   return true;
 };
 

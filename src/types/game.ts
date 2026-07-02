@@ -38,6 +38,7 @@ export interface GameData {
   winner_id: number | null;
   completed: boolean;
   actions: GameAction[];
+  breakingPlayerId?: number; // Index of the player who is breaking
   owner_id?: string; // UUID string from auth.users.id
   deleted?: boolean; // Flag for soft deletion
   startTime?: Date | string; // When the match timer started
