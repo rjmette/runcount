@@ -1,12 +1,9 @@
 name: E2E Tests
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
-  # NOTE: PR trigger temporarily disabled — see #131 to re-enable.
-  # The webServer host-binding bug is already fixed in playwright.config.ts;
-  # this just keeps e2e from gating PRs until we confirm it green.
-  # pull_request:
-  #   branches: [main]
 
 jobs:
   e2e:
