@@ -299,6 +299,87 @@ describe('useGameState', () => {
     expect(result.current.activePlayerIndex).toBe(0); // Back to Alice
   });
 
+  test('restores ballsOnTable to 15 after a three-foul re-break, not the stale pre-rack value', () => {
+    const now = new Date();
+    // Alice fouls three times in a row on a rack that had 8 balls left,
+    // triggering a re-break (re-rack to 15) on her fourth turn action.
+    const actions = [
+      {
+        id: '1',
+        type: 'foul',
+        playerId: 0,
+        value: -1,
+        ballsOnTable: 8,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '2',
+        type: 'foul',
+        playerId: 1,
+        value: 0,
+        ballsOnTable: 8,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '3',
+        type: 'foul',
+        playerId: 0,
+        value: -1,
+        ballsOnTable: 8,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '4',
+        type: 'foul',
+        playerId: 1,
+        value: 0,
+        ballsOnTable: 8,
+        timestamp: now.toISOString(),
+      },
+      {
+        id: '5',
+        type: 'foul',
+        playerId: 0,
+        value: -1,
+        ballsOnTable: 8,
+        reBreak: true,
+        timestamp: now.toISOString(),
+      },
+    ];
+
+    const saved: GameData = {
+      id: 'game-1',
+      date: now.toISOString(),
+      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      winner_id: null,
+      completed: false,
+      actions,
+      startTime: now.toISOString(),
+      endTime: undefined,
+    };
+
+    const getGameState = () => saved;
+
+    const { result } = renderHook(() =>
+      useGameState({
+        players: ['Alice', 'Bob'],
+        playerTargetScores: { Alice: 75, Bob: 60 },
+        gameId: 'game-1',
+        setGameId: vi.fn(),
+        breakingPlayerId: 0,
+        getGameState,
+        persistGame: vi.fn(),
+      }),
+    );
+
+    // The re-break re-racks the table to 15, not the stale pre-rack value (8).
+    expect(result.current.ballsOnTable).toBe(15);
+    expect(result.current.playerNeedsReBreak).toBe(0);
+    expect(result.current.activePlayerIndex).toBe(0);
+    // Alice's re-break foul applies the three-foul penalty.
+    expect(result.current.playerData[0].score).toBe(-11);
+  });
+
   test('does not initialize twice with ref guard', () => {
     const persistGame = vi.fn();
     const setGameId = vi.fn();

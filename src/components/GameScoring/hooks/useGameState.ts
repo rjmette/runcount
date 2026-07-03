@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import { type Player, type GameAction, type GameData } from '../../../types/game';
+import { replayActions } from '../utils/replayActions';
 
 interface UseGameStateProps {
   players: string[];
@@ -104,85 +105,33 @@ export const useGameState = ({
     const savedGameState = getGameState();
     if (savedGameState && savedGameState.id === gameId) {
       // Restore from saved game state
-      setPlayerData(savedGameState.players);
       setActions(savedGameState.actions);
 
-      // Calculate current state based on actions
+      // Determine which player was breaking (falls back to inning heuristics
+      // for legacy saved games that predate the breakingPlayerId field).
       const restoredBreakingPlayer = getRestoredBreakingPlayerIndex(
         savedGameState,
         breakingPlayerId,
       );
-      let activePlayer = restoredBreakingPlayer;
-      let currentInningValue = 1;
-      let currentRunValue = 0;
-      let currentBOT = 15;
-      let needsReBreak = null;
 
-      // Replay actions to determine current state
-      if (savedGameState.actions.length > 0) {
-        const playerIds = savedGameState.players.map((p) => p.id);
-
-        savedGameState.actions.forEach((action, index) => {
-          // Set current balls on table
-          if (action.ballsOnTable !== undefined) {
-            currentBOT = action.ballsOnTable;
-          }
-
-          // Track active player
-          const playerIndex = playerIds.indexOf(action.playerId);
-          if (playerIndex !== -1) {
-            activePlayer = playerIndex;
-          }
-
-          // Handle turn-ending actions
-          if (
-            action.type === 'foul' ||
-            action.type === 'safety' ||
-            action.type === 'miss'
-          ) {
-            // Reset current run
-            currentRunValue = 0;
-
-            // Switch to next player
-            if (!action.reBreak) {
-              activePlayer = (playerIds.indexOf(action.playerId) + 1) % playerIds.length;
-              if (activePlayer === 0) {
-                currentInningValue++;
-              }
-            }
-          }
-
-          // Check for re-break flag
-          if (action.reBreak) {
-            needsReBreak = action.playerId;
-          }
-
-          // Track current run if it's the last action by active player
-          if (
-            index === savedGameState.actions.length - 1 ||
-            savedGameState.actions[index + 1].playerId !== action.playerId
-          ) {
-            if (action.type === 'score') {
-              currentRunValue += action.value;
-            }
-          }
-        });
-
-        // If we didn't find a specific turn start time from saved state,
-        // we should ideally find the timestamp of the last action that changed the turn.
-        // For now, if we don't have it stored, we might just use match start time or current time
-        // if the game is active. This is a fallback.
-        if (!savedGameState.turnStartTime && savedGameState.actions.length > 0) {
-          // Fallback logic if needed
-        }
-      }
+      // Replay all actions through the same canonical reducer used by undo
+      // (replayActions) so re-rack-to-15 re-break fouls, the resolveNextTableState
+      // 0/1 handling, and run tracking are computed identically on reload as
+      // they are during live play and undo.
+      const replayedState = replayActions({
+        players,
+        playerTargetScores,
+        breakingPlayerId: restoredBreakingPlayer,
+        actions: savedGameState.actions,
+      });
 
       // Set game state
-      setActivePlayerIndex(activePlayer);
-      setCurrentInning(currentInningValue);
-      setCurrentRun(currentRunValue);
-      setBallsOnTable(currentBOT);
-      setPlayerNeedsReBreak(needsReBreak);
+      setPlayerData(replayedState.playerData);
+      setActivePlayerIndex(replayedState.activePlayerIndex);
+      setCurrentInning(replayedState.currentInning);
+      setCurrentRun(replayedState.currentRun);
+      setBallsOnTable(replayedState.ballsOnTable);
+      setPlayerNeedsReBreak(replayedState.playerNeedsReBreak);
       setIsUndoEnabled(savedGameState.actions.length > 0);
     } else {
       // Create player data from names
