@@ -104,7 +104,7 @@ describe('App start game flow (regression)', () => {
     render(<App />);
 
     // Click Start Game from mocked GameSetup
-    fireEvent.click(screen.getByTestId('start-game'));
+    fireEvent.click(await screen.findByTestId('start-game'));
 
     // Expect scoring screen to appear
     await waitFor(() => {

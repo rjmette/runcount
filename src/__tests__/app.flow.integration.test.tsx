@@ -62,7 +62,7 @@ describe('App full flow', () => {
   test('starts a game from setup and navigates to scoring', async () => {
     render(<App />);
 
-    fireEvent.click(screen.getByTestId('start-game'));
+    fireEvent.click(await screen.findByTestId('start-game'));
 
     await waitFor(() => {
       expect(screen.getByTestId('game-scoring')).toBeInTheDocument();

@@ -43,7 +43,7 @@ describe('App end-game flow', () => {
   }) => {
     render(<App />);
 
-    await userEvent.type(screen.getByLabelText(/Player 1 name/i), 'Alice');
+    await userEvent.type(await screen.findByLabelText(/Player 1 name/i), 'Alice');
     await userEvent.type(screen.getByLabelText(/Player 2 name/i), 'Bob');
 
     if (options?.player1Target !== undefined) {

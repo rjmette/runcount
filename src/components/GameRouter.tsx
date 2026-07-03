@@ -1,15 +1,16 @@
-import type { FC } from 'react';
-
-import UserProfile from './auth/UserProfile';
-import GameHistory from './GameHistory/index';
-import GameScoring from './GameScoring/index';
-import GameSetup from './GameSetup';
-import GameStatistics from './GameStatistics';
-import TrendsPage from './Trends/index';
+import { lazy, Suspense } from 'react';
+import type { FC, ReactNode } from 'react';
 
 import type { GameBackend } from '../backend/types';
 import type { GameState } from '../hooks/useGameState';
 import type { AppUser } from '../types/auth';
+
+const UserProfile = lazy(() => import('./auth/UserProfile'));
+const GameHistory = lazy(() => import('./GameHistory/index'));
+const GameScoring = lazy(() => import('./GameScoring/index'));
+const GameSetup = lazy(() => import('./GameSetup'));
+const GameStatistics = lazy(() => import('./GameStatistics'));
+const TrendsPage = lazy(() => import('./Trends/index'));
 
 interface GameRouterProps {
   gameState: GameState;
@@ -51,6 +52,22 @@ interface GameRouterProps {
   // Profile props
   onSignOut: () => Promise<void>;
 }
+
+const RouteLoadingFallback: FC = () => (
+  <div
+    className="flex min-h-[18rem] flex-1 items-center justify-center rounded-lg border border-gray-200 bg-white p-6 text-gray-600 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+    role="status"
+    aria-live="polite"
+  >
+    <div className="flex items-center gap-3">
+      <span
+        className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"
+        aria-hidden="true"
+      />
+      <span className="text-sm font-medium">Loading game view...</span>
+    </div>
+  </div>
+);
 
 /**
  * Routes to the appropriate game component based on current game state
@@ -95,11 +112,14 @@ export const GameRouter: FC<GameRouterProps> = ({
     />
   );
 
+  let route: ReactNode;
+
   switch (gameState) {
     case 'setup':
-      return renderSetup();
+      route = renderSetup();
+      break;
     case 'scoring':
-      return (
+      route = (
         <GameScoring
           players={players}
           playerTargetScores={playerTargetScores}
@@ -120,8 +140,9 @@ export const GameRouter: FC<GameRouterProps> = ({
           setBallsOnTable={setBallsOnTable}
         />
       );
+      break;
     case 'statistics':
-      return (
+      route = (
         <GameStatistics
           gameId={gameId}
           backend={backend}
@@ -130,8 +151,9 @@ export const GameRouter: FC<GameRouterProps> = ({
           user={user}
         />
       );
+      break;
     case 'history':
-      return (
+      route = (
         <GameHistory
           backend={backend}
           startNewGame={onGoToSetup}
@@ -139,14 +161,20 @@ export const GameRouter: FC<GameRouterProps> = ({
           viewTrends={onViewTrends}
         />
       );
+      break;
     case 'trends':
-      return <TrendsPage backend={backend} user={user} onStartNewGame={onGoToSetup} />;
+      route = <TrendsPage backend={backend} user={user} onStartNewGame={onGoToSetup} />;
+      break;
     case 'profile':
-      if (!user) return renderSetup();
-      return (
+      route = user ? (
         <UserProfile backend={backend} user={user} onSignOut={onSignOut} showPageTitle />
+      ) : (
+        renderSetup()
       );
+      break;
     default:
-      return renderSetup();
+      route = renderSetup();
   }
+
+  return <Suspense fallback={<RouteLoadingFallback />}>{route}</Suspense>;
 };

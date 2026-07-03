@@ -69,10 +69,44 @@ const baseProps = {
 };
 
 describe('GameRouter', () => {
-  test('does not render profile with a null user', () => {
+  test('renders setup by default through the lazy boundary', async () => {
+    render(<GameRouter {...baseProps} gameState="setup" user={null} />);
+
+    expect(await screen.findByTestId('game-setup')).toBeInTheDocument();
+  });
+
+  test('does not render profile with a null user', async () => {
     render(<GameRouter {...baseProps} gameState="profile" user={null} />);
 
-    expect(screen.getByTestId('game-setup')).toBeInTheDocument();
+    expect(await screen.findByTestId('game-setup')).toBeInTheDocument();
     expect(screen.queryByTestId('user-profile')).not.toBeInTheDocument();
+  });
+
+  test.each([
+    ['scoring', 'game-scoring'],
+    ['statistics', 'game-statistics'],
+    ['history', 'game-history'],
+    ['trends', 'trends'],
+  ] as const)(
+    'renders the %s route through the lazy boundary',
+    async (gameState, testId) => {
+      render(<GameRouter {...baseProps} gameState={gameState} user={null} />);
+
+      expect(await screen.findByTestId(testId)).toBeInTheDocument();
+    },
+  );
+
+  test('renders profile when authenticated', async () => {
+    const user = {
+      id: 'user-1',
+      email: 'player@example.com',
+      auth_provider: 'password',
+    } satisfies AppUser;
+
+    render(<GameRouter {...baseProps} gameState="profile" user={user} />);
+
+    expect(await screen.findByTestId('user-profile')).toHaveTextContent(
+      'player@example.com',
+    );
   });
 });

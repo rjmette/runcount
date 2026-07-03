@@ -75,10 +75,11 @@ describe('App Component', () => {
     localStorage.clear();
   });
 
-  test('renders header with app title', () => {
+  test('renders header with app title', async () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /RunCount/i })).toBeInTheDocument();
+    expect(await screen.findByTestId('game-setup')).toBeInTheDocument();
   });
 
   test('shows GameSetup component by default', async () => {
