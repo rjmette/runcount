@@ -296,7 +296,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   const { setShowHistoryModal, handleUndoLastAction } = useGameScoringHistory({
     players,
     playerTargetScores,
-    breakingPlayerId,
+    breakingPlayerId: currentBreakingPlayerId,
     actions,
     gameId: gameId || '',
     persistGame: async (
