@@ -22,6 +22,22 @@ interface TokenResponse {
   expires_in: number;
 }
 
+/**
+ * Thrown by `refreshTokens` so callers can tell a definitive auth failure
+ * (the refresh token is invalid/expired/revoked - Cognito returns 4xx, e.g.
+ * `invalid_grant`) apart from a transient failure (network error or a 5xx
+ * from Cognito) that should NOT sign the user out.
+ */
+export class TokenRefreshError extends Error {
+  readonly isAuthFailure: boolean;
+
+  constructor(message: string, isAuthFailure: boolean) {
+    super(message);
+    this.name = 'TokenRefreshError';
+    this.isAuthFailure = isAuthFailure;
+  }
+}
+
 function decodeJwt<T = unknown>(token: string): T {
   const [, payload] = token.split('.');
   const padded = payload.replace(/-/g, '+').replace(/_/g, '/');
@@ -128,12 +144,26 @@ export async function refreshTokens(refreshToken: string): Promise<AppSession> {
     refresh_token: refreshToken,
   });
 
-  const res = await fetch(`${cognitoConfig.domain}/oauth2/token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${cognitoConfig.domain}/oauth2/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+  } catch (err) {
+    // Offline / DNS / connection-reset errors never reach Cognito, so they
+    // can't mean the refresh token is invalid - treat as transient.
+    const reason = err instanceof Error ? err.message : String(err);
+    throw new TokenRefreshError(`Token refresh network error: ${reason}`, false);
+  }
 
-  if (!res.ok) throw new Error(`Token refresh failed: ${res.status}`);
+  if (!res.ok) {
+    // 4xx (e.g. 400 invalid_grant) means Cognito rejected the refresh token
+    // itself - definitive. 5xx is a server-side hiccup - transient.
+    const isAuthFailure = res.status >= 400 && res.status < 500;
+    throw new TokenRefreshError(`Token refresh failed: ${res.status}`, isAuthFailure);
+  }
+
   return toSession((await res.json()) as TokenResponse, refreshToken);
 }

@@ -6,6 +6,7 @@ import {
   loadTokens,
   refreshTokens,
   saveTokens,
+  TokenRefreshError,
   userFromIdToken,
 } from './tokens';
 
@@ -121,7 +122,14 @@ export async function getFreshIdToken(
     saveTokens(refreshed);
     applySession(refreshed);
     return refreshed.idToken;
-  } catch {
+  } catch (err) {
+    // Only wipe the session on a definitive auth failure (Cognito rejected
+    // the refresh token, e.g. 400 invalid_grant). Network errors and 5xx
+    // responses are transient - keep the existing session so a later retry
+    // can succeed instead of silently signing the user out mid-session.
+    if (err instanceof TokenRefreshError && !err.isAuthFailure) {
+      return null;
+    }
     clearTokens();
     applySession(null);
     return null;
