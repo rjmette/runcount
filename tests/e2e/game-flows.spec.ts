@@ -59,9 +59,13 @@ test.describe('Straight pool core flows', () => {
     });
 
     expect(completedGame.activeGame).toBeNull();
+    // History is persisted inside the versioned storage envelope ({ v, data }).
     expect(completedGame.history).toMatchObject({
-      completed: true,
-      winner_id: 0,
+      v: 1,
+      data: {
+        completed: true,
+        winner_id: 0,
+      },
     });
   });
 
