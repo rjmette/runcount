@@ -23,7 +23,12 @@ export const Header: FC<HeaderProps> = ({
 }) => {
   return (
     <header className="rc-topbar">
-      <h1 className="rc-brand">RunCount</h1>
+      <h1 className="rc-brand flex items-center gap-2">
+        RunCount
+        <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold tracking-wide">
+          Test ✓
+        </span>
+      </h1>
       <div className="rc-topbar-right">
         <button
           onClick={toggleDarkMode}
