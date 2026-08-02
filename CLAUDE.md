@@ -16,6 +16,7 @@
 
 # Workflow
 
+- **Commit and push directly to `main` as the primary workflow — do not open pull requests** unless explicitly asked. Pushing to main triggers the automated frontend deploy.
 - Prefer running single tests, and not the whole test suite, for performance
 - Dont run a dev server, though you can build to validate
 - Use todoist and the #todoist project to manage the project todo list
