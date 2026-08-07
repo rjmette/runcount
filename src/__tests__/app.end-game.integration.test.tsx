@@ -76,11 +76,10 @@ describe('App end-game flow', () => {
     await userEvent.click(await screen.findByRole('button', { name: /Continue/i }));
 
     await waitFor(() => {
-      // The Statistics screen renders the GameSummaryPanel and a contextual
-      // 'Game Result' label; the prior 'Game Statistics' h2 was replaced by a
-      // result headline (e.g. "<Player> wins").
+      // The Game Summary screen renders the summary body under a
+      // 'Game summary' eyebrow with a result headline (e.g. "<Player> wins").
       expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
-      expect(screen.getByText(/Game Result/i)).toBeInTheDocument();
+      expect(screen.getByText(/Game summary/i)).toBeInTheDocument();
       expect(screen.getByText('Completed')).toBeInTheDocument();
       expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
     });
@@ -99,7 +98,7 @@ describe('App end-game flow', () => {
     await waitFor(() => {
       // Manual end without anyone reaching target -> status is 'Ended', not 'Completed'.
       expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
-      expect(screen.getByText(/Game Result/i)).toBeInTheDocument();
+      expect(screen.getByText(/Game summary/i)).toBeInTheDocument();
       expect(screen.getByText('Ended')).toBeInTheDocument();
       expect(screen.queryByText('Something went wrong.')).not.toBeInTheDocument();
     });

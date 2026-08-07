@@ -1,5 +1,4 @@
 import { type GameAction, type Player } from '../../../types/game';
-import { calculatePlayerStats as calculateSharedPlayerStats } from '../../shared/stats';
 
 export interface InningAction {
   inningNumber: number;
@@ -78,14 +77,4 @@ export const calculateInningActions = (
   });
 
   return inningActions;
-};
-
-export const calculatePlayerStats = (player: Player, actions: GameAction[]) => {
-  const playerActions = actions.filter((action) => action.playerId === player.id);
-  const stats = calculateSharedPlayerStats(player, actions);
-
-  return {
-    ...stats,
-    totalActions: playerActions.length,
-  };
 };

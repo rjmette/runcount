@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom/client';
 
 import './index.css';
 import './styles/scoreboard.css';
+import './styles/summary.css';
 import App from './App';
 import { initSentry } from './lib/sentry';
 import reportWebVitals from './reportWebVitals';

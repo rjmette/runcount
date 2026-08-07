@@ -8,7 +8,7 @@ import type { GameData } from '../types/game';
 export type GameState =
   | 'setup'
   | 'scoring'
-  | 'statistics'
+  | 'summary'
   | 'history'
   | 'trends'
   | 'profile';
@@ -145,7 +145,7 @@ export const useGameState = () => {
   );
 
   const handleFinishGame = useCallback(() => {
-    setGameState('statistics');
+    setGameState('summary');
   }, []);
 
   const handleStartNewGame = useCallback(() => {

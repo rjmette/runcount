@@ -7,19 +7,10 @@ import GameStatistics from '../GameStatistics';
 
 import type { GameData } from '../../types/game';
 
-// Mock the sub-components
-vi.mock('../GameStatistics/components/InningsModal', () => ({
-  InningsModal: () => <div data-testid="innings-modal">Innings Modal</div>,
-}));
-
-vi.mock('../GameStatistics/components/StatDescriptionsModal', () => ({
-  StatDescriptionsModal: () => (
-    <div data-testid="stat-descriptions-modal">Stat Descriptions Modal</div>
-  ),
-}));
-
-vi.mock('../shared/GameSummaryPanel', () => ({
-  GameSummaryPanel: () => <div data-testid="game-summary-panel">Game Summary Panel</div>,
+// Mock the shared summary body — GameStatistics is now a data-fetch wrapper
+// around it.
+vi.mock('../GameSummary', () => ({
+  default: () => <div data-testid="game-summary-panel">Game Summary</div>,
 }));
 
 // Mock localStorage
@@ -162,7 +153,7 @@ describe('GameStatistics Component', () => {
     });
   });
 
-  test('renders navigation buttons when game data is loaded (with user)', async () => {
+  test('renders the summary when game data is loaded (with user)', async () => {
     localStorage.setItem('runcount_game_game-1', JSON.stringify(mockGameData));
 
     render(
@@ -176,7 +167,7 @@ describe('GameStatistics Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('View History')).toBeInTheDocument();
+      expect(screen.getByTestId('game-summary-panel')).toBeInTheDocument();
     });
   });
 });

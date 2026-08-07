@@ -84,7 +84,7 @@ describe('GameRouter', () => {
 
   test.each([
     ['scoring', 'game-scoring'],
-    ['statistics', 'game-statistics'],
+    ['summary', 'game-statistics'],
     ['history', 'game-history'],
     ['trends', 'trends'],
   ] as const)(

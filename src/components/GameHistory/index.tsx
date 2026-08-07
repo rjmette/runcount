@@ -16,16 +16,30 @@ import {
   type HistorySortOption,
 } from './utils/historyEnhancements';
 
+/** "Aug 1 – Aug 30" label for the desktop date-range control. */
+const formatRangeLabel = (startDate: string, endDate: string): string => {
+  const fmt = (value: string) =>
+    new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  if (startDate && endDate) return `${fmt(startDate)} – ${fmt(endDate)}`;
+  if (startDate) return `From ${fmt(startDate)}`;
+  if (endDate) return `Until ${fmt(endDate)}`;
+  return 'All time';
+};
+
 const GameHistory: React.FC<GameHistoryProps> = ({
   backend,
   startNewGame,
   user = null,
   viewTrends,
 }) => {
-  // Add a state to track which view we're showing
+  // Track which view we're showing
   const [view, setView] = useState<'list' | 'details'>('list');
   const [filters, setFilters] = useState<HistoryFilters>(defaultHistoryFilters);
   const [sortOption, setSortOption] = useState<HistorySortOption>('date-desc');
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
 
   const { games, loading, error, deleteGame } = useGameHistory({
     backend,
@@ -39,6 +53,11 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   const isFilterActive =
     JSON.stringify(filters) !== JSON.stringify(defaultHistoryFilters) ||
     sortOption !== 'date-desc';
+
+  // Count of filters living behind the filter chip (date range + sort);
+  // search and status have their own visible controls.
+  const sheetFilterCount =
+    (filters.startDate || filters.endDate ? 1 : 0) + (sortOption !== 'date-desc' ? 1 : 0);
 
   // Function to check if games are valid
   const getValidGamesCount = () => {
@@ -79,29 +98,26 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     }
   };
 
-  // New function to handle game selection, which also changes the view
   const handleSelectGame = (gameId: string) => {
     handleGameSelect(gameId);
     setView('details');
   };
 
-  // New function to navigate back to list view
   const handleBackToList = () => {
     setView('list');
   };
 
-  // New functions to navigate between games
+  const selectedIndex = filteredGames.findIndex((game) => game.id === selectedGameId);
+
   const handlePreviousGame = () => {
-    const currentIndex = filteredGames.findIndex((game) => game.id === selectedGameId);
-    if (currentIndex > 0) {
-      handleGameSelect(filteredGames[currentIndex - 1].id);
+    if (selectedIndex > 0) {
+      handleGameSelect(filteredGames[selectedIndex - 1].id);
     }
   };
 
   const handleNextGame = () => {
-    const currentIndex = filteredGames.findIndex((game) => game.id === selectedGameId);
-    if (currentIndex < filteredGames.length - 1) {
-      handleGameSelect(filteredGames[currentIndex + 1].id);
+    if (selectedIndex < filteredGames.length - 1) {
+      handleGameSelect(filteredGames[selectedIndex + 1].id);
     }
   };
 
@@ -147,6 +163,22 @@ const GameHistory: React.FC<GameHistoryProps> = ({
     );
   };
 
+  const sortSelect = (id: string) => (
+    <select
+      id={id}
+      aria-label="Sort"
+      className="rcs-input"
+      value={sortOption}
+      onChange={(event) => setSortOption(event.target.value as HistorySortOption)}
+    >
+      <option value="date-desc">Newest first</option>
+      <option value="date-asc">Oldest first</option>
+      <option value="winner">Winner</option>
+      <option value="player-count">Player count</option>
+      <option value="total-score-desc">Total score</option>
+    </select>
+  );
+
   if (loading) {
     return (
       <div
@@ -178,198 +210,165 @@ const GameHistory: React.FC<GameHistoryProps> = ({
   }
 
   return (
-    <div className="max-w-4xl w-full mx-auto my-auto">
+    <div className="rcs-scope gh-root">
       <DeleteConfirmationModal
         isOpen={showDeleteConfirmation}
         onCancel={cancelDelete}
         onConfirm={() => gameToDelete && handleDeleteGame(gameToDelete)}
       />
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="text-center sm:text-left">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            Past Games
-          </p>
-          <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 sm:justify-start">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Game History
-            </h2>
-            {validGameCount > 0 && (
-              <span className="text-base font-medium text-gray-500 dark:text-gray-400">
-                ({validGameCount})
-              </span>
-            )}
-          </div>
-        </div>
-        {/* Header CTAs only make sense once there's content; the empty
-            state below carries its own primary action. */}
-        {validGameCount > 0 && (
-          <div className="flex gap-2">
-            {viewTrends && (
-              <button
-                onClick={viewTrends}
-                className="px-4 py-2 bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-300 border border-blue-600 dark:border-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-600"
-              >
-                View Trends →
-              </button>
-            )}
-            <button
-              onClick={startNewGame}
-              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
-            >
-              New Game
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Conditionally render either the list or details view */}
       {view === 'list' ? (
-        <div>
-          {/* Filter / export toolbar — hidden entirely when the user has
-              no games yet. The empty-state hero in GameList carries the
-              "start your first game" call to action; surfacing five date
-              inputs above it is noise. */}
-          {validGameCount > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  From
-                  <input
-                    aria-label="From"
-                    type="date"
-                    value={filters.startDate}
-                    onChange={(event) => updateFilter('startDate', event.target.value)}
-                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </label>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  To
-                  <input
-                    aria-label="To"
-                    type="date"
-                    value={filters.endDate}
-                    onChange={(event) => updateFilter('endDate', event.target.value)}
-                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </label>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Opponent
-                  <input
-                    aria-label="Opponent"
-                    type="search"
-                    value={filters.opponent}
-                    onChange={(event) => updateFilter('opponent', event.target.value)}
-                    placeholder="Player name"
-                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  />
-                </label>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Type
-                  <select
-                    aria-label="Type"
-                    value={filters.gameType}
-                    onChange={(event) =>
-                      updateFilter(
-                        'gameType',
-                        event.target.value as HistoryFilters['gameType'],
-                      )
-                    }
-                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="all">All games</option>
-                    <option value="completed">Completed</option>
-                    <option value="in-progress">In progress</option>
-                  </select>
-                </label>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Sort
-                  <select
-                    aria-label="Sort"
-                    value={sortOption}
-                    onChange={(event) =>
-                      setSortOption(event.target.value as HistorySortOption)
-                    }
-                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="date-desc">Newest first</option>
-                    <option value="date-asc">Oldest first</option>
-                    <option value="winner">Winner</option>
-                    <option value="player-count">Player count</option>
-                    <option value="total-score-desc">Total score</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Counter only renders when a filter is actually narrowing the
-                    list; "Showing 1 of 1 games" against an empty filter form
-                    was redundant noise. */}
-                {isFilterActive ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Showing {filteredGames.length} of {validGameCount} games
-                  </p>
-                ) : (
-                  <span aria-hidden="true" />
+        <>
+          <div className="gh-top">
+            <div className="gh-headrow">
+              <div className="gh-titlebox">
+                <p className="rcs-eyebrow" style={{ margin: 0 }}>
+                  Past games
+                </p>
+                <h2 className="gh-h1">Game History</h2>
+                {validGameCount > 0 && (
+                  <span className="gh-count" data-testid="game-history-count">
+                    {validGameCount}
+                  </span>
                 )}
-                <div className="flex flex-wrap gap-2">
+              </div>
+              <div className="gh-headbtns">
+                {/* Signed-out users have no tab row, so History keeps a
+                    direct path to Trends. */}
+                {viewTrends && validGameCount > 0 && (
                   <button
-                    onClick={resetFilters}
-                    disabled={!isFilterActive}
-                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    type="button"
+                    onClick={viewTrends}
+                    className="gh-chip"
+                    aria-label="View Trends"
                   >
-                    Reset
+                    Trends
                   </button>
-                  {/* Export buttons demoted from primary green/purple to a
-                      muted neutral with an icon; they're escape-hatches, not
-                      a primary action competing with the cards below. */}
-                  <button
-                    onClick={exportCsv}
-                    disabled={filteredGames.length === 0}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                )}
+                <button type="button" onClick={startNewGame} className="gh-new">
+                  <svg
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Export CSV
-                  </button>
-                  <button
-                    onClick={exportJson}
-                    disabled={filteredGames.length === 0}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                    Export JSON
-                  </button>
-                </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  New
+                </button>
               </div>
             </div>
+
+            {/* Search / (desktop) date range + sort — hidden entirely when
+                the user has no games yet; the empty state below carries the
+                "start your first game" call to action. */}
+            {validGameCount > 0 && (
+              <>
+                <div className="gh-filters">
+                  <label className="gh-search">
+                    <svg
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <circle cx="11" cy="11" r="7" strokeWidth={2} />
+                      <path strokeLinecap="round" strokeWidth={2} d="M21 21l-4.35-4.35" />
+                    </svg>
+                    <input
+                      type="search"
+                      aria-label="Opponent"
+                      placeholder="Search opponent"
+                      value={filters.opponent}
+                      onChange={(event) => updateFilter('opponent', event.target.value)}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="gh-rangebtn"
+                    aria-label="Date range"
+                    onClick={() => setShowFilterSheet(true)}
+                  >
+                    {formatRangeLabel(filters.startDate, filters.endDate)}
+                    <svg
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  <div className="gh-sortsel">{sortSelect('gh-sort-inline')}</div>
+                </div>
+
+                <div className="gh-chipwrap">
+                  <div className="gh-chiprow" role="group" aria-label="Filter by status">
+                    {(
+                      [
+                        { value: 'all', label: 'All' },
+                        { value: 'completed', label: 'Completed' },
+                        { value: 'in-progress', label: 'Live' },
+                      ] as const
+                    ).map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`gh-chip${
+                          filters.gameType === option.value ? ' on' : ''
+                        }`}
+                        aria-pressed={filters.gameType === option.value}
+                        onClick={() => updateFilter('gameType', option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className={`gh-chip gh-filterchip${
+                        sheetFilterCount > 0 ? ' on' : ''
+                      }`}
+                      aria-label="More filters"
+                      aria-expanded={showFilterSheet}
+                      onClick={() => setShowFilterSheet(true)}
+                    >
+                      <svg
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeWidth={2}
+                          d="M4 7h16M7 12h10M10 17h4"
+                        />
+                      </svg>
+                      {sheetFilterCount > 0 && (
+                        <span className="badge">{sheetFilterCount}</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Counter only renders when a filter is actually narrowing the list. */}
+          {validGameCount > 0 && isFilterActive && (
+            <p className="gh-showing">
+              Showing {filteredGames.length} of {validGameCount} games
+            </p>
           )}
 
           <GameList
@@ -379,7 +378,92 @@ const GameHistory: React.FC<GameHistoryProps> = ({
             onDeleteGame={confirmDelete}
             onStartNewGame={startNewGame}
           />
-        </div>
+
+          {/* Filter bottom sheet: date range + sort + exports. Never five
+              stacked inputs above the list. */}
+          {showFilterSheet && (
+            <>
+              <div
+                className="rcs-sheet-backdrop"
+                onClick={() => setShowFilterSheet(false)}
+              />
+              <div
+                className="rcs-sheet"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Filters"
+              >
+                <div className="rcs-sheet-grab" aria-hidden="true" />
+                <div className="rcs-sheet-head">
+                  <h3 className="rcs-sheet-title">Filters</h3>
+                  <button
+                    type="button"
+                    className="gs-link"
+                    onClick={resetFilters}
+                    disabled={!isFilterActive}
+                  >
+                    Reset
+                  </button>
+                </div>
+
+                <div className="rcs-field">
+                  <span>Date range</span>
+                  <div className="rcs-range">
+                    <input
+                      aria-label="From"
+                      type="date"
+                      className="rcs-input"
+                      value={filters.startDate}
+                      onChange={(event) => updateFilter('startDate', event.target.value)}
+                    />
+                    <span className="dash" aria-hidden="true">
+                      –
+                    </span>
+                    <input
+                      aria-label="To"
+                      type="date"
+                      className="rcs-input"
+                      value={filters.endDate}
+                      onChange={(event) => updateFilter('endDate', event.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="rcs-field">
+                  <span>Sort</span>
+                  {sortSelect('gh-sort-sheet')}
+                </div>
+
+                <div className="rcs-sheet-actions">
+                  <button
+                    type="button"
+                    className="rcs-abtn"
+                    onClick={exportCsv}
+                    disabled={filteredGames.length === 0}
+                  >
+                    Export CSV
+                  </button>
+                  <button
+                    type="button"
+                    className="rcs-abtn"
+                    onClick={exportJson}
+                    disabled={filteredGames.length === 0}
+                  >
+                    Export JSON
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="rcs-pbtn"
+                  onClick={() => setShowFilterSheet(false)}
+                >
+                  Done
+                </button>
+              </div>
+            </>
+          )}
+        </>
       ) : (
         <div>
           {selectedGame ? (
@@ -388,25 +472,19 @@ const GameHistory: React.FC<GameHistoryProps> = ({
               onBack={handleBackToList}
               onPrevious={handlePreviousGame}
               onNext={handleNextGame}
-              canNavigatePrevious={
-                filteredGames.findIndex((game) => game.id === selectedGameId) > 0
-              }
+              canNavigatePrevious={selectedIndex > 0}
               canNavigateNext={
-                filteredGames.findIndex((game) => game.id === selectedGameId) <
-                filteredGames.length - 1
+                selectedIndex >= 0 && selectedIndex < filteredGames.length - 1
               }
+              currentIndex={selectedIndex}
+              totalCount={filteredGames.length}
             />
           ) : (
             // Fallback in case no game is selected
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 flex flex-col items-center justify-center h-full">
-              <div className="text-center">
-                <button
-                  onClick={handleBackToList}
-                  className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
-                >
-                  Back to Game List
-                </button>
-              </div>
+            <div className="gh-empty">
+              <button type="button" onClick={handleBackToList} className="gh-new">
+                Back to Game List
+              </button>
             </div>
           )}
         </div>

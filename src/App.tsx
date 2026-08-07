@@ -229,7 +229,7 @@ const AppContent: FC<AppContentProps> = ({
     } finally {
       setShowProfileModal(false);
       // Only redirect to setup if not in the middle of a game
-      if (gameState !== 'scoring' && gameState !== 'statistics') {
+      if (gameState !== 'scoring' && gameState !== 'summary') {
         setGameState('setup');
       }
     }
@@ -262,7 +262,7 @@ const AppContent: FC<AppContentProps> = ({
 
   // Profile click handler
   const handleProfileClick = useCallback(() => {
-    if (gameState === 'scoring' || gameState === 'statistics') {
+    if (gameState === 'scoring' || gameState === 'summary') {
       setShowProfileModal(true);
     } else {
       setGameState('profile');
@@ -285,7 +285,7 @@ const AppContent: FC<AppContentProps> = ({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 dark:text-gray-100">
+    <div className="rcs-app min-h-screen flex flex-col dark:text-gray-100">
       <Header
         user={user}
         darkMode={darkMode}
