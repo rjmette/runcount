@@ -108,7 +108,7 @@ describe('useGameState', () => {
       result.current.handleFinishGame();
     });
 
-    expect(result.current.gameState).toBe('statistics');
+    expect(result.current.gameState).toBe('summary');
 
     act(() => {
       result.current.handleViewHistory();

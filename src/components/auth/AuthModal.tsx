@@ -56,7 +56,7 @@ const AuthModal: FC<AuthModalProps> = ({ isOpen, gameState, onClose, awsAuth }) 
           </p>
         </div>
         <div className="p-3 sm:p-4">
-          {gameState === 'scoring' || gameState === 'statistics' ? (
+          {gameState === 'scoring' || gameState === 'summary' ? (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-lg text-sm">
               Logging in will save your current game to your account.
             </div>

@@ -37,6 +37,60 @@ export const formatGameDateTime = (input: DateInput): string => {
 };
 
 /**
+ * "Aug 6 · 7:42 PM" — compact form for dense list rows (History cards) and
+ * the history-context Game Summary eyebrow, per the Remix handoff.
+ */
+export const formatGameDateShort = (input: DateInput): string => {
+  const date = new Date(input);
+  const monthDay = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const time = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${monthDay} · ${time}`;
+};
+
+/**
+ * "Aug 6, 7:42 PM" — the phone-width Game Summary header date.
+ */
+export const formatGameDateHeader = (input: DateInput): string => {
+  const date = new Date(input);
+  const monthDay = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const time = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${monthDay}, ${time}`;
+};
+
+/**
+ * "Aug 6, 2026 · 7:42 PM" — the tablet-width Game Summary header date,
+ * where there's room for the year.
+ */
+export const formatGameDateFull = (input: DateInput): string => {
+  const date = new Date(input);
+  const monthDayYear = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const time = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+  return `${monthDayYear} · ${time}`;
+};
+
+/**
  * "Sunday, May 3 at 3:18 AM" — verbose form for export/email contexts where
  * the date is consumed as prose.
  */

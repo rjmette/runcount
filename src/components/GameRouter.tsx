@@ -141,7 +141,7 @@ export const GameRouter: FC<GameRouterProps> = ({
         />
       );
       break;
-    case 'statistics':
+    case 'summary':
       route = (
         <GameStatistics
           gameId={gameId}

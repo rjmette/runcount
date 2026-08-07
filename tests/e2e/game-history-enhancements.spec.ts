@@ -62,11 +62,14 @@ test.describe('Game history enhancements', () => {
     await page.evaluate(() => window.dispatchEvent(new Event('switchToHistory')));
 
     await expect(page.getByRole('heading', { name: 'Game History' })).toBeVisible();
-    await expect(page.getByText('(3)')).toBeVisible();
-    await expect(page.getByRole('button', { name: /View Trends/ })).toBeVisible();
+    await expect(page.getByTestId('game-history-count')).toHaveText('3');
 
+    // Date range + sort live behind the range control / filter sheet.
+    await page.getByRole('button', { name: 'Date range' }).click();
     await page.getByLabel('From', { exact: true }).fill('2026-04-01');
     await page.getByLabel('To', { exact: true }).fill('2026-04-30');
+    await page.getByRole('button', { name: 'Done' }).click();
+
     await page.getByLabel('Opponent', { exact: true }).fill('char');
 
     await expect(page.getByText('Showing 1 of 3 games')).toBeVisible();
@@ -81,6 +84,9 @@ test.describe('Game history enhancements', () => {
       hasText: /Alice|Bob|Charlie/,
     });
     await expect(visibleGameCards.first()).toContainText('Charlie');
+
+    // Exports live in the filter sheet.
+    await page.getByRole('button', { name: 'Date range' }).click();
 
     const csvDownloadPromise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Export CSV' }).click();
