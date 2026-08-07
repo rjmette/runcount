@@ -250,11 +250,11 @@ describe('useGameActions', () => {
     players[0].consecutiveFouls = 2;
 
     act(() => {
-      result.current.handleAddFoul(14);
+      result.current.handleAddFoul(15);
     });
 
-    // Three consecutive standard fouls: balls pocketed (1) - standard foul (-1) - three foul penalty (-15) = -15
-    expect(players[0].score).toBe(-15);
+    // Three consecutive standard fouls: standard foul (-1) + three-foul penalty (-15)
+    expect(players[0].score).toBe(-16);
     expect(players[0].consecutiveFouls).toBe(0); // reset after penalty
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
     expect(mocks.setAlertMessage).toHaveBeenCalledWith(
@@ -461,7 +461,7 @@ describe('useGameActions', () => {
     players[0].consecutiveFouls = 1; // Already has one foul
 
     act(() => {
-      result.current.handleAddFoul(14);
+      result.current.handleAddFoul(15);
     });
 
     expect(players[0].consecutiveFouls).toBe(2);
@@ -469,6 +469,47 @@ describe('useGameActions', () => {
       expect.stringContaining('two consecutive fouls'),
     );
     expect(mocks.setShowAlertModal).toHaveBeenCalledWith(true);
+  });
+
+  test('starts a new foul sequence when legal balls were made before the foul', () => {
+    const testHarness = setup({
+      ballsOnTable: 15,
+      actions: [{ type: 'score', playerId: 1, value: 1, timestamp: new Date() }],
+    });
+    const { result, players, mocks } = testHarness;
+    players[0].consecutiveFouls = 1;
+
+    act(() => {
+      result.current.handleAddFoul(13);
+    });
+
+    expect(players[0].score).toBe(1);
+    expect(players[0].consecutiveFouls).toBe(1);
+    expect(testHarness.actions.at(-1)).toMatchObject({ type: 'foul', reBreak: false });
+    expect(mocks.setAlertMessage).not.toHaveBeenCalledWith(
+      expect.stringContaining('two consecutive fouls'),
+    );
+  });
+
+  test('does not apply a three-foul penalty after an intervening legal shot', () => {
+    const testHarness = setup({
+      ballsOnTable: 15,
+      actions: [{ type: 'score', playerId: 1, value: 1, timestamp: new Date() }],
+    });
+    const { result, players, mocks } = testHarness;
+    players[0].consecutiveFouls = 2;
+
+    act(() => {
+      result.current.handleAddFoul(13);
+    });
+
+    expect(players[0].score).toBe(1);
+    expect(players[0].consecutiveFouls).toBe(1);
+    expect(testHarness.actions.at(-1)).toMatchObject({ type: 'foul', reBreak: false });
+    expect(mocks.setPlayerNeedsReBreak).not.toHaveBeenCalled();
+    expect(mocks.setAlertMessage).not.toHaveBeenCalledWith(
+      expect.stringContaining('three consecutive fouls'),
+    );
   });
 
   test('handles re-break player correctly for all action types', () => {

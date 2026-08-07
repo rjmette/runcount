@@ -63,13 +63,14 @@ export const replayActions = ({
   };
 
   const applyPocketedBalls = (action: GameAction, playerIndex: number) => {
-    if (action.ballsOnTable === undefined) return;
+    if (action.ballsOnTable === undefined) return 0;
 
     const ballsPocketed = Math.max(0, ballsOnTable - action.ballsOnTable);
     playerData[playerIndex].score += ballsPocketed;
     currentRun += ballsPocketed;
     updateHighRun(playerIndex);
     ballsOnTable = resolveNextTableState(action.ballsOnTable);
+    return ballsPocketed;
   };
 
   const advanceTurn = (playerIndex: number) => {
@@ -101,14 +102,15 @@ export const replayActions = ({
         break;
 
       case 'foul': {
-        applyPocketedBalls(action, playerIndex);
+        const ballsPocketed = applyPocketedBalls(action, playerIndex);
 
         playerData[playerIndex].fouls += 1;
 
         const isTwoPointBreakingFoul = action.isBreakFoul === true && action.value === -2;
 
         if (!isTwoPointBreakingFoul) {
-          playerData[playerIndex].consecutiveFouls += 1;
+          playerData[playerIndex].consecutiveFouls =
+            ballsPocketed > 0 ? 1 : playerData[playerIndex].consecutiveFouls + 1;
         }
 
         playerData[playerIndex].score += action.value;

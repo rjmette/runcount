@@ -147,8 +147,16 @@ export const useGameActions = ({
     // fouls do (including a 1-point scratch on an otherwise legal break).
     const isBreakingFoul = isOpeningBreak && Math.abs(penaltyValue) === 2;
 
+    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
+    // Scored balls represent at least one intervening legal shot, which breaks
+    // the prior consecutive-foul sequence under WPA 3.13. The foul ending this
+    // inning therefore starts a new sequence instead of extending the old one.
+    const hasInterveningLegalShot = ballsPocketed > 0;
+
     const isThirdConsecutiveFoul =
-      playerData[playerIndex].consecutiveFouls === 2 && !isBreakingFoul;
+      playerData[playerIndex].consecutiveFouls === 2 &&
+      !isBreakingFoul &&
+      !hasInterveningLegalShot;
 
     const manualDecision = options?.manualConsecutiveDecision;
     const isManualThreeFoul = manualDecision === 'threeFoul';
@@ -163,7 +171,6 @@ export const useGameActions = ({
       isBreakFoul: isOpeningBreak,
     };
 
-    const ballsPocketed = Math.max(0, ballsOnTable - botsValue);
     setBallsOnTable(resolveNextTableState(botsValue));
     setActions([...actions, newAction]);
     setIsUndoEnabled(true);
@@ -187,7 +194,9 @@ export const useGameActions = ({
     // A breaking foul is still a foul (counts toward total fouls) but does not
     // advance the consecutive-foul count under WPA 4.11.
     if (!isBreakingFoul) {
-      updatedPlayerData[playerIndex].consecutiveFouls = previousConsecutiveFouls + 1;
+      updatedPlayerData[playerIndex].consecutiveFouls = hasInterveningLegalShot
+        ? 1
+        : previousConsecutiveFouls + 1;
     }
     updatedPlayerData[playerIndex].fouls += 1;
 

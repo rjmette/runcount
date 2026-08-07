@@ -578,8 +578,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
       handleAddScore(0, botsValue);
       resetBotActionState();
     } else if (botAction === 'foul') {
+      const hasInterveningLegalShot = Math.max(0, ballsOnTable - botsValue) > 0;
+
       if (
         !isBreakShotContext &&
+        !hasInterveningLegalShot &&
         playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
         playerData[activePlayerIndex].consecutiveFouls >= 2
       ) {
