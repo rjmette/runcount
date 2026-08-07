@@ -95,6 +95,15 @@ describe('replayActions', () => {
     expect(state.activePlayerIndex).toBe(1);
   });
 
+  test('restarts the foul sequence after legally pocketed balls', () => {
+    const state = replay([foul(), miss(1), foul({ ballsOnTable: 13 })]);
+
+    expect(state.playerData[0].score).toBe(0);
+    expect(state.playerData[0].fouls).toBe(2);
+    expect(state.playerData[0].consecutiveFouls).toBe(1);
+    expect(state.playerNeedsReBreak).toBeNull();
+  });
+
   test('advances turns only for non-break and non-rebreak terminal actions', () => {
     expect(replay([foul({ isBreakFoul: true })]).activePlayerIndex).toBe(0);
     expect(replay([foul({ reBreak: true })]).activePlayerIndex).toBe(0);

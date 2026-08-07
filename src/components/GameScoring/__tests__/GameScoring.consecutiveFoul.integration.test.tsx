@@ -155,4 +155,41 @@ describe('GameScoring consecutive foul flow', () => {
       expect(screen.getByText('Re-Break')).toBeInTheDocument();
     });
   }, 15000);
+
+  test('skips the three-foul prompt when the inning includes a legal scoring shot', async () => {
+    render(
+      <GameScoring
+        players={['Alice', 'Bob']}
+        playerTargetScores={{ Alice: 100, Bob: 100 }}
+        gameId="saved-game-1"
+        setGameId={() => {}}
+        finishGame={() => {}}
+        backend={backend}
+        user={null}
+        breakingPlayerId={0}
+        shotClockSeconds={15}
+        matchStartTime={null}
+        matchEndTime={null}
+        setMatchStartTime={() => {}}
+        setMatchEndTime={() => {}}
+        turnStartTime={null}
+        setTurnStartTime={() => {}}
+        ballsOnTable={15}
+        setBallsOnTable={() => {}}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('2 Fouls')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /^Foul$/i }));
+    await userEvent.click(await screen.findByRole('button', { name: '13' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Alice was on two fouls/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('2 Fouls')).not.toBeInTheDocument();
+      expect(screen.getByTestId('player-score-0')).toHaveTextContent('-1');
+    });
+  }, 15000);
 });
