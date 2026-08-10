@@ -24,7 +24,7 @@ The three workflows fire in parallel:
 - [google-play.yml](.github/workflows/google-play.yml) — Android → Play internal track (~4 min on `ubuntu-latest`)
 - [testflight.yml](.github/workflows/testflight.yml) — iOS → TestFlight (~7 min on the self-hosted Mac runner, plus Apple post-processing)
 
-`workflow_dispatch` works the same way — versions are derived from the latest tag via `git describe`.
+`workflow_dispatch` works the same way — versions are derived from the latest tag via `git describe` unless a `marketing_version` input is supplied. The dispatch ref is the source that gets built, so use `main` when recovering a mobile build after web/design changes landed after the last release tag.
 
 ## Versioning
 
@@ -49,7 +49,7 @@ The three workflows fire in parallel:
 
 ### Apple
 
-- Apple Developer Program membership active; both agreements accepted (PLA + Paid/Free Apps).
+- Apple Developer Program membership active; the PLA and Paid/Free Apps agreements must remain in effect for export.
 - App Store Connect API key (Admin role) reused from prior tiny-tanks setup — keys are account-wide.
 - App record exists in App Store Connect under bundle id `net.rbios.runcount`.
 - **Xcode Cloud workflow deactivated** in App Store Connect → Xcode Cloud → Manage Workflows (it ran in parallel with our GitHub Actions pipeline and kept failing because it doesn't run `npm ci` + `cap sync` before `xcodebuild`).
@@ -98,6 +98,21 @@ Sanity check: `gh secret list` should show fresh timestamps for all of the above
 2. Install the TestFlight app on iOS device, sign in with that Apple ID.
 3. Build appears within ~10 min of upload (after Apple processing). If the new build doesn't show as an update, **force-quit and relaunch TestFlight** — sometimes the in-app list is cached. Make sure new tag versions monotonically increase past the highest existing TestFlight marketing version, otherwise TestFlight won't surface it as an update.
 
+### Recovering TestFlight delivery
+
+When a release tag predates a web or mobile design change, do not rerun that old
+release for parity verification. Dispatch `testflight.yml` from `main` and set
+`marketing_version` to a new monotonically increasing version (for example,
+`1.0.5`); the build number defaults to the GitHub Actions run number. The
+workflow verifies that Capacitor copied the exact production web bundle into
+the iOS project before archiving.
+
+If export reports `FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED`, the
+workflow will mark the run as an Apple agreement blocker and preserve the
+export log as an artifact. An account holder must bring the required agreement
+back into effect in App Store Connect → Business before the workflow can upload
+anything; there is no code or workflow bypass for that account action.
+
 ### Android (Internal testing track)
 
 1. Testers managed in Play Console → RunCount → Test and release → Internal testing → **Testers** tab → `RunCount Internal Testers` email list (currently `ryan.mette@gmail.com`); list is checkboxed to apply to the track.
@@ -120,7 +135,7 @@ See the upstream SOP for the full table — the highlights:
 | TestFlight build shows wrong version                                                                         | Already fixed: workflow passes `MARKETING_VERSION=` / `CURRENT_PROJECT_VERSION=` on `xcodebuild archive` rather than editing Info.plist.                                                                                                           |
 | "Missing Compliance" blocks TestFlight build from reaching testers                                           | Already fixed: `ITSAppUsesNonExemptEncryption=false` in Info.plist.                                                                                                                                                                                |
 | `error: PLA Update available` during archive                                                                 | Apple updated the PLA — re-accept at developer.apple.com/account.                                                                                                                                                                                  |
-| `403 FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED` during upload                                         | Re-accept the Paid/Free Apps Agreement in App Store Connect → Business.                                                                                                                                                                            |
+| `403 FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED` during upload                                         | The workflow reports an Apple agreement blocker and uploads the export log; an account holder must bring the required agreement back into effect in App Store Connect → Business, then rerun the workflow.                                         |
 | `codesign ... errSecInternalComponent` only when runner runs as service                                      | Already addressed: percolator's LaunchAgent plist has `SessionCreate` stripped so codesign can reach the unlocked login keychain.                                                                                                                  |
 | Play upload fails with "Service account JSON length: 0 chars"                                                | `gh secret set < file` silently failed — re-pipe and verify `gh secret list` timestamp.                                                                                                                                                            |
 | Tester opt-in URL says "App not available"                                                                   | Tester not on the email list, list not checkboxed on the release, or release still in Draft.                                                                                                                                                       |

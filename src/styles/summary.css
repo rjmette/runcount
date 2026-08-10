@@ -143,6 +143,8 @@ html.dark {
   background-color: var(--rcs-bg);
   background-image: var(--rcs-page-glow);
   background-repeat: no-repeat;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* ===================== shared primitives ===================== */
@@ -688,7 +690,7 @@ html.dark {
   right: 0;
   bottom: 0;
   z-index: 40;
-  padding: 10px 12px calc(20px + env(safe-area-inset-bottom));
+  padding: 10px 12px calc(20px + env(safe-area-inset-bottom, 0px));
   background: var(--rcs-bar-bg);
   border-top: 1px solid var(--rcs-line-2);
   box-shadow: var(--rcs-bar-shadow);
@@ -707,7 +709,7 @@ html.dark {
 /* Room for the fixed bar so the ledger's last rows aren't hidden under it. */
 @media (max-width: 699.98px) and (min-height: 461px) {
   .gs-root {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 }
 /* Landscape + tablet/desktop: same buttons, inline, not fixed. */
