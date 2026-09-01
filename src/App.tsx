@@ -10,9 +10,9 @@ import ErrorBanner from './components/shared/ErrorBanner';
 import { ErrorBoundary, ErrorEventsBridge } from './components/shared/ErrorBoundary';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import { GamePersistProvider } from './context/GamePersistContext';
+import { useAppNavigation } from './hooks/useAppNavigation';
 import { useFullscreen } from './hooks/useFullscreen';
 import { useGameSettings } from './hooks/useGameSettings';
-import { useGameState } from './hooks/useGameState';
 import { useTheme } from './hooks/useTheme';
 
 import type { GameBackend } from './backend/types';
@@ -149,7 +149,7 @@ interface AppContentProps {
   backend: GameBackend;
   renderAuthModal: (props: {
     isOpen: boolean;
-    gameState: ReturnType<typeof useGameState>['gameState'];
+    gameState: ReturnType<typeof useAppNavigation>['gameState'];
     onClose: () => void;
   }) => ReactNode;
 }
@@ -202,7 +202,7 @@ const AppContent: FC<AppContentProps> = ({
     handleViewHistory,
     handleViewTrends,
     handleGoToSetup,
-  } = useGameState();
+  } = useAppNavigation();
 
   useEffect(() => {
     setShotClockSeconds(lastShotClockSeconds);

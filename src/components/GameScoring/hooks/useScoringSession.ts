@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { type Player, type GameAction, type GameData } from '../../../types/game';
 import { replayActions } from '../utils/replayActions';
 
-interface UseGameStateProps {
+interface UseScoringSessionProps {
   players: string[];
   playerTargetScores: Record<string, number>;
   gameId: string | null;
@@ -37,7 +37,8 @@ const getRestoredBreakingPlayerIndex = (
   return inningPlayerIndex === -1 ? fallbackBreakingPlayerId : inningPlayerIndex;
 };
 
-export const useGameState = ({
+/** In-game scoring session state: players, actions, timers, and table state. */
+export const useScoringSession = ({
   players,
   playerTargetScores,
   gameId,
@@ -45,7 +46,7 @@ export const useGameState = ({
   breakingPlayerId,
   getGameState,
   persistGame,
-}: UseGameStateProps) => {
+}: UseScoringSessionProps) => {
   const [activePlayerIndex, setActivePlayerIndexState] = useState(() => {
     const saved = getGameState();
     if (saved && saved.id === gameId) {
@@ -56,7 +57,6 @@ export const useGameState = ({
 
   const setActivePlayerIndex = (index: number) => {
     setActivePlayerIndexState(index);
-    // Reset turn clock when player changes
     setTurnStartTime(new Date());
   };
   const [playerData, setPlayerData] = useState<Player[]>([]);
@@ -96,7 +96,6 @@ export const useGameState = ({
     return null;
   });
 
-  // Initialize game data
   const initializedRef = useRef(false);
   useEffect(() => {
     if (initializedRef.current) return;
@@ -104,20 +103,13 @@ export const useGameState = ({
 
     const savedGameState = getGameState();
     if (savedGameState && savedGameState.id === gameId) {
-      // Restore from saved game state
       setActions(savedGameState.actions);
 
-      // Determine which player was breaking (falls back to inning heuristics
-      // for legacy saved games that predate the breakingPlayerId field).
       const restoredBreakingPlayer = getRestoredBreakingPlayerIndex(
         savedGameState,
         breakingPlayerId,
       );
 
-      // Replay all actions through the same canonical reducer used by undo
-      // (replayActions) so re-rack-to-15 re-break fouls, the resolveNextTableState
-      // 0/1 handling, and run tracking are computed identically on reload as
-      // they are during live play and undo.
       const replayedState = replayActions({
         players,
         playerTargetScores,
@@ -125,7 +117,6 @@ export const useGameState = ({
         actions: savedGameState.actions,
       });
 
-      // Set game state
       setPlayerData(replayedState.playerData);
       setActivePlayerIndex(replayedState.activePlayerIndex);
       setCurrentInning(replayedState.currentInning);
@@ -134,7 +125,6 @@ export const useGameState = ({
       setPlayerNeedsReBreak(replayedState.playerNeedsReBreak);
       setIsUndoEnabled(savedGameState.actions.length > 0);
     } else {
-      // Create player data from names
       const initialPlayerData: Player[] = players.map((name, index) => ({
         id: index,
         name,
@@ -149,7 +139,6 @@ export const useGameState = ({
       }));
 
       setPlayerData(initialPlayerData);
-      // Always generate a new UUID for a new game to prevent overwriting existing games
       const newGameId = uuidv4();
       setGameId(newGameId);
       setCurrentInning(1);
@@ -158,7 +147,6 @@ export const useGameState = ({
       }
       setPlayerNeedsReBreak(null);
 
-      // Start match timer for new game
       const startTime = new Date();
       setMatchStartTime(startTime);
       setMatchEndTime(null);
@@ -166,7 +154,7 @@ export const useGameState = ({
 
       persistGame(newGameId, initialPlayerData, [], false, null, startTime, startTime);
     }
-  }, []); // Empty dependency array is intentional - we only want this to run once on mount
+  }, []);
 
   return {
     activePlayerIndex,

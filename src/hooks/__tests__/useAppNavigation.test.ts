@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { createMockGameData, createMockPlayer } from '../../testing/factories';
-import { useGameState } from '../useGameState';
+import { useAppNavigation } from '../useAppNavigation';
 
 const getGameState = vi.fn();
 const clearGameState = vi.fn();
@@ -16,7 +16,7 @@ vi.mock('../../context/GamePersistContext', () => ({
   }),
 }));
 
-describe('useGameState', () => {
+describe('useAppNavigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     hasActiveGame = false;
@@ -24,7 +24,7 @@ describe('useGameState', () => {
   });
 
   test('initializes to setup when there is no saved game', () => {
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     expect(result.current.gameState).toBe('setup');
     expect(result.current.players).toEqual([]);
@@ -46,7 +46,7 @@ describe('useGameState', () => {
       }),
     );
 
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     expect(result.current.gameState).toBe('scoring');
     expect(result.current.players).toEqual(['Alice', 'Bob']);
@@ -68,7 +68,7 @@ describe('useGameState', () => {
       }),
     );
 
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     expect(result.current.breakingPlayerId).toBe(1);
   });
@@ -77,7 +77,7 @@ describe('useGameState', () => {
     hasActiveGame = true;
     getGameState.mockReturnValue(createMockGameData({ completed: true }));
 
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     expect(result.current.gameState).toBe('setup');
     expect(clearGameState).toHaveBeenCalledTimes(1);
@@ -85,7 +85,7 @@ describe('useGameState', () => {
 
   test('transitions through setup, scoring, statistics, and history handlers', () => {
     const onSaveSettings = vi.fn();
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     act(() => {
       result.current.handleStartGame(
@@ -125,7 +125,7 @@ describe('useGameState', () => {
   });
 
   test('responds to switchToHistory window events', () => {
-    const { result } = renderHook(() => useGameState());
+    const { result } = renderHook(() => useAppNavigation());
 
     act(() => {
       window.dispatchEvent(new Event('switchToHistory'));

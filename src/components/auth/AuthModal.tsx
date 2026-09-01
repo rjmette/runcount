@@ -3,11 +3,11 @@ import type { FC } from 'react';
 
 import Auth, { type AuthTab, type AwsAuthOperations } from './Auth';
 
-import type { GameState } from '../../hooks/useGameState';
+import type { AppView } from '../../hooks/useAppNavigation';
 
 interface AuthModalProps {
   isOpen: boolean;
-  gameState: GameState;
+  gameState: AppView;
   onClose: () => void;
   awsAuth: AwsAuthOperations;
 }

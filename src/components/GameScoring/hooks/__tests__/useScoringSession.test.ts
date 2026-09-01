@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { useGameState } from '../useGameState';
+import { useScoringSession } from '../useScoringSession';
 
 import type { GameData, Player } from '../../../../types/game';
 
@@ -20,7 +20,7 @@ const makePlayers = (names: string[], targetScores: number[] = []) => {
   }));
 };
 
-describe('useGameState', () => {
+describe('useScoringSession', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     localStorage.clear();
@@ -31,7 +31,7 @@ describe('useGameState', () => {
     const setGameId = vi.fn();
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: null,
@@ -71,7 +71,7 @@ describe('useGameState', () => {
     const setGameId = vi.fn();
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -101,7 +101,7 @@ describe('useGameState', () => {
     };
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -131,7 +131,7 @@ describe('useGameState', () => {
     };
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -188,7 +188,7 @@ describe('useGameState', () => {
     const getGameState = () => saved;
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -234,7 +234,7 @@ describe('useGameState', () => {
     const getGameState = () => saved;
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -284,7 +284,7 @@ describe('useGameState', () => {
     const getGameState = () => saved;
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -361,7 +361,7 @@ describe('useGameState', () => {
     const getGameState = () => saved;
 
     const { result } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: 'game-1',
@@ -385,7 +385,7 @@ describe('useGameState', () => {
     const setGameId = vi.fn();
 
     const { rerender } = renderHook(() =>
-      useGameState({
+      useScoringSession({
         players: ['Alice', 'Bob'],
         playerTargetScores: { Alice: 75, Bob: 60 },
         gameId: null,
