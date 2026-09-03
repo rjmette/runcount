@@ -1,12 +1,12 @@
 import type { FC } from 'react';
 
-import type { GameState } from '../hooks/useGameState';
+import type { AppView } from '../hooks/useAppNavigation';
 import type { AppUser } from '../types/auth';
 
 interface NavigationProps {
-  gameState: GameState;
+  gameState: AppView;
   user: AppUser | null;
-  onNavigate: (state: GameState) => void;
+  onNavigate: (state: AppView) => void;
 }
 
 export const Navigation: FC<NavigationProps> = ({ gameState, user, onNavigate }) => {

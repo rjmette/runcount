@@ -4,14 +4,10 @@ import { useGamePersist } from '../context/GamePersistContext';
 
 import type { GameData } from '../types/game';
 
-// Game states
-export type GameState =
-  | 'setup'
-  | 'scoring'
-  | 'summary'
-  | 'history'
-  | 'trends'
-  | 'profile';
+export type AppView = 'setup' | 'scoring' | 'summary' | 'history' | 'trends' | 'profile';
+
+/** @deprecated Use AppView instead */
+export type GameState = AppView;
 
 const getRestoredBreakingPlayerId = (saved: GameData | null) => {
   if (!saved || saved.completed) return 0;
@@ -22,13 +18,12 @@ const getRestoredBreakingPlayerId = (saved: GameData | null) => {
 };
 
 /**
- * Custom hook for managing game state and related data
- * Handles game setup, scoring, statistics, and history navigation
+ * Manages top-level app navigation and shared game metadata across views.
  */
-export const useGameState = () => {
+export const useAppNavigation = () => {
   const { getGameState, hasActiveGame, clearGameState } = useGamePersist();
 
-  const [gameState, setGameState] = useState<GameState>(() => {
+  const [gameState, setGameState] = useState<AppView>(() => {
     const saved = getGameState();
     return saved && !saved.completed ? 'scoring' : 'setup';
   });
@@ -64,7 +59,6 @@ export const useGameState = () => {
     getRestoredBreakingPlayerId(getGameState()),
   );
 
-  // Timer state for header display during scoring
   const [matchStartTime, setMatchStartTime] = useState<Date | null>(() => {
     const saved = getGameState();
     if (saved && !saved.completed && saved.startTime) {
@@ -87,7 +81,6 @@ export const useGameState = () => {
       if (saved.turnStartTime) {
         return new Date(saved.turnStartTime);
       }
-      // Fallback to match start time if active
       if (saved.startTime) {
         return new Date(saved.startTime);
       }
@@ -96,12 +89,10 @@ export const useGameState = () => {
   });
   const [ballsOnTable, setBallsOnTable] = useState<number>(15);
 
-  // Check for saved game on initial load
   useEffect(() => {
     if (hasActiveGame) {
       const savedGame = getGameState();
       if (!savedGame || savedGame.completed) {
-        // If the saved game is completed or corrupted, clear it and stay on setup
         if (savedGame?.completed) {
           clearGameState();
         }
@@ -110,7 +101,6 @@ export const useGameState = () => {
     }
   }, [hasActiveGame, getGameState, clearGameState]);
 
-  // Listen for navigation to history from end game modal
   useEffect(() => {
     const handleSwitchToHistory = () => {
       setGameState('history');
@@ -122,7 +112,6 @@ export const useGameState = () => {
     };
   }, []);
 
-  // Game state handlers
   const handleStartGame = useCallback(
     (
       players: string[],

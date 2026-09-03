@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import type { FC, ReactNode } from 'react';
 
 import type { GameBackend } from '../backend/types';
-import type { GameState } from '../hooks/useGameState';
+import type { AppView } from '../hooks/useAppNavigation';
 import type { AppUser } from '../types/auth';
 
 const UserProfile = lazy(() => import('./auth/UserProfile'));
@@ -13,7 +13,7 @@ const GameStatistics = lazy(() => import('./GameStatistics'));
 const TrendsPage = lazy(() => import('./Trends/index'));
 
 interface GameRouterProps {
-  gameState: GameState;
+  gameState: AppView;
   backend: GameBackend;
   user: AppUser | null;
   // Game setup props

@@ -1,85 +1,22 @@
-import React, { useState, useEffect, useCallback, useReducer } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 
-import { useError } from '../../context/ErrorContext';
 import { useGamePersist } from '../../context/GamePersistContext';
 import { persistGameHelper } from '../../hooks/useGameSave';
 import { type GameScoringProps } from '../../types/game';
-import BreakDialog from '../BreakDialog';
-import { InningsModal } from '../GameStatistics/components/InningsModal';
-import { MatchTimer } from '../MatchTimer';
 import PlayerScoreCard from '../PlayerScoreCard';
 
-import { AlertModal } from './components/AlertModal';
-import { BallsOnTableModal } from './components/BallsOnTableModal';
-import { BreakFoulModal } from './components/BreakFoulModal';
-import { BreakFoulPenaltyModal } from './components/BreakFoulPenaltyModal';
-import { ConsecutiveFoulPenaltyModal } from './components/ConsecutiveFoulPenaltyModal';
-import { EndGameModal } from './components/EndGameModal';
-import { GameHelpModal } from './components/GameHelpModal';
+import { GameScoringActions } from './components/GameScoringActions';
+import { GameScoringModals } from './components/GameScoringModals';
+import { GameScoringToolbar } from './components/GameScoringToolbar';
 import { GameStatusBar } from './components/GameStatusBar';
+import { useBreakFoulHandlers, useBreakFoulModal } from './hooks/useBreakFoulModal';
+import { useFoulFlow } from './hooks/useFoulFlow';
 import { useGameActions } from './hooks/useGameActions';
 import { useGameScoringHistory } from './hooks/useGameHistory';
-import { useGameState } from './hooks/useGameState';
-
-type BotAction = 'newrack' | 'foul' | 'safety' | 'miss' | null;
-
-interface FoulFlowState {
-  botAction: BotAction;
-  selectedBreakPenalty: 1 | 2 | null;
-  pendingConsecutiveFoulBotsValue: number | null;
-  pendingConsecutiveFoulPlayerId: number | null;
-  showBreakPenaltyModal: boolean;
-  showConsecutivePenaltyModal: boolean;
-}
-
-type FoulFlowAction =
-  | { type: 'setAction'; action: BotAction }
-  | { type: 'openBreakPenalty' }
-  | { type: 'closeBreakPenalty' }
-  | { type: 'selectBreakPenalty'; penalty: 1 | 2 }
-  | { type: 'openConsecutivePenalty'; botsValue: number; playerId: number }
-  | { type: 'closeConsecutivePenalty' }
-  | { type: 'reset' };
-
-const initialFoulFlowState: FoulFlowState = {
-  botAction: null,
-  selectedBreakPenalty: null,
-  pendingConsecutiveFoulBotsValue: null,
-  pendingConsecutiveFoulPlayerId: null,
-  showBreakPenaltyModal: false,
-  showConsecutivePenaltyModal: false,
-};
-
-const foulFlowReducer = (state: FoulFlowState, action: FoulFlowAction): FoulFlowState => {
-  switch (action.type) {
-    case 'setAction':
-      return { ...state, botAction: action.action };
-    case 'openBreakPenalty':
-      return { ...state, showBreakPenaltyModal: true };
-    case 'closeBreakPenalty':
-      return { ...state, showBreakPenaltyModal: false };
-    case 'selectBreakPenalty':
-      return { ...state, selectedBreakPenalty: action.penalty };
-    case 'openConsecutivePenalty':
-      return {
-        ...state,
-        showConsecutivePenaltyModal: true,
-        pendingConsecutiveFoulBotsValue: action.botsValue,
-        pendingConsecutiveFoulPlayerId: action.playerId,
-      };
-    case 'closeConsecutivePenalty':
-      return {
-        ...state,
-        showConsecutivePenaltyModal: false,
-        pendingConsecutiveFoulBotsValue: null,
-        pendingConsecutiveFoulPlayerId: null,
-      };
-    case 'reset':
-      return { ...initialFoulFlowState };
-    default:
-      return state;
-  }
-};
+import { useLoginCloudSync } from './hooks/useLoginCloudSync';
+import { useParentStateSync } from './hooks/useParentStateSync';
+import { useScoringPersist, type ScoringPersistGame } from './hooks/useScoringPersist';
+import { useScoringSession } from './hooks/useScoringSession';
 
 const GameScoring: React.FC<GameScoringProps> = ({
   players,
@@ -101,57 +38,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
   setBallsOnTable: parentSetBallsOnTable,
 }) => {
   const { saveGameState, getGameState, clearGameState } = useGamePersist();
-  const { addError } = useError();
 
-  // Modal state management
   const [showEndGameModal, setShowEndGameModal] = useState(false);
   const [showBOTModal, setShowBOTModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
-  const [showBreakFoulModal, setShowBreakFoulModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
-  const [foulFlowState, dispatchFoulFlow] = useReducer(
-    foulFlowReducer,
-    initialFoulFlowState,
-  );
   const [showInningsModal, setShowInningsModal] = useState(false);
   const [showBreakDialog, setShowBreakDialog] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [currentBreakingPlayerId, setCurrentBreakingPlayerId] =
     useState<number>(breakingPlayerId);
 
-  // Add effect to detect user login and save game to cloud backend
-  useEffect(() => {
-    // If user just logged in and we have a game in progress, save it to cloud backend
-    if (user && gameId) {
-      const saveCurrentGameToCloud = async () => {
-        try {
-          const gameState = getGameState();
-          if (!gameState) return;
+  const persistGameRef = useRef<ScoringPersistGame>(async () => {
+    /* wired below once session timers are available */
+  });
 
-          const payload = {
-            id: gameId,
-            date: new Date().toISOString(),
-            players: gameState.players,
-            actions: gameState.actions,
-            breakingPlayerId: gameState.breakingPlayerId ?? currentBreakingPlayerId,
-            completed: gameState.completed,
-            winner_id: gameState.winner_id,
-            deleted: false,
-          };
-
-          await backend.saveGame(payload, user);
-          console.log('Successfully saved game to cloud backend after login');
-        } catch (err) {
-          console.error('Error saving game to cloud backend after login:', err);
-          addError('A network error occurred while saving your game. Please try again.');
-        }
-      };
-
-      saveCurrentGameToCloud();
-    }
-  }, [user, gameId, backend, getGameState, addError, currentBreakingPlayerId]);
-
-  // Game state management
   const {
     activePlayerIndex,
     setActivePlayerIndex,
@@ -175,57 +76,40 @@ const GameScoring: React.FC<GameScoringProps> = ({
     matchEndTime,
     setMatchEndTime,
     turnStartTime,
-    setTurnStartTime: _setTurnStartTime,
-  } = useGameState({
+    setTurnStartTime,
+  } = useScoringSession({
     players,
     playerTargetScores,
     gameId,
     setGameId,
     breakingPlayerId: currentBreakingPlayerId,
     getGameState,
-    persistGame: async (
-      gameId,
-      players,
-      actions,
-      completed,
-      winner_id,
-      turnStartTimeOverride,
-      matchStartTimeOverride,
-    ) => {
-      try {
-        await persistGameHelper({
-          backend,
-          user,
-          saveGameState,
-          clearGameState,
-          matchStartTime: matchStartTimeOverride
-            ? matchStartTimeOverride.toISOString()
-            : matchStartTime
-              ? matchStartTime.toISOString()
-              : undefined,
-          matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-          turnStartTime: turnStartTimeOverride
-            ? turnStartTimeOverride.toISOString()
-            : turnStartTime
-              ? turnStartTime.toISOString()
-              : undefined,
-          gameId,
-          players,
-          actions,
-          breakingPlayerId: currentBreakingPlayerId,
-          completed,
-          winner_id,
-        });
-      } catch (_error) {
-        console.error('Failed to persist game to cloud backend', _error);
-        addError(
-          'Failed to save your game. Changes are saved locally and will sync when online.',
-        );
-      }
+    persistGame: (...args) => {
+      void persistGameRef.current(...args);
     },
   });
 
-  // Game actions management
+  const { persistGame } = useScoringPersist({
+    backend,
+    user,
+    currentBreakingPlayerId,
+    matchStartTime,
+    matchEndTime,
+    turnStartTime,
+    saveGameState,
+    clearGameState,
+  });
+
+  persistGameRef.current = persistGame;
+
+  useLoginCloudSync({
+    user,
+    gameId,
+    backend,
+    getGameState,
+    currentBreakingPlayerId,
+  });
+
   const { handleAddScore, handleAddFoul, handleAddSafety, handleAddMiss } =
     useGameActions({
       playerData,
@@ -235,46 +119,25 @@ const GameScoring: React.FC<GameScoringProps> = ({
       actions,
       gameId: gameId || '',
       currentInning,
-      persistGame: async (
+      persistGame: (
         gameId,
         players,
         actions,
         completed,
         winner_id,
-        turnStartTimeOverride,
-        matchStartTimeOverride,
-      ) => {
-        try {
-          await persistGameHelper({
-            backend,
-            user,
-            saveGameState,
-            clearGameState,
-            matchStartTime: matchStartTimeOverride
-              ? matchStartTimeOverride.toISOString()
-              : matchStartTime
-                ? matchStartTime.toISOString()
-                : undefined,
-            matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-            turnStartTime: turnStartTimeOverride
-              ? turnStartTimeOverride.toISOString()
-              : turnStartTime
-                ? turnStartTime.toISOString()
-                : undefined,
-            gameId,
-            players,
-            actions,
-            breakingPlayerId: currentBreakingPlayerId,
-            completed,
-            winner_id,
-          });
-        } catch (_error) {
-          console.error('Failed to persist action to cloud backend', _error);
-          addError(
-            'Could not save your recent action to the cloud. It will retry automatically.',
-          );
-        }
-      },
+        turnStart,
+        matchStart,
+      ) =>
+        void persistGame(
+          gameId,
+          players,
+          actions,
+          completed,
+          winner_id,
+          turnStart,
+          matchStart,
+          'Could not save your recent action to the cloud. It will retry automatically.',
+        ),
       setPlayerData,
       setActions,
       setBallsOnTable,
@@ -289,52 +152,26 @@ const GameScoring: React.FC<GameScoringProps> = ({
       setIsUndoEnabled,
       playerNeedsReBreak,
       setMatchEndTime,
-      setTurnStartTime: _setTurnStartTime,
+      setTurnStartTime,
     });
 
-  // Game history management
   const { setShowHistoryModal, handleUndoLastAction } = useGameScoringHistory({
     players,
     playerTargetScores,
     breakingPlayerId: currentBreakingPlayerId,
     actions,
     gameId: gameId || '',
-    persistGame: async (
-      gameId,
-      players,
-      actions,
-      completed,
-      winner_id,
-      turnStartTimeOverride,
-      matchStartTimeOverride,
-    ) => {
-      try {
-        await persistGameHelper({
-          backend,
-          user,
-          saveGameState,
-          clearGameState,
-          matchStartTime: matchStartTimeOverride
-            ? matchStartTimeOverride.toISOString()
-            : matchStartTime
-              ? matchStartTime.toISOString()
-              : undefined,
-          matchEndTime: matchEndTime ? matchEndTime.toISOString() : undefined,
-          turnStartTime: turnStartTime ? turnStartTime.toISOString() : undefined,
-          gameId,
-          players,
-          actions,
-          breakingPlayerId: currentBreakingPlayerId,
-          completed,
-          winner_id,
-        });
-      } catch (_error) {
-        console.error('Failed to persist updated history to cloud backend', _error);
-        addError(
-          'Failed to update game history in the cloud. Your local history is intact.',
-        );
-      }
-    },
+    persistGame: (gameId, players, actions, completed, winner_id) =>
+      void persistGame(
+        gameId,
+        players,
+        actions,
+        completed,
+        winner_id,
+        undefined,
+        undefined,
+        'Failed to update game history in the cloud. Your local history is intact.',
+      ),
     setPlayerData,
     setActions,
     setActivePlayerIndex,
@@ -345,140 +182,63 @@ const GameScoring: React.FC<GameScoringProps> = ({
     setIsUndoEnabled,
   });
 
-  // Check if there's a break foul in the last action
-  const lastAction = actions[actions.length - 1];
-  const hasBreakFoul = lastAction?.isBreakFoul && lastAction?.type === 'foul';
+  const { showBreakFoulModal, setShowBreakFoulModal } = useBreakFoulModal(actions);
 
-  // Store the ID of the last action with a break foul to prevent showing the modal multiple times for the same action
-  const [lastBreakFoulActionId, setLastBreakFoulActionId] = useState<number | null>(null);
-
-  // If there's a break foul and we haven't handled it yet, show the modal
-  React.useEffect(() => {
-    // Only show the modal if there's a new break foul (not one we've already seen)
-    if (hasBreakFoul && lastAction && lastBreakFoulActionId !== actions.length - 1) {
-      setShowBreakFoulModal(true);
-      setLastBreakFoulActionId(actions.length - 1);
-    }
-  }, [hasBreakFoul, actions, lastBreakFoulActionId, lastAction]);
-
-  // Sync timer and balls state with parent component
-  useEffect(() => {
-    if (matchStartTime !== parentMatchStartTime) {
-      parentSetMatchStartTime(matchStartTime);
-    }
-  }, [matchStartTime, parentMatchStartTime, parentSetMatchStartTime]);
-
-  useEffect(() => {
-    if (matchEndTime !== parentMatchEndTime) {
-      parentSetMatchEndTime(matchEndTime);
-    }
-  }, [matchEndTime, parentMatchEndTime, parentSetMatchEndTime]);
-
-  useEffect(() => {
-    if (turnStartTime !== parentTurnStartTime && parentSetTurnStartTime) {
-      parentSetTurnStartTime(turnStartTime);
-    }
-  }, [turnStartTime, parentTurnStartTime, parentSetTurnStartTime]);
-
-  useEffect(() => {
-    if (ballsOnTable !== parentBallsOnTable) {
-      parentSetBallsOnTable(ballsOnTable);
-    }
-  }, [ballsOnTable, parentBallsOnTable, parentSetBallsOnTable]);
-
-  // Memoize table acceptance handler
-  const handleAcceptTable = useCallback(() => {
-    // Switch to the incoming player
-    const nextPlayerIndex = (activePlayerIndex + 1) % playerData.length;
-    const updatedPlayerData = [...playerData];
-
-    if (nextPlayerIndex === 0) {
-      setCurrentInning(currentInning + 1);
-    }
-    updatedPlayerData[nextPlayerIndex].innings += 1;
-    setActivePlayerIndex(nextPlayerIndex);
-    const newTurnStartTime = new Date();
-    _setTurnStartTime(newTurnStartTime);
-    setPlayerData(updatedPlayerData);
-
-    // Clear the re-break flag since we're accepting the table
-    setPlayerNeedsReBreak(null);
-
-    // Close the modal
-    setShowBreakFoulModal(false);
-
-    // Save the game state
-    const currentGameId = gameId || '';
-    saveGameState({
-      id: currentGameId,
-      date: new Date().toISOString(),
-      players: updatedPlayerData,
-      actions,
-      breakingPlayerId: currentBreakingPlayerId,
-      completed: false,
-      winner_id: null,
-      turnStartTime: newTurnStartTime,
-    });
-  }, [
+  const { handleAcceptTable, handleRequireReBreak } = useBreakFoulHandlers({
     activePlayerIndex,
     playerData,
     currentInning,
-    setCurrentInning,
-    setActivePlayerIndex,
-    setPlayerData,
-    setPlayerNeedsReBreak,
-    setShowBreakFoulModal,
     actions,
     gameId,
-    saveGameState,
-    _setTurnStartTime,
     currentBreakingPlayerId,
-  ]);
-
-  // Memoize require re-break handler
-  const handleRequireReBreak = useCallback(() => {
-    // Re-rack the balls
-    setBallsOnTable(15);
-
-    // Keep the same player (they need to break again)
-    const updatedPlayerData = [...playerData];
-
-    // Set the current player as needing to re-break
-    setPlayerNeedsReBreak(playerData[activePlayerIndex].id);
-
-    // Close the modal
-    setShowBreakFoulModal(false);
-
-    // Show an alert to explain what's happening
-    setAlertMessage(
-      `${updatedPlayerData[activePlayerIndex].name} must break again. The same foul penalties apply.`,
-    );
-    setShowAlertModal(true);
-
-    // Save the game state
-    const currentGameId = gameId || '';
-    saveGameState({
-      id: currentGameId,
-      date: new Date().toISOString(),
-      players: updatedPlayerData,
-      actions,
-      breakingPlayerId: currentBreakingPlayerId,
-      completed: false,
-      winner_id: null,
-    });
-  }, [
-    setBallsOnTable,
-    playerData,
-    activePlayerIndex,
+    setCurrentInning,
+    setActivePlayerIndex,
+    setTurnStartTime,
+    setPlayerData,
     setPlayerNeedsReBreak,
+    setBallsOnTable,
     setShowBreakFoulModal,
     setAlertMessage,
     setShowAlertModal,
-    actions,
-    gameId,
     saveGameState,
-    currentBreakingPlayerId,
-  ]);
+  });
+
+  useParentStateSync({
+    matchStartTime,
+    matchEndTime,
+    turnStartTime,
+    ballsOnTable,
+    parentMatchStartTime,
+    parentMatchEndTime,
+    parentTurnStartTime,
+    parentBallsOnTable,
+    parentSetMatchStartTime,
+    parentSetMatchEndTime,
+    parentSetTurnStartTime,
+    parentSetBallsOnTable,
+  });
+
+  const {
+    foulFlowState,
+    handleActionClick,
+    handleBreakFoulPenaltySelect,
+    handleCancelBreakFoulPenalty,
+    handleConsecutivePenaltySelect,
+    handleCancelConsecutivePenalty,
+    handleBOTSubmit,
+  } = useFoulFlow({
+    actions,
+    currentInning,
+    playerNeedsReBreak,
+    playerData,
+    activePlayerIndex,
+    ballsOnTable,
+    handleAddScore,
+    handleAddFoul,
+    handleAddSafety,
+    handleAddMiss,
+    setShowBOTModal,
+  });
 
   const handleEndGame = () => {
     if (gameId) {
@@ -510,151 +270,55 @@ const GameScoring: React.FC<GameScoringProps> = ({
     finishGame();
   };
 
-  // Check if current action is a break shot
-  const isBreakShot =
-    (actions.length === 0 && currentInning === 1) ||
-    playerNeedsReBreak === playerData[activePlayerIndex]?.id;
+  const handleChangeBreaker = useCallback(
+    (newBreakingPlayerId: number) => {
+      setCurrentBreakingPlayerId(newBreakingPlayerId);
+      setActivePlayerIndex(newBreakingPlayerId);
+      const newTurnStartTime = new Date();
+      setTurnStartTime(newTurnStartTime);
 
-  // Handle action button clicks
-  const handleActionClick = (action: 'newrack' | 'foul' | 'safety' | 'miss') => {
-    dispatchFoulFlow({ type: 'setAction', action });
-
-    // If it's a foul on a break shot, show penalty selection modal first
-    if (action === 'foul' && isBreakShot) {
-      dispatchFoulFlow({ type: 'openBreakPenalty' });
-    } else {
-      setShowBOTModal(true);
-    }
-  };
-
-  // Handle break foul penalty selection
-  const handleBreakFoulPenaltySelect = (penalty: 1 | 2) => {
-    dispatchFoulFlow({ type: 'selectBreakPenalty', penalty });
-    dispatchFoulFlow({ type: 'closeBreakPenalty' });
-    setShowBOTModal(true);
-  };
-
-  // Handle canceling the break foul penalty modal
-  const handleCancelBreakFoulPenalty = () => {
-    dispatchFoulFlow({ type: 'closeBreakPenalty' });
-    resetBotActionState();
-  };
-
-  const resetBotActionState = () => {
-    dispatchFoulFlow({ type: 'reset' });
-  };
-
-  const handleConsecutivePenaltySelect = (penalty: 'regular' | 'threeFoul') => {
-    const botsValue = foulFlowState.pendingConsecutiveFoulBotsValue;
-    const playerId = foulFlowState.pendingConsecutiveFoulPlayerId;
-    if (botsValue === null) {
-      return;
-    }
-
-    handleAddFoul(botsValue, undefined, {
-      manualConsecutiveDecision: penalty,
-      playerIdOverride: playerId ?? undefined,
-    });
-
-    dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
-    resetBotActionState();
-  };
-
-  const handleCancelConsecutivePenalty = () => {
-    dispatchFoulFlow({ type: 'closeConsecutivePenalty' });
-    resetBotActionState();
-  };
-
-  const handleBOTSubmit = (botsValue: number) => {
-    setShowBOTModal(false);
-
-    const isBreakShotContext =
-      (actions.length === 0 && currentInning === 1) ||
-      playerNeedsReBreak === playerData[activePlayerIndex]?.id;
-
-    const { botAction, selectedBreakPenalty } = foulFlowState;
-
-    if (botAction === 'newrack') {
-      handleAddScore(0, botsValue);
-      resetBotActionState();
-    } else if (botAction === 'foul') {
-      const hasInterveningLegalShot = Math.max(0, ballsOnTable - botsValue) > 0;
-
-      if (
-        !isBreakShotContext &&
-        !hasInterveningLegalShot &&
-        playerData[activePlayerIndex]?.consecutiveFouls !== undefined &&
-        playerData[activePlayerIndex].consecutiveFouls >= 2
-      ) {
-        dispatchFoulFlow({
-          type: 'openConsecutivePenalty',
-          botsValue,
-          playerId: playerData[activePlayerIndex].id,
-        });
-        return;
-      }
-
-      handleAddFoul(botsValue, selectedBreakPenalty ?? undefined);
-      resetBotActionState();
-    } else if (botAction === 'safety') {
-      handleAddSafety(botsValue);
-      resetBotActionState();
-    } else if (botAction === 'miss') {
-      handleAddMiss(botsValue);
-      resetBotActionState();
-    }
-  };
-
-  // Handle changing the breaking player
-  const handleChangeBreaker = (newBreakingPlayerId: number) => {
-    setCurrentBreakingPlayerId(newBreakingPlayerId);
-
-    // Update the active player to match the new breaking player
-    setActivePlayerIndex(newBreakingPlayerId);
-    const newTurnStartTime = new Date();
-    _setTurnStartTime(newTurnStartTime);
-
-    // Update player data to ensure the new breaking player has correct innings count
-    const updatedPlayerData = [...playerData];
-    updatedPlayerData.forEach((player, index) => {
-      if (index === newBreakingPlayerId) {
-        // New breaking player should have 1 inning if currently 0
-        if (player.innings === 0) {
-          player.innings = 1;
-        }
-      } else {
-        // Other players should have 0 innings if we're in the first inning
-        if (currentInning === 1) {
+      const updatedPlayerData = [...playerData];
+      updatedPlayerData.forEach((player, index) => {
+        if (index === newBreakingPlayerId) {
+          if (player.innings === 0) {
+            player.innings = 1;
+          }
+        } else if (currentInning === 1) {
           player.innings = 0;
         }
-      }
-    });
-    setPlayerData(updatedPlayerData);
-
-    // Update localStorage to persist the breaking player preference
-    localStorage.setItem(
-      'runcount_lastBreakingPlayerId',
-      JSON.stringify(newBreakingPlayerId),
-    );
-
-    // Save the updated game state
-    if (gameId) {
-      saveGameState({
-        id: gameId,
-        date: new Date().toISOString(),
-        players: updatedPlayerData,
-        actions,
-        breakingPlayerId: newBreakingPlayerId,
-        completed: false,
-        winner_id: null,
-        turnStartTime: newTurnStartTime,
       });
-    }
+      setPlayerData(updatedPlayerData);
 
-    // No need for alert - the UI immediately shows the change
-  };
+      localStorage.setItem(
+        'runcount_lastBreakingPlayerId',
+        JSON.stringify(newBreakingPlayerId),
+      );
 
-  // Rack number: starts at 1, increments with each newrack action (score with value 0)
+      if (gameId) {
+        saveGameState({
+          id: gameId,
+          date: new Date().toISOString(),
+          players: updatedPlayerData,
+          actions,
+          breakingPlayerId: newBreakingPlayerId,
+          completed: false,
+          winner_id: null,
+          turnStartTime: newTurnStartTime,
+        });
+      }
+    },
+    [
+      actions,
+      currentInning,
+      gameId,
+      playerData,
+      saveGameState,
+      setActivePlayerIndex,
+      setPlayerData,
+      setTurnStartTime,
+    ],
+  );
+
   const rackNumber =
     actions.filter((a) => a.type === 'score' && a.value === 0).length + 1;
 
@@ -679,7 +343,6 @@ const GameScoring: React.FC<GameScoringProps> = ({
         ))}
       </div>
 
-      {/* Game status bar: balls on table, turn timer, inning + rack */}
       <GameStatusBar
         ballsOnTable={ballsOnTable}
         currentInning={currentInning}
@@ -689,211 +352,52 @@ const GameScoring: React.FC<GameScoringProps> = ({
         shotClockSeconds={shotClockSeconds}
       />
 
-      {/* Active-player action zone: end-of-inning actions */}
-      <div className="rc-actions">
-        {/* Primary end-of-inning action */}
-        <button
-          type="button"
-          onClick={() => handleActionClick('miss')}
-          className="rc-miss"
-        >
-          Miss
-        </button>
+      <GameScoringActions onActionClick={handleActionClick} />
 
-        {/* Qualifiers / alternative end-of-inning markers */}
-        <div className="rc-actions-row">
-          <button
-            type="button"
-            onClick={() => handleActionClick('safety')}
-            className="rc-act"
-          >
-            Safety
-          </button>
-          <button
-            type="button"
-            onClick={() => handleActionClick('foul')}
-            className="rc-act"
-          >
-            Foul
-          </button>
-          <button
-            type="button"
-            onClick={() => handleActionClick('newrack')}
-            className="rc-act rack"
-            title="Start a new rack"
-          >
-            <span aria-hidden="true">+ </span>Rack
-          </button>
-        </div>
-      </div>
+      <GameScoringToolbar
+        isUndoEnabled={isUndoEnabled}
+        matchStartTime={matchStartTime}
+        matchEndTime={matchEndTime}
+        onShowInnings={() => setShowInningsModal(true)}
+        onUndo={handleUndoLastAction}
+        onEndGame={() => setShowEndGameModal(true)}
+        onShowHelp={() => setShowHelpModal(true)}
+      />
 
-      {/* Utility row + timers (fixed bottom tab bar on phones) */}
-      <div className="rc-toolbar">
-        <button
-          type="button"
-          onClick={() => setShowInningsModal(true)}
-          className="rc-pill"
-          title="View game innings"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"
-            />
-          </svg>
-          Innings
-        </button>
-
-        <button
-          type="button"
-          onClick={handleUndoLastAction}
-          disabled={!isUndoEnabled}
-          className="rc-pill undo"
-          title="Undo last action"
-          aria-label="Undo last action"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6" />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 13a9 9 0 1 0 3-7.7L3 8"
-            />
-          </svg>
-          Undo
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setShowEndGameModal(true)}
-          className="rc-pill"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
-          </svg>
-          End Game
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setShowHelpModal(true)}
-          className="rc-pill icon-only"
-          title="Show straight pool help"
-          aria-label="Show help"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.8}
-          >
-            <circle cx="12" cy="12" r="9" />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7M12 17h.01"
-            />
-          </svg>
-          <span className="rc-pill-mob">Help</span>
-        </button>
-
-        <span className="rc-toolbar-sep" aria-hidden="true" />
-
-        <MatchTimer
-          startTime={matchStartTime}
-          endTime={matchEndTime}
-          isRunning={!matchEndTime}
-        />
-      </div>
-
-      {playerData.length > 0 && (
-        <>
-          <BreakFoulModal
-            show={showBreakFoulModal}
-            onClose={() => setShowBreakFoulModal(false)}
-            onAcceptTable={handleAcceptTable}
-            onRequireReBreak={handleRequireReBreak}
-            breaker={playerData[activePlayerIndex]}
-            incomingPlayer={playerData[(activePlayerIndex + 1) % playerData.length]}
-          />
-          <BreakFoulPenaltyModal
-            show={foulFlowState.showBreakPenaltyModal}
-            onClose={handleCancelBreakFoulPenalty}
-            onSelectPenalty={handleBreakFoulPenaltySelect}
-            playerName={playerData[activePlayerIndex]?.name || ''}
-          />
-          <ConsecutiveFoulPenaltyModal
-            isOpen={foulFlowState.showConsecutivePenaltyModal}
-            playerName={
-              playerData.find(
-                (player) => player.id === foulFlowState.pendingConsecutiveFoulPlayerId,
-              )?.name || ''
-            }
-            onSelectPenalty={handleConsecutivePenaltySelect}
-            onCancel={handleCancelConsecutivePenalty}
-          />
-        </>
-      )}
-
-      <EndGameModal
-        isOpen={showEndGameModal}
-        gameWinner={gameWinner}
+      <GameScoringModals
         playerData={playerData}
-        currentInning={currentInning}
+        activePlayerIndex={activePlayerIndex}
         actions={actions}
-        onClose={() => setShowEndGameModal(false)}
-        onEndGame={handleEndGame}
-      />
-
-      <BallsOnTableModal
-        isOpen={showBOTModal}
-        onClose={() => setShowBOTModal(false)}
-        onSubmit={handleBOTSubmit}
-        currentBallsOnTable={ballsOnTable}
-        action={foulFlowState.botAction}
-      />
-
-      <AlertModal
-        isOpen={showAlertModal}
-        onClose={() => setShowAlertModal(false)}
-        message={alertMessage}
-      />
-
-      <GameHelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
-
-      <BreakDialog
-        isOpen={showBreakDialog}
-        onClose={() => setShowBreakDialog(false)}
-        onChangeBreaker={handleChangeBreaker}
+        currentInning={currentInning}
+        gameWinner={gameWinner}
+        ballsOnTable={ballsOnTable}
         players={players}
         currentBreakingPlayerId={currentBreakingPlayerId}
-      />
-
-      <InningsModal
-        isOpen={showInningsModal}
-        onClose={() => setShowInningsModal(false)}
-        actions={actions}
-        players={playerData}
+        alertMessage={alertMessage}
+        foulFlowState={foulFlowState}
+        showBreakFoulModal={showBreakFoulModal}
+        showEndGameModal={showEndGameModal}
+        showBOTModal={showBOTModal}
+        showAlertModal={showAlertModal}
+        showHelpModal={showHelpModal}
+        showBreakDialog={showBreakDialog}
+        showInningsModal={showInningsModal}
+        onCloseBreakFoulModal={() => setShowBreakFoulModal(false)}
+        onAcceptTable={handleAcceptTable}
+        onRequireReBreak={handleRequireReBreak}
+        onCancelBreakFoulPenalty={handleCancelBreakFoulPenalty}
+        onSelectBreakFoulPenalty={handleBreakFoulPenaltySelect}
+        onSelectConsecutivePenalty={handleConsecutivePenaltySelect}
+        onCancelConsecutivePenalty={handleCancelConsecutivePenalty}
+        onCloseEndGameModal={() => setShowEndGameModal(false)}
+        onEndGame={handleEndGame}
+        onCloseBOTModal={() => setShowBOTModal(false)}
+        onBOTSubmit={handleBOTSubmit}
+        onCloseAlertModal={() => setShowAlertModal(false)}
+        onCloseHelpModal={() => setShowHelpModal(false)}
+        onCloseBreakDialog={() => setShowBreakDialog(false)}
+        onChangeBreaker={handleChangeBreaker}
+        onCloseInningsModal={() => setShowInningsModal(false)}
       />
     </div>
   );
