@@ -1,3 +1,4 @@
+import { sortByWinnerFirst } from '../components/GameSummary/metrics';
 import { type GameData } from '../types/game';
 
 import { computeMatchLength } from './computeMatchLength';
@@ -8,17 +9,12 @@ import { formatGameDateLong } from './formatGameDate';
  *
  * Previously duplicated near-identically in GameStatistics and
  * GameHistory/GameDetails; hoisted here so the single GameSummary screen has
- * one copy source of truth.
+ * one copy source of truth. Player order matches the summary screen via
+ * sortByWinnerFirst.
  */
 export const formatMatchResults = (game: GameData): string => {
   const matchLength = computeMatchLength(game);
-
-  // Sort players to show winner first
-  const sortedPlayers = [...game.players].sort((a, b) => {
-    if (a.id === game.winner_id) return -1;
-    if (b.id === game.winner_id) return 1;
-    return 0;
-  });
+  const sortedPlayers = sortByWinnerFirst(game.players, game.winner_id);
 
   let emailText = `${formatGameDateLong(game.date)}\n`;
   emailText += `Length: ${matchLength}\n\n`;
