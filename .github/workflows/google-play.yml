@@ -51,6 +51,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The legacy "tools" package no longer exists; required SDK platforms/build-tools are on ubuntu-latest.
+          packages: 'platform-tools'
+          accept-android-sdk-licenses: false
 
       - name: Install dependencies
         run: npm ci
