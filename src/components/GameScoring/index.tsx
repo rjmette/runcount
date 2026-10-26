@@ -89,9 +89,11 @@ const GameScoring: React.FC<GameScoringProps> = ({
     },
   });
 
+  const scoringUser = user ?? null;
+
   const { persistGame } = useScoringPersist({
     backend,
-    user,
+    user: scoringUser,
     currentBreakingPlayerId,
     matchStartTime,
     matchEndTime,
@@ -103,7 +105,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
   persistGameRef.current = persistGame;
 
   useLoginCloudSync({
-    user,
+    user: scoringUser,
     gameId,
     backend,
     getGameState,
@@ -120,22 +122,21 @@ const GameScoring: React.FC<GameScoringProps> = ({
       gameId: gameId || '',
       currentInning,
       persistGame: (
-        gameId,
-        players,
-        actions,
+        nextGameId,
+        nextPlayers,
+        nextActions,
         completed,
         winner_id,
         turnStart,
-        matchStart,
       ) =>
         void persistGame(
-          gameId,
-          players,
-          actions,
+          nextGameId,
+          nextPlayers,
+          nextActions,
           completed,
           winner_id,
           turnStart,
-          matchStart,
+          undefined,
           'Could not save your recent action to the cloud. It will retry automatically.',
         ),
       setPlayerData,
@@ -250,7 +251,7 @@ const GameScoring: React.FC<GameScoringProps> = ({
 
       void persistGameHelper({
         backend,
-        user,
+        user: scoringUser,
         saveGameState,
         clearGameState,
         matchStartTime: matchStartTime ? matchStartTime.toISOString() : undefined,

@@ -4,7 +4,7 @@ import { type Player } from '../../types/game';
 
 interface ScoreCardsProps {
   players: Player[]; // already winner-first
-  winnerId: number | null | undefined;
+  winnerId: number | string | null | undefined;
 }
 
 export const ScoreCards: React.FC<ScoreCardsProps> = ({ players, winnerId }) => (

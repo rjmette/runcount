@@ -18,7 +18,8 @@ export interface GameAction {
   type: 'score' | 'foul' | 'safety' | 'miss';
   playerId: number;
   value: number;
-  timestamp: Date;
+  // In-memory actions use Date; persisted/localStorage records use ISO strings.
+  timestamp: Date | string;
   ballsOnTable?: number;
   reBreak?: boolean; // Flag for when a player must re-break after three consecutive fouls
   isBreakFoul?: boolean; // Flag for fouls that occur during the opening break
@@ -35,7 +36,8 @@ export interface GameData {
   id: string;
   date: Date | string;
   players: Player[];
-  winner_id: number | null;
+  // Prefer numeric player ids; string ids appear in some persisted save-path records.
+  winner_id: number | string | null;
   completed: boolean;
   actions: GameAction[];
   breakingPlayerId?: number; // Index of the player who is breaking

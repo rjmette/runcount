@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { createMockPlayer } from '../testing/factories';
+
 import { persistGameHelper } from './useGameSave';
 
 describe('persistGameHelper', () => {
-  const players = [{ id: 0, name: 'A' }];
+  const players = [createMockPlayer({ id: 0, name: 'A' })];
   const actions: any[] = [];
   const gameId = 'game-123';
 

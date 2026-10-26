@@ -25,7 +25,10 @@ const getStatus = (game: GameData) => {
   return { dot: 'stop', label: 'Ended early' };
 };
 
-const sortByWinnerFirst = (players: Player[], winnerId: number | null | undefined) =>
+const sortByWinnerFirst = (
+  players: Player[],
+  winnerId: number | string | null | undefined,
+) =>
   [...players].sort((a, b) => {
     if (a.id === winnerId) return -1;
     if (b.id === winnerId) return 1;

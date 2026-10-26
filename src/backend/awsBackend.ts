@@ -57,12 +57,13 @@ export function createAwsBackend(
     };
   }
 
-  if (authActions?.updatePassword) {
+  const updatePassword = authActions?.updatePassword;
+  if (updatePassword) {
     backend.updatePassword = async (password, currentPassword) => {
       if (!currentPassword) {
         throw new Error('Enter your current password to change your password.');
       }
-      await authActions.updatePassword(currentPassword, password);
+      await updatePassword(currentPassword, password);
     };
 
     backend.requiresCurrentPasswordForPasswordUpdate = true;

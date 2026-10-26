@@ -74,7 +74,22 @@ describe('useFullscreen', () => {
   });
 
   test('reports unsupported fullscreen errors', async () => {
-    document.documentElement.requestFullscreen = undefined;
+    Object.defineProperty(document.documentElement, 'requestFullscreen', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(document.documentElement, 'webkitRequestFullscreen', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(document.documentElement, 'mozRequestFullScreen', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(document.documentElement, 'msRequestFullscreen', {
+      configurable: true,
+      value: undefined,
+    });
     const { result } = renderHook(() => useFullscreen());
 
     await act(async () => {

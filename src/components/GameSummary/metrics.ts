@@ -69,7 +69,7 @@ export const leaderIndex = (
 /** Winner-first ordering shared by the score cards, tiles and ledger. */
 export const sortByWinnerFirst = (
   players: Player[],
-  winnerId: number | null | undefined,
+  winnerId: number | string | null | undefined,
 ): Player[] =>
   [...players].sort((a, b) => {
     if (a.id === winnerId) return -1;

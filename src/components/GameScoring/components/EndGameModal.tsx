@@ -53,7 +53,7 @@ export const EndGameModal: React.FC<EndGameModalProps> = memo(
           <div
             className={`shrink-0 p-3 sm:p-4 text-center ${isGameCompleted ? 'bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600' : 'bg-gray-100 dark:bg-gray-700'} rounded-t-2xl`}
           >
-            {isGameCompleted ? (
+            {isGameCompleted && gameWinner ? (
               <div className="text-white">
                 <div className="text-3xl sm:text-4xl mb-0.5 sm:mb-1">🏆</div>
                 <h2 className="text-lg sm:text-2xl font-bold">Congratulations!</h2>

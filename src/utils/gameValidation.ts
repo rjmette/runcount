@@ -56,8 +56,7 @@ export const isValidGameData = (value: unknown): value is GameData => {
   if (!value.players.every(isValidPlayer)) return false;
   if (!Array.isArray(value.actions) || !value.actions.every(isValidGameAction))
     return false;
-  // winner_id is `number | null` in the type, but persisted records may carry a
-  // string id from the save path — accept all three rather than discard a valid game.
+  // winner_id is `number | string | null`; accept all three rather than discard a valid game.
   if (
     value.winner_id !== null &&
     typeof value.winner_id !== 'number' &&

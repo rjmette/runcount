@@ -3,9 +3,9 @@ import { vi } from 'vitest';
 
 import { useScoringSession } from '../useScoringSession';
 
-import type { GameData, Player } from '../../../../types/game';
+import type { GameAction, GameData, Player } from '../../../../types/game';
 
-const makePlayers = (names: string[], targetScores: number[] = []) => {
+const makePlayers = (names: string[], targetScores: number[] = []): Player[] => {
   return names.map((name, i) => ({
     id: i,
     name,
@@ -59,7 +59,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions: [],
@@ -92,7 +92,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions: [],
@@ -123,7 +123,7 @@ describe('useScoringSession', () => {
       players: makePlayers(['Alice', 'Bob'], [75, 60]).map((player, index) => ({
         ...player,
         innings: index === 1 ? 1 : 0,
-      })) as Player[],
+      })),
       winner_id: null,
       completed: false,
       actions: [],
@@ -147,9 +147,8 @@ describe('useScoringSession', () => {
 
   test('restores game state with actions and calculates current state correctly', () => {
     const now = new Date();
-    const actions = [
+    const actions: GameAction[] = [
       {
-        id: '1',
         type: 'score',
         playerId: 0,
         value: 5,
@@ -157,7 +156,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '2',
         type: 'miss',
         playerId: 0,
         value: 0,
@@ -165,7 +163,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '3',
         type: 'score',
         playerId: 1,
         value: 3,
@@ -177,7 +174,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions,
@@ -208,9 +205,8 @@ describe('useScoringSession', () => {
 
   test('handles re-break scenario correctly', () => {
     const now = new Date();
-    const actions = [
+    const actions: GameAction[] = [
       {
-        id: '1',
         type: 'foul',
         playerId: 0,
         value: -1,
@@ -223,7 +219,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions,
@@ -251,9 +247,8 @@ describe('useScoringSession', () => {
 
   test('advances inning when turn cycles back to first player', () => {
     const now = new Date();
-    const actions = [
+    const actions: GameAction[] = [
       {
-        id: '1',
         type: 'miss',
         playerId: 0,
         value: 0,
@@ -261,7 +256,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '2',
         type: 'miss',
         playerId: 1,
         value: 0,
@@ -273,7 +267,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions,
@@ -303,9 +297,8 @@ describe('useScoringSession', () => {
     const now = new Date();
     // Alice fouls three times in a row on a rack that had 8 balls left,
     // triggering a re-break (re-rack to 15) on her fourth turn action.
-    const actions = [
+    const actions: GameAction[] = [
       {
-        id: '1',
         type: 'foul',
         playerId: 0,
         value: -1,
@@ -313,7 +306,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '2',
         type: 'foul',
         playerId: 1,
         value: 0,
@@ -321,7 +313,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '3',
         type: 'foul',
         playerId: 0,
         value: -1,
@@ -329,7 +320,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '4',
         type: 'foul',
         playerId: 1,
         value: 0,
@@ -337,7 +327,6 @@ describe('useScoringSession', () => {
         timestamp: now.toISOString(),
       },
       {
-        id: '5',
         type: 'foul',
         playerId: 0,
         value: -1,
@@ -350,7 +339,7 @@ describe('useScoringSession', () => {
     const saved: GameData = {
       id: 'game-1',
       date: now.toISOString(),
-      players: makePlayers(['Alice', 'Bob'], [75, 60]) as Player[],
+      players: makePlayers(['Alice', 'Bob'], [75, 60]),
       winner_id: null,
       completed: false,
       actions,
