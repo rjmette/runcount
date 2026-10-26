@@ -122,16 +122,36 @@ html.dark {
 }
 
 /* ===================== shared top bar ===================== */
+/*
+ * Capacitor 8 + Android 15/16 (targetSdk 36) draws edge-to-edge, so the
+ * status bar overlays the WebView. Prefer Capacitor SystemBars'
+ * --safe-area-inset-* (injected for older WebViews), then env(), then 0
+ * so web / zero-inset devices stay unchanged and we don't stack a second
+ * native inset on top of CSS.
+ */
 .rc-topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 28px;
+  padding: calc(16px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 28px
+    16px;
   font-family: 'Hanken Grotesk', system-ui, sans-serif;
   background: linear-gradient(180deg, var(--rc-accent) 0%, var(--rc-accent-strong) 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.12) inset,
     0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.rc-loading-topbar {
+  padding: calc(1rem + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 1rem
+    1rem;
+  background-color: #1e40af; /* blue-800 */
+  color: #fff;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+html.dark .rc-loading-topbar {
+  background-color: #1e3a8a; /* blue-900 */
 }
 .rc-brand {
   font-size: 24px;
@@ -188,7 +208,8 @@ html.dark {
 
 @media (max-width: 700px) {
   .rc-topbar {
-    padding: 11px 14px;
+    padding: calc(11px + var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) 14px
+      11px;
   }
   .rc-brand {
     font-size: 19px;

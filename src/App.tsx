@@ -273,7 +273,7 @@ const AppContent: FC<AppContentProps> = ({
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900">
-        <header className="bg-blue-800 dark:bg-blue-900 text-white p-4 shadow-md">
+        <header className="rc-loading-topbar">
           <h1 className="text-2xl font-bold">RunCount</h1>
           <p className="text-sm">Straight Pool (14.1) Scoring App</p>
         </header>

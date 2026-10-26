@@ -19,6 +19,9 @@
     "StatusBar": {
       "style": "LIGHT",
       "backgroundColor": "#1a5c45"
+    },
+    "SystemBars": {
+      "insetsHandling": "css"
     }
   }
 }

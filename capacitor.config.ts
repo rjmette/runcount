@@ -21,6 +21,11 @@ const config: CapacitorConfig = {
       style: 'LIGHT',
       backgroundColor: '#1a5c45',
     },
+    // Android 15+/16 edge-to-edge: inject --safe-area-inset-* for CSS (default).
+    // Header padding consumes these; do not also pad html/body (avoids double inset).
+    SystemBars: {
+      insetsHandling: 'css',
+    },
   },
   server: {
     // Uncomment for live reload during development:
