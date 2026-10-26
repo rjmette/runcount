@@ -1,3 +1,5 @@
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+
 import type { GameData } from '../types/game';
 
 export interface CurrentUserResponse {
@@ -18,6 +20,7 @@ const rawApiUrl = import.meta.env.VITE_API_URL as string | undefined;
 export const apiUrl = rawApiUrl?.replace(/\/$/, '') ?? '';
 export const isApiConfigured = apiUrl.length > 0;
 const API_REQUEST_TIMEOUT_MS = 15_000;
+const TIMEOUT_MESSAGE = 'API request timed out. Check your connection and try again.';
 
 interface RequestOptions {
   method?: string;
@@ -31,50 +34,86 @@ async function apiRequest<T>(
 ): Promise<T> {
   if (!apiUrl) throw new Error('VITE_API_URL is not configured.');
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
-  const init: RequestInit = {
-    method: opts.method ?? 'GET',
-    signal: controller.signal,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
   };
+  let status: number;
+  let statusText = '';
+  let responseData: unknown;
 
-  if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
-
-  let res: Response;
-  try {
-    res = await fetch(`${apiUrl}${path}`, init);
-  } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new Error('API request timed out. Check your connection and try again.');
+  if (Capacitor.isNativePlatform()) {
+    // Only our authenticated API uses the native transport. Do not patch global
+    // fetch or change browser CORS protections for the rest of the application.
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await Promise.race([
+        CapacitorHttp.request({
+          url: `${apiUrl}${path}`,
+          method: opts.method ?? 'GET',
+          headers,
+          ...(opts.body !== undefined ? { data: opts.body } : {}),
+          responseType: 'json',
+          connectTimeout: API_REQUEST_TIMEOUT_MS,
+          readTimeout: API_REQUEST_TIMEOUT_MS,
+          disableRedirects: true,
+        }),
+        new Promise<never>((_resolve, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error(TIMEOUT_MESSAGE)),
+            API_REQUEST_TIMEOUT_MS,
+          );
+        }),
+      ]);
+      status = response.status;
+      responseData = response.data;
+    } finally {
+      clearTimeout(timeoutId);
     }
-    throw err;
-  } finally {
-    clearTimeout(timeoutId);
+  } else {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
+    const init: RequestInit = {
+      method: opts.method ?? 'GET',
+      signal: controller.signal,
+      headers,
+    };
+
+    if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
+
+    try {
+      const response = await fetch(`${apiUrl}${path}`, init);
+      status = response.status;
+      statusText = response.statusText;
+      responseData = await response.text();
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new Error(TIMEOUT_MESSAGE);
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
-  const text = await res.text();
-  let data: unknown = null;
-  if (text) {
+  let data: unknown = responseData ?? null;
+  if (typeof responseData === 'string') {
     try {
-      data = JSON.parse(text);
+      data = JSON.parse(responseData);
     } catch {
       data = null;
     }
   }
 
-  if (!res.ok) {
-    if (res.status === 401) {
+  if (status < 200 || status >= 300) {
+    if (status === 401) {
       throw new Error('Your session has expired. Please sign in again.');
     }
 
     const message =
       data && typeof data === 'object' && data !== null && 'error' in data
         ? String((data as { error: unknown }).error)
-        : `${res.status} ${res.statusText}`;
+        : `${status} ${statusText}`.trim();
     throw new Error(`API request failed: ${message}`);
   }
 

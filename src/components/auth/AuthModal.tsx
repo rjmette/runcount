@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { FC } from 'react';
 
+import { Capacitor } from '@capacitor/core';
+
 import Auth, { type AuthTab, type AwsAuthOperations } from './Auth';
 
 import type { AppView } from '../../hooks/useAppNavigation';
@@ -23,7 +25,9 @@ const AuthModal: FC<AuthModalProps> = ({ isOpen, gameState, onClose, awsAuth }) 
     'reset-password': 'Reset your password',
   };
   const tabSubtitles: Record<AuthTab, string> = {
-    login: 'Sign in with email or Google to save games to AWS.',
+    login: Capacitor.isNativePlatform()
+      ? 'Sign in with email and password to save games to AWS.'
+      : 'Sign in with email or Google to save games to AWS.',
     signup: 'Create a Cognito account for cloud game history.',
     'reset-password': "We'll email a verification code to reset your password.",
   };

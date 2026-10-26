@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+import { Capacitor } from '@capacitor/core';
+
 import {
   getPasswordPolicyError,
   PASSWORD_MIN_LENGTH,
@@ -21,6 +23,7 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 };
 
 const SignUp: React.FC<SignUpProps> = ({ awsAuth, onSuccess }) => {
+  const isNative = Capacitor.isNativePlatform();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -263,7 +266,14 @@ const SignUp: React.FC<SignUpProps> = ({ awsAuth, onSuccess }) => {
         </form>
       )}
 
-      {!awaitingConfirmation && (
+      {!awaitingConfirmation && isNative && (
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Create an email and password account to sign in to the app. Google sign-in is
+          available on the RunCount website only.
+        </p>
+      )}
+
+      {!awaitingConfirmation && !isNative && (
         <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

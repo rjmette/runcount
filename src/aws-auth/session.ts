@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 import { cognitoConfig, isAwsAuthMock, mockUser } from './config';
 import { deriveCodeChallenge, generateCodeVerifier, generateState } from './pkce';
 import {
@@ -55,6 +57,14 @@ export function getStoredMockUser(): AppUser | null {
 }
 
 export async function startAwsSignIn(): Promise<void> {
+  // Hosted OAuth currently returns to the website, not the native app.
+  // Never send app users into a flow that cannot recover their PKCE state.
+  if (Capacitor.isNativePlatform()) {
+    throw new Error(
+      'Google sign-in is available on the RunCount website only. Use email and password in the app.',
+    );
+  }
+
   if (isAwsAuthMock) {
     localStorage.setItem(
       MOCK_USER_STORAGE_KEY,
@@ -92,13 +102,17 @@ export async function startAwsSignIn(): Promise<void> {
 }
 
 export function signOutAws(): void {
+  clearTokens();
+  sessionStorage.removeItem(PKCE_STORAGE_KEY);
+
   if (isAwsAuthMock) {
     localStorage.removeItem(MOCK_USER_STORAGE_KEY);
-    window.location.reload();
+    if (!Capacitor.isNativePlatform()) window.location.reload();
     return;
   }
 
-  clearTokens();
+  // Native email/password sessions have no hosted browser session to log out.
+  if (Capacitor.isNativePlatform()) return;
   const params = new URLSearchParams({
     client_id: cognitoConfig.clientId,
     logout_uri: cognitoConfig.logoutUri,

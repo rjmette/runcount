@@ -1,9 +1,26 @@
-name: Deploy to Google Play
+name: Build Android
 
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Marketing version, e.g. 1.0.6 (without v)'
+        required: true
+        type: string
+      distribution:
+        description: 'Build artifacts, publish to internal testing, or inspect internal status without publishing'
+        required: true
+        type: choice
+        default: build-only
+        options:
+          - build-only
+          - internal
+          - inspect-internal
+
+permissions:
+  contents: read
 
 env:
   NODE_VERSION: '22'
@@ -12,6 +29,7 @@ env:
 
 jobs:
   build-and-upload:
+    if: github.event_name != 'workflow_dispatch' || inputs.distribution != 'inspect-internal'
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +53,10 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          # The legacy "tools" package no longer exists; required SDK platforms/build-tools are on ubuntu-latest.
+          packages: 'platform-tools'
+          accept-android-sdk-licenses: false
 
       - name: Install dependencies
         run: npm ci
@@ -55,14 +77,23 @@ jobs:
         run: npx cap sync android
 
       - name: Resolve version metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REQUESTED_VERSION: ${{ inputs.version_name }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          if [ "${{ github.event_name }}" = "release" ]; then
-            VERSION="${{ github.event.release.tag_name }}"
+          if [ "$EVENT_NAME" = "release" ]; then
+            VERSION="${RELEASE_TAG#v}"
           else
-            VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo v1.0.0)"
+            VERSION="$REQUESTED_VERSION"
           fi
-          echo "ANDROID_VERSION_NAME=${VERSION#v}" >> $GITHUB_ENV
-          echo "ANDROID_VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid marketing version: use a version such as 1.0.6" >&2
+            exit 1
+          fi
+          echo "ANDROID_VERSION_NAME=$VERSION" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_CODE=$RUN_NUMBER" >> "$GITHUB_ENV"
 
       - name: Decode keystore
         env:
@@ -71,7 +102,7 @@ jobs:
           echo "$KEYSTORE_BASE64" | base64 --decode > $RUNNER_TEMP/release.jks
           echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> $GITHUB_ENV
 
-      - name: Build signed AAB
+      - name: Build signed APK and AAB
         env:
           KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -79,9 +110,23 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd android
-          ./gradlew bundleRelease
+          ./gradlew assembleRelease bundleRelease
+
+      - name: Verify signed artifacts
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          "$(dirname "$APKSIGNER")/aapt" dump badging "$APK" | tee "$RUNNER_TEMP/apk-metadata.txt"
+          grep -Fq "name='net.rbios.runcount' versionCode='$ANDROID_VERSION_CODE' versionName='$ANDROID_VERSION_NAME'" "$RUNNER_TEMP/apk-metadata.txt"
+          LC_ALL=C jarsigner -verify "$AAB" | tee "$RUNNER_TEMP/aab-verification.txt"
+          grep -q 'jar verified.' "$RUNNER_TEMP/aab-verification.txt"
+          sha256sum "$APK" "$AAB" | tee android-artifact-sha256.txt
 
       - name: Upload to Play Store internal track
+        # Keep release publication unchanged; manual builds publish only when explicitly selected.
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.distribution == 'internal')
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
@@ -165,4 +210,93 @@ jobs:
         with:
           name: app-release-aab
           path: android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      - name: Upload artifact checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-artifact-sha256
+          path: android-artifact-sha256.txt
+          if-no-files-found: error
+
+      - name: Summarize Android build
+        if: success()
+        env:
+          DISTRIBUTION: ${{ github.event_name == 'release' && 'internal' || inputs.distribution || 'build-only' }}
+        run: |
+          {
+            echo "## Android $ANDROID_VERSION_NAME ($ANDROID_VERSION_CODE)"
+            echo "- Source: \`$GITHUB_SHA\`"
+            echo "- Distribution: $DISTRIBUTION"
+            echo "- APK: app-release-apk (direct installation; signed with the upload keystore)"
+            echo "- AAB: app-release-aab (Play upload; not directly installable)"
+            echo "- The APK may not update a Play-installed copy if Play App Signing uses a different certificate. Do not uninstall an existing app without preserving its local matches."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  inspect-internal:
+    if: github.event_name == 'workflow_dispatch' && inputs.distribution == 'inspect-internal'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Play API client
+        run: npm install --prefix "$RUNNER_TEMP/play-inspect" --no-package-lock --no-save googleapis@latest
+
+      - name: Read current internal track without publishing
+        working-directory: ${{ runner.temp }}/play-inspect
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          node --input-type=module << 'NODESCRIPT'
+          import { google } from 'googleapis'
+
+          const packageName = 'net.rbios.runcount'
+          const rawJson = process.env.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON || ''
+          if (!rawJson) throw new Error('GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is empty')
+          const auth = new google.auth.GoogleAuth({
+            credentials: JSON.parse(rawJson),
+            scopes: ['https://www.googleapis.com/auth/androidpublisher'],
+          })
+          const publisher = google.androidpublisher({ version: 'v3', auth })
+          const retryRead = async (stage, action) => {
+            for (let attempt = 1; ; attempt++) {
+              try { return await action() } catch (error) {
+                const status = Number(error.response?.status || error.code)
+                const message = error.response?.data?.error?.message || error.message
+                if (attempt >= 3 || (status !== 429 && !(status >= 500 && status <= 599))) {
+                  throw new Error(`${stage} failed (${status}): ${message}`)
+                }
+                console.log(`${stage}: transient ${status}; retrying diagnostic request`)
+                await new Promise(resolve => setTimeout(resolve, attempt * 3000))
+              }
+            }
+          }
+
+          // A temporary edit snapshots committed state. Never update a track,
+          // upload a bundle, or commit this diagnostic edit.
+          const edit = await retryRead('Create diagnostic edit', () => publisher.edits.insert({ packageName }))
+          const editId = edit.data.id
+          try {
+            const track = await retryRead('Read internal track', () => publisher.edits.tracks.get({ packageName, editId, track: 'internal' }))
+            console.log('INTERNAL_TRACK_STATE ' + JSON.stringify({
+              track: track.data.track,
+              releases: (track.data.releases || []).map(({ name, status, versionCodes }) => ({ name, status, versionCodes })),
+            }))
+            const bundles = await retryRead('Read committed bundles', () => publisher.edits.bundles.list({ packageName, editId }))
+            console.log('COMMITTED_BUNDLE_CODES ' + JSON.stringify((bundles.data.bundles || []).map(({ versionCode }) => versionCode)))
+          } finally {
+            await retryRead('Delete diagnostic edit', () => publisher.edits.delete({ packageName, editId }))
+            console.log('Diagnostic edit deleted; no track or release changed')
+          }
+          NODESCRIPT
