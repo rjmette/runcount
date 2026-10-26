@@ -117,3 +117,42 @@ export const buildGameHistoryCsv = (games: GameData[]) => {
     .map((row) => row.map(escapeCell).join(','))
     .join('\n');
 };
+
+/** Count games that have the minimum shape needed for the history list. */
+export const countValidGames = (games: GameData[] | null | undefined): number => {
+  if (!games || !Array.isArray(games)) return 0;
+
+  return games.filter(
+    (game) =>
+      game &&
+      typeof game === 'object' &&
+      game.id &&
+      Array.isArray(game.players) &&
+      game.players.length > 0,
+  ).length;
+};
+
+/** "Aug 1 – Aug 30" label for the desktop date-range control. */
+export const formatRangeLabel = (startDate: string, endDate: string): string => {
+  const fmt = (value: string) =>
+    new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  if (startDate && endDate) return `${fmt(startDate)} – ${fmt(endDate)}`;
+  if (startDate) return `From ${fmt(startDate)}`;
+  if (endDate) return `Until ${fmt(endDate)}`;
+  return 'All time';
+};
+
+/** Trigger a browser download for a text export (CSV/JSON). */
+export const downloadTextFile = (content: string, filename: string, type: string) => {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+};

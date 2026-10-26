@@ -6,8 +6,10 @@ import { type GameData } from '../../../types/game';
 import {
   buildGameHistoryCsv,
   buildGameHistoryExport,
+  countValidGames,
   defaultHistoryFilters,
   filterAndSortGames,
+  formatRangeLabel,
 } from './historyEnhancements';
 
 const createGame = (overrides: Partial<GameData> = {}): GameData => ({
@@ -94,5 +96,24 @@ describe('historyEnhancements', () => {
       '"Game ID","Date","Status","Winner","Players","Total Score","Scores"',
     );
     expect(buildGameHistoryCsv(games)).toContain('"Alice (75/75); Bob (60/75)"');
+  });
+
+  test('countValidGames ignores empty or malformed entries', () => {
+    expect(countValidGames(null)).toBe(0);
+    expect(countValidGames(undefined)).toBe(0);
+    expect(
+      countValidGames([
+        createGame({ id: 'ok' }),
+        { id: '', players: [] } as unknown as GameData,
+        null as unknown as GameData,
+      ]),
+    ).toBe(1);
+  });
+
+  test('formatRangeLabel covers all-time, from, until, and range', () => {
+    expect(formatRangeLabel('', '')).toBe('All time');
+    expect(formatRangeLabel('2026-04-01', '')).toMatch(/^From /);
+    expect(formatRangeLabel('', '2026-04-30')).toMatch(/^Until /);
+    expect(formatRangeLabel('2026-04-01', '2026-04-30')).toContain('–');
   });
 });
