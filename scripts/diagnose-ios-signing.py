@@ -61,3 +61,21 @@ for identity, name in re.findall(r'\d+\) ([0-9A-F]{40}) "([^"]+)"', identities):
         code, output = run("/usr/bin/codesign", "--force", "--sign", identity,
                            "--timestamp=none", str(probe), timeout=20)
         print(json.dumps({"identity": name, "sign_exit": code, "output": output.strip()}))
+
+login_keychain = Path.home() / "Library/Keychains/login.keychain-db"
+code, identities = run("security", "find-identity", "-v", "-p", "codesigning", str(login_keychain))
+print("Login keychain identities:", identities)
+seen = set()
+for identity, name in re.findall(r'\d+\) ([0-9A-F]{40}) "([^"]+)"', identities):
+    if identity in seen or not name.startswith(("Apple Distribution:", "iPhone Distribution:")):
+        continue
+    seen.add(identity)
+    with tempfile.TemporaryDirectory(prefix="runcount-login-signing-probe-") as directory:
+        probe = Path(directory) / "probe"
+        shutil.copyfile("/usr/bin/true", probe)
+        probe.chmod(0o700)
+        code, output = run("/usr/bin/codesign", "--force", "--sign", identity,
+                           "--keychain", str(login_keychain),
+                           "--timestamp=none", str(probe), timeout=20)
+        print(json.dumps({"keychain": "login", "identity": name, "sign_exit": code,
+                          "output": output.strip()}))
