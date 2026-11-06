@@ -21,6 +21,34 @@ describe('UserProfile', () => {
     ...overrides,
   });
 
+  test('rejects the current email and allows retrying with a different address', async () => {
+    const updateEmail = vi.fn().mockResolvedValue(undefined);
+    const backend = buildBackend({ updateEmail });
+
+    render(<UserProfile backend={backend} user={user} onSignOut={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText(/^new email$/i), {
+      target: { value: 'Player@Example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /update email/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'New email must be different from your current email',
+    );
+    expect(updateEmail).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: /update email/i })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText(/^new email$/i), {
+      target: { value: 'new@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /update email/i }));
+
+    expect(await screen.findByText(/Email update initiated/)).toBeInTheDocument();
+    expect(updateEmail).toHaveBeenCalledTimes(1);
+    expect(updateEmail).toHaveBeenCalledWith('new@example.com');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   test('blocks Cognito password updates before submit when the password misses policy', async () => {
     const updatePassword = vi.fn();
     const backend = buildBackend({

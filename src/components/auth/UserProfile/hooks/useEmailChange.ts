@@ -6,6 +6,7 @@ import type { GameBackend } from '../../../../backend/types';
 interface UseEmailChangeArgs {
   backend: GameBackend;
   feedback: ProfileFeedback;
+  currentEmail?: string;
 }
 
 /**
@@ -30,7 +31,11 @@ export const getEmailValidationError = (
   return null;
 };
 
-export const useEmailChange = ({ backend, feedback }: UseEmailChangeArgs) => {
+export const useEmailChange = ({
+  backend,
+  feedback,
+  currentEmail,
+}: UseEmailChangeArgs) => {
   const [newEmail, setNewEmail] = useState('');
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [awaitingEmailVerification, setAwaitingEmailVerification] = useState(false);
@@ -43,10 +48,15 @@ export const useEmailChange = ({ backend, feedback }: UseEmailChangeArgs) => {
     try {
       feedback.beginSubmit();
 
+      const validationError = getEmailValidationError(newEmail, currentEmail);
+      if (validationError) {
+        throw new Error(validationError);
+      }
+
       if (!backend.updateEmail) {
         throw new Error('Email updates are part of the Phase 2 Cognito signup work.');
       }
-      await backend.updateEmail(newEmail);
+      await backend.updateEmail(newEmail.trim());
 
       feedback.succeed(
         backend.verifyEmailUpdate

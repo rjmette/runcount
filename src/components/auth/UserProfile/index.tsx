@@ -38,7 +38,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
     totalGames,
     lastGameDate,
   } = useProfileStats(backend, user);
-  const emailChange = useEmailChange({ backend, feedback });
+  const emailChange = useEmailChange({ backend, feedback, currentEmail: user.email });
   const passwordChange = usePasswordChange({ backend, feedback });
 
   return (

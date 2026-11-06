@@ -44,6 +44,36 @@ describe('useEmailChange', () => {
       ...overrides,
     }) as GameBackend;
 
+  test.each([
+    ['', 'Enter a valid email address'],
+    ['   ', 'Enter a valid email address'],
+    ['not-an-email', 'Enter a valid email address'],
+    [' player@EXAMPLE.com ', 'New email must be different from your current email'],
+  ])('blocks submission of %j before calling the backend', async (email, message) => {
+    const updateEmail = vi.fn();
+    const backend = buildBackend({ updateEmail });
+    const { result } = renderHook(() => {
+      const feedback = useProfileFeedback();
+      const emailChange = useEmailChange({
+        backend,
+        feedback,
+        currentEmail: 'player@example.com',
+      });
+      return { feedback, emailChange };
+    });
+
+    act(() => result.current.emailChange.setNewEmail(email));
+    await act(async () => {
+      await result.current.emailChange.handleUpdateEmail(submitEvent);
+    });
+
+    expect(updateEmail).not.toHaveBeenCalled();
+    expect(result.current.feedback.error).toBe(message);
+    expect(result.current.feedback.loading).toBe(false);
+    expect(result.current.emailChange.newEmail).toBe(email);
+    expect(result.current.emailChange.awaitingEmailVerification).toBe(false);
+  });
+
   test('calls updateEmail and surfaces the success message', async () => {
     const updateEmail = vi.fn().mockResolvedValue(undefined);
     const backend = buildBackend({ updateEmail });
@@ -55,7 +85,7 @@ describe('useEmailChange', () => {
     });
 
     act(() => {
-      result.current.emailChange.setNewEmail('new@example.com');
+      result.current.emailChange.setNewEmail(' new@example.com ');
     });
 
     await act(async () => {
