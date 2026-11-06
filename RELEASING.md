@@ -46,6 +46,11 @@ The three workflows fire in parallel:
 - Registered on `rjmette/runcount` with labels `[self-hosted, macOS]` (separate runner directory from tiny-tanks; both coexist).
 - Xcode 26+ with iOS platform support installed.
 - Running as a launchd service; LaunchAgent plist has `SessionCreate` removed so codesign can reach the login keychain.
+- The shared runner stores the distribution identity in `beenbot-signing.keychain-db`.
+  RunCount unlocks it with the existing runner-local credential file before signing
+  and locks it after the job. An unlocked login keychain only provides the development identity.
+  `scripts/prepare-ios-signing.sh` supports `IOS_SIGNING_KEYCHAIN_PATH` and
+  `IOS_SIGNING_PASSWORD_FILE` overrides if the runner storage layout changes.
 
 ### Apple
 

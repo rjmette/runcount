@@ -106,6 +106,10 @@ jobs:
           printf '%s\n' "$APP_STORE_CONNECT_API_KEY" > "$ASC_API_KEY_PATH"
           echo "ASC_API_KEY_PATH=$ASC_API_KEY_PATH" >> "$GITHUB_ENV"
 
+      - name: Unlock distribution signing keychain
+        id: signing
+        run: bash scripts/prepare-ios-signing.sh
+
       - name: Resolve Swift packages
         run: |
           xcodebuild -resolvePackageDependencies \
@@ -186,3 +190,7 @@ jobs:
           if [ -n "${ASC_API_KEY_PATH:-}" ]; then
             rm -f "$ASC_API_KEY_PATH"
           fi
+
+      - name: Lock distribution signing keychain
+        if: always() && steps.signing.outcome == 'success'
+        run: bash scripts/prepare-ios-signing.sh lock
