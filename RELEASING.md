@@ -112,6 +112,89 @@ release for parity verification. Dispatch `testflight.yml` from `main` and set
 workflow verifies that Capacitor copied the exact production web bundle into
 the iOS project before archiving.
 
+### Unattended iOS signing on percolator
+
+The runner needs both the correct launchd session and access to the distribution
+keychain. Removing `SessionCreate` from the runner LaunchAgent remains necessary;
+it does not unlock a separate signing keychain.
+
+On November 5, 2026, the archive succeeded but export failed while re-signing
+`Capacitor.framework` with `errSecInternalComponent`. A retry waited roughly
+14 minutes before reporting the same error. Runner diagnostics confirmed:
+
+- `SessionCreate` was still absent from the RunCount LaunchAgent.
+- The `login` keychain was unlocked but contained only the development identity.
+- The distribution identity was in the locked `beenbot-signing` keychain, which
+  appeared first in the user keychain search list.
+- A disposable signing probe failed while that keychain was locked and succeeded
+  without interaction after the workflow unlocked it.
+
+The fix is in [prepare-ios-signing.sh](scripts/prepare-ios-signing.sh), called by
+[testflight.yml](.github/workflows/testflight.yml) before building the archive.
+It reads the existing runner-local credential without logging it and unlocks the
+distribution keychain. The workflow locks that keychain again during cleanup,
+including when a later build or upload step fails.
+
+| Purpose                | Default runner-local path                                         |
+| ---------------------- | ----------------------------------------------------------------- |
+| Distribution keychain  | `$HOME/Library/Keychains/beenbot-signing.keychain-db`             |
+| Keychain password file | `$HOME/.config/beenbot/credentials/ios-signing-keychain-password` |
+
+The password file is provisioned on the Mac; its contents are never committed or
+printed. No additional GitHub secret or interactive Mac password entry is needed
+for the existing setup. If the storage layout changes, set
+`IOS_SIGNING_KEYCHAIN_PATH` and `IOS_SIGNING_PASSWORD_FILE` in the workflow
+environment to point to the provisioned files. The helper must run as the runner
+account (`zeroadmin`), with permission to read both files.
+
+For future failures:
+
+1. Check the failed step and log. An archive that succeeds followed by an export
+   signing error can indicate distribution-key access; the error alone does not
+   prove the login keychain is locked or its password is wrong.
+2. When no other job is using the shared distribution keychain, run the diagnostic:
+
+   ```sh
+   gh workflow run diagnose-ios-signing.yml --ref main
+   gh run list --workflow diagnose-ios-signing.yml --limit 1
+   gh run view <run-id> --log
+   ```
+
+   This workflow unlocks the existing keychain, reports selected LaunchAgent and
+   keychain metadata, signs disposable files, and locks the keychain afterward.
+   It does not export private keys or change key-access permissions. Confirm that
+   the distribution keychain reports `unlocked: true` during the probe and that
+   each distribution probe reports `sign_exit: 0`; diagnostic job success alone
+   is not proof that signing worked.
+
+3. If the helper reports missing files, restore the intended runner-local keychain
+   and credential provisioning. If unlock or the probe fails, investigate that
+   keychain's credential and signing-key access before rebuilding. Do not reset or
+   delete the login keychain, regenerate certificates, or ask for a Mac password
+   merely because export reports `errSecInternalComponent`.
+4. Dispatch the corrected workflow from `main` with the intended marketing version:
+
+   ```sh
+   gh workflow run testflight.yml --ref main -f marketing_version=1.0.7
+   gh run list --workflow testflight.yml --limit 1
+   gh run view <run-id> --log
+   ```
+
+   Replace `1.0.7` with the intended version for a future release. A fresh dispatch
+   uses a new build number. Rerunning an old release run continues to use its old
+   workflow revision, so it will not pick up a newly committed signing fix.
+
+5. Verify `Uploaded App`, `EXPORT SUCCEEDED`, and successful keychain cleanup.
+   TestFlight availability follows Apple's processing; successful upload does not
+   mean processing has already finished.
+
+The keychain is shared with other projects on percolator. Avoid overlapping signing
+jobs: one project's cleanup can lock it while another project is still signing.
+
+Verified recovery: [iOS 1.0.7, build 14](https://github.com/rjmette/runcount/actions/runs/42168135674)
+uploaded successfully without interaction, and keychain cleanup succeeded.
+The fix is committed as `0f42467` (issue #146).
+
 If export reports `FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED`, the
 workflow will mark the run as an Apple agreement blocker and preserve the
 export log as an artifact. An account holder must bring the required agreement
@@ -141,7 +224,7 @@ See the upstream SOP for the full table — the highlights:
 | "Missing Compliance" blocks TestFlight build from reaching testers                                           | Already fixed: `ITSAppUsesNonExemptEncryption=false` in Info.plist.                                                                                                                                                                                |
 | `error: PLA Update available` during archive                                                                 | Apple updated the PLA — re-accept at developer.apple.com/account.                                                                                                                                                                                  |
 | `403 FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED` during upload                                         | The workflow reports an Apple agreement blocker and uploads the export log; an account holder must bring the required agreement back into effect in App Store Connect → Business, then rerun the workflow.                                         |
-| `codesign ... errSecInternalComponent` only when runner runs as service                                      | Already addressed: percolator's LaunchAgent plist has `SessionCreate` stripped so codesign can reach the unlocked login keychain.                                                                                                                  |
+| `codesign ... errSecInternalComponent` during archive or export                                              | Follow [Unattended iOS signing on percolator](#unattended-ios-signing-on-percolator): verify the LaunchAgent session and the dedicated distribution keychain. Unlocking the login keychain alone is insufficient.                                  |
 | Play upload fails with "Service account JSON length: 0 chars"                                                | `gh secret set < file` silently failed — re-pipe and verify `gh secret list` timestamp.                                                                                                                                                            |
 | Tester opt-in URL says "App not available"                                                                   | Tester not on the email list, list not checkboxed on the release, or release still in Draft.                                                                                                                                                       |
 | New TestFlight build doesn't surface as an update on the phone                                               | Marketing version must monotonically increase past the highest existing TestFlight version. Going down (e.g. 1.0 → 0.1.0) still installs but won't show as an update — force-quit and relaunch TestFlight to see it under its own version section. |
