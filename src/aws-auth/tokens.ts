@@ -1,4 +1,5 @@
 import { cognitoConfig } from './config';
+import { getOAuthRedirectUri } from './oauthRedirect';
 
 import type { AppSession, AppUser } from '../types/auth';
 
@@ -123,7 +124,8 @@ export async function exchangeCodeForTokens(
     grant_type: 'authorization_code',
     client_id: cognitoConfig.clientId,
     code,
-    redirect_uri: cognitoConfig.redirectUri,
+    // Must match the redirect_uri used in startAwsSignIn (web https or native scheme).
+    redirect_uri: getOAuthRedirectUri(),
     code_verifier: verifier,
   });
 

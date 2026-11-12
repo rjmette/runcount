@@ -3,8 +3,13 @@
   "googleSecretName": "runcount/dev/google-oauth",
   "callbackUrls": [
     "http://localhost:3000/runcount/auth/callback",
-    "http://localhost:3000/auth/callback"
+    "http://localhost:3000/auth/callback",
+    "runcount://auth/callback"
   ],
-  "logoutUrls": ["http://localhost:3000/runcount/", "http://localhost:3000/"],
+  "logoutUrls": [
+    "http://localhost:3000/runcount/",
+    "http://localhost:3000/",
+    "runcount://"
+  ],
   "webOrigins": ["http://localhost:3000"]
 }

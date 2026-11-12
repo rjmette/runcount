@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@capacitor/android": "^8.1.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",

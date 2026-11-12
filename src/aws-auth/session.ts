@@ -1,4 +1,14 @@
+import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+
 import { cognitoConfig, isAwsAuthMock, mockUser } from './config';
+import {
+  getOAuthLogoutUri,
+  getOAuthRedirectUri,
+  isNativeAuthCallbackUrl,
+  isNativeAuthLogoutUrl,
+} from './oauthRedirect';
 import { deriveCodeChallenge, generateCodeVerifier, generateState } from './pkce';
 import {
   clearTokens,
@@ -11,6 +21,8 @@ import {
 } from './tokens';
 
 import type { AppSession, AppUser } from '../types/auth';
+
+type NativeDeepLinkListener = Awaited<ReturnType<typeof App.addListener>>;
 
 const PKCE_STORAGE_KEY = 'runcount.auth.pkce';
 const MOCK_USER_STORAGE_KEY = 'runcount.auth.mock-user';
@@ -34,6 +46,26 @@ function takePkce(): PendingPkce | null {
   } catch {
     return null;
   }
+}
+
+function callbackSearchParams(callbackUrl?: string): URLSearchParams {
+  if (!callbackUrl) {
+    return new URLSearchParams(window.location.search);
+  }
+  try {
+    return new URL(callbackUrl).searchParams;
+  } catch {
+    const queryIndex = callbackUrl.indexOf('?');
+    return new URLSearchParams(queryIndex >= 0 ? callbackUrl.slice(queryIndex + 1) : '');
+  }
+}
+
+async function openAuthUrl(url: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    await Browser.open({ url });
+    return;
+  }
+  window.location.assign(url);
 }
 
 export function getStoredAwsSession(): AppSession | null {
@@ -77,21 +109,22 @@ export async function startAwsSignIn(): Promise<void> {
     returnTo: (routerPath || '/') + window.location.search,
   });
 
+  const redirectUri = getOAuthRedirectUri();
   const params = new URLSearchParams({
     client_id: cognitoConfig.clientId,
     response_type: 'code',
     scope: 'openid email profile',
-    redirect_uri: cognitoConfig.redirectUri,
+    redirect_uri: redirectUri,
     state,
     code_challenge: challenge,
     code_challenge_method: 'S256',
     identity_provider: 'Google',
   });
 
-  window.location.assign(`${cognitoConfig.domain}/oauth2/authorize?${params}`);
+  await openAuthUrl(`${cognitoConfig.domain}/oauth2/authorize?${params}`);
 }
 
-export function signOutAws(): void {
+export async function signOutAws(): Promise<void> {
   if (isAwsAuthMock) {
     localStorage.removeItem(MOCK_USER_STORAGE_KEY);
     window.location.reload();
@@ -101,9 +134,9 @@ export function signOutAws(): void {
   clearTokens();
   const params = new URLSearchParams({
     client_id: cognitoConfig.clientId,
-    logout_uri: cognitoConfig.logoutUri,
+    logout_uri: getOAuthLogoutUri(),
   });
-  window.location.assign(`${cognitoConfig.domain}/logout?${params}`);
+  await openAuthUrl(`${cognitoConfig.domain}/logout?${params}`);
 }
 
 export async function getFreshIdToken(
@@ -143,18 +176,31 @@ let inFlightCallback: Promise<string> | null = null;
 // second run would find the PKCE already consumed and throw. Dedupe so both
 // invocations share one in-flight exchange; reset on failure so a later
 // sign-in attempt can retry cleanly.
-export function completeAwsCallback(): Promise<string> {
+export function completeAwsCallback(callbackUrl?: string): Promise<string> {
   if (!inFlightCallback) {
-    inFlightCallback = runAwsCallback();
-    inFlightCallback.catch(() => {
-      inFlightCallback = null;
-    });
+    const pending = runAwsCallback(callbackUrl);
+    inFlightCallback = pending;
+    // Clear after settle so a later native sign-in (no full page reload) can
+    // exchange again. queueMicrotask on success keeps StrictMode's double
+    // invoke on the same tick sharing one in-flight promise.
+    void pending.then(
+      () => {
+        queueMicrotask(() => {
+          if (inFlightCallback === pending) {
+            inFlightCallback = null;
+          }
+        });
+      },
+      () => {
+        inFlightCallback = null;
+      },
+    );
   }
   return inFlightCallback;
 }
 
-async function runAwsCallback(): Promise<string> {
-  const params = new URLSearchParams(window.location.search);
+async function runAwsCallback(callbackUrl?: string): Promise<string> {
+  const params = callbackSearchParams(callbackUrl);
   const error = params.get('error');
   if (error) {
     throw new Error(`${error}: ${params.get('error_description') ?? 'no description'}`);
@@ -172,4 +218,48 @@ async function runAwsCallback(): Promise<string> {
   return pending.returnTo && pending.returnTo !== '/auth/callback'
     ? pending.returnTo
     : '/';
+}
+
+export interface NativeAuthDeepLinkHandlers {
+  onSignInComplete: (returnTo: string) => void;
+  onSignInError: (error: Error) => void;
+  onLogoutComplete?: () => void;
+}
+
+/**
+ * Listen for Cognito custom-scheme returns on iOS/Android. Closes the in-app
+ * browser, finishes the PKCE exchange for sign-in, and acknowledges logout.
+ */
+export async function registerNativeAuthDeepLinkListener(
+  handlers: NativeAuthDeepLinkHandlers,
+): Promise<NativeDeepLinkListener | null> {
+  if (!Capacitor.isNativePlatform()) {
+    return null;
+  }
+
+  return App.addListener('appUrlOpen', async ({ url }) => {
+    if (isNativeAuthCallbackUrl(url)) {
+      try {
+        await Browser.close();
+      } catch {
+        // Browser may already be closed.
+      }
+      try {
+        const returnTo = await completeAwsCallback(url);
+        handlers.onSignInComplete(returnTo);
+      } catch (err) {
+        handlers.onSignInError(err instanceof Error ? err : new Error(String(err)));
+      }
+      return;
+    }
+
+    if (isNativeAuthLogoutUrl(url)) {
+      try {
+        await Browser.close();
+      } catch {
+        // Browser may already be closed.
+      }
+      handlers.onLogoutComplete?.();
+    }
+  });
 }

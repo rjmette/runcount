@@ -24,6 +24,7 @@ import {
   getFreshIdToken,
   getStoredAwsSession,
   getStoredMockUser,
+  registerNativeAuthDeepLinkListener,
   signOutAws,
   startAwsSignIn,
 } from './session';
@@ -112,6 +113,42 @@ export const AwsAuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [applySession]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let listener: { remove: () => Promise<void> } | null = null;
+
+    const setup = async () => {
+      const handle = await registerNativeAuthDeepLinkListener({
+        onSignInComplete: (returnTo) => {
+          if (cancelled) return;
+          applySession(getStoredAwsSession());
+          window.history.replaceState({}, document.title, returnTo);
+          setLoading(false);
+        },
+        onSignInError: () => {
+          if (cancelled) return;
+          setLoading(false);
+        },
+        onLogoutComplete: () => {
+          if (cancelled) return;
+          applySession(null);
+        },
+      });
+      if (cancelled) {
+        await handle?.remove();
+        return;
+      }
+      listener = handle;
+    };
+
+    void setup();
+
+    return () => {
+      cancelled = true;
+      void listener?.remove();
+    };
+  }, [applySession]);
+
   const signIn = useCallback(async () => {
     await startAwsSignIn();
   }, []);
@@ -180,8 +217,8 @@ export const AwsAuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const signOut = useCallback(async () => {
-    signOutAws();
     applySession(null);
+    await signOutAws();
   }, [applySession]);
 
   const getIdToken = useCallback(async () => {
